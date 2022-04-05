@@ -26,6 +26,7 @@
 
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
 
+
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
@@ -5990,46 +5991,164 @@ body.no-sidebar .sidebar {
   color: #0a6ebd;
 }
 
+/* categories 修改*/
+/* .category-link{color:#0a6ebd}
+.archive-list-count,
 .category-list-count,
-.tag-list-count,
-.archive-list-count {
-  padding-left: 5px;
-  color: #999;
-  font-size: 0.85em;
-}
-
+.tag-list-count{padding-left:5px;color:#999;font-size:.85em}
+.archive-list-count:before,
 .category-list-count:before,
-.tag-list-count:before,
-.archive-list-count:before {
-  content: "(";
-}
-
+.tag-list-count:before{content:"("}
+.archive-list-count:after,
 .category-list-count:after,
-.tag-list-count:after,
-.archive-list-count:after {
-  content: ")";
-}
-
-.category-list,
+.tag-list-count:after{content:")"}
 .archive-list,
-.tag-list {
-  line-height: 1.75;
-}
-
-.category-list li:before,
+.category-list,
+.tag-list{line-height:1.75}
 .archive-list li:before,
-.tag-list li:before {
-  color: #ccc;
-  content: "▪";
-  font-size: 12px;
-  margin-right: 6px;
-  -webkit-transition: 0.2s ease;
-  transition: 0.2s ease;
+.category-list li:before,
+.tag-list li:before{color:#ccc;content:"▪";font-size:12px;margin-right:6px;-webkit-transition:.2s ease;transition:.2s ease}
+.category-list-child{padding-left:15px} */
+
+.category-all-page {
+  margin: 30px 40px 30px 40px;
+  position: relative;
+  min-height: 70vh;
+}
+.category-all-page h2 {
+  margin: 20px 0;
+}
+.category-all-page .category-all-title {
+  text-align: center;
+}
+.category-all-page .category-all {
+  margin-top: 20px;
+}
+.category-all-page .category-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.category-all-page .category-list-item-list-item {
+  margin: 10px 15px;
+}
+.category-all-page .category-list-item-list-count {
+  color: grey;
+}
+.category-all-page .category-list-item-list-count:before {
+  display: inline;
+  content: " (";
+}
+.category-all-page .category-list-item-list-count:after {
+  display: inline;
+  content: ") ";
+}
+.category-all-page .category-list-item {
+  margin: 10px 10px;
+}
+.category-all-page .category-list-count {
+  color: grey;
+}
+.category-all-page .category-list-count:before {
+  display: inline;
+  content: " (";
+}
+.category-all-page .category-list-count:after {
+  display: inline;
+  content: ") ";
+}
+.category-all-page .category-list-child {
+  padding-left: 10px;
 }
 
-.category-list-child {
-  padding-left: 15px;
+
+/* 分类页样式 began */
+.category-list-link:hover{
+  transform: scale(1.1);
+  box-shadow: 10px 10px 15px 2px rgba(0,0,0,.12), 0 0 6px 0 rgba(104, 104, 105, 0.1);
+  border-radius: 15px;
+  padding: 6px 16px;
+  margin-left: 0px;
+  font-size: 16px;
+  transition-duration: 0.15s;
+  /* display:flex; */
 }
+a.category-list-link:before{
+  top: 10px;
+  width: 18px;
+  height: 18px;
+  content: "📚";
+  margin-right: 5px;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+
+
+/* tags 修改 */
+.tag-cloud-tags{
+  /*font-family: Helvetica, Tahoma, Arial;*/
+  /*font-weight: 100;*/
+  text-align: center;
+  counter-reset: tags;
+}
+.tag-cloud-tags a{
+  border-radius: 6px;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin: 8px 5px 0px 0px;
+}
+.tag-cloud-tags a:before{
+  content: "🔖";
+}
+
+.tag-cloud-tags a:hover{
+    box-shadow: 0px 5px 15px 0px rgba(0,0,0,.4);
+    transform: scale(1.1);
+    /*box-shadow: 10px 10px 15px 2px rgba(0,0,0,.12), 0 0 6px 0 rgba(104, 104, 105, 0.1);*/
+    transition-duration: 0.15s;
+}
+.tag-cloud h2 {
+  margin: 20px 0;
+}
+.tag-cloud {
+  text-align: center;
+}
+.tag-cloud {
+  margin-top: 20px;
+}
+.tag-cloud {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tag-cloud {
+  margin: 10px 15px;
+}
+
+/*文章底部标签样式*/
+.posts-expand .post-tags a {
+  -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  font-family: 'Comic Sans MS', sans-serif;
+  transition: 0.2s ease-out;
+  padding: 3px 5px;
+  margin: 5px;
+  background: #f5f5f5;
+  border-bottom: none;
+  border-radius: 15px;
+}
+.posts-expand .post-tags a:hover {
+  background: rgba(100,154,182,0.902);
+  color: #fff;
+  -webkit-box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  -moz-box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+
 
 .recent-post-list li + li {
   margin-top: 15px;
