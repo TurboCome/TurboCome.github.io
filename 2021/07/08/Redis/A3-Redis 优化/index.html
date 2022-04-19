@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Redis性能优化 | Hexo</title>
+  <meta name="description" content="Redis性能优化布隆过滤器：应用场景： 缓存穿透，海量数据去重  K 个哈希函数，每个字符串跟 k个bit对应，降低冲突概率当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在Bloom Filter 和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis性能优化">
+<meta property="og:url" content="http://example.com/2021/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="Redis性能优化布隆过滤器：应用场景： 缓存穿透，海量数据去重  K 个哈希函数，每个字符串跟 k个bit对应，降低冲突概率当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在Bloom Filter 和">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwktpi57yj60yc0kyq4o02.jpg">
+<meta property="article:published_time" content="2021-07-08T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-19T12:46:01.306Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://example.com/2021/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">四月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/04/13/Mysql/A5-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" class="title">MySQL优化实践</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-13T13:55:19.000Z" itemprop="datePublished">2022-04-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/04/10/%E7%BD%91%E7%BB%9C/2.TCP-UDP-Http%E7%9F%A5%E8%AF%86%E7%82%B9/" class="title">TCP/UDP/Http</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-10T13:55:19.000Z" itemprop="datePublished">2022-04-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/04/09/%E7%BD%91%E7%BB%9C/3.%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/" class="title">请求代理服务器--加密</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-09T13:55:19.000Z" itemprop="datePublished">2022-04-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/04/08/%E7%BD%91%E7%BB%9C/1.%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/" class="title">计算机网络概述</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-08T13:55:19.000Z" itemprop="datePublished">2022-04-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/" class="title">SQL实践案例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-03-15T13:55:19.000Z" itemprop="datePublished">2022-03-15</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Redis/A3-Redis 优化" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Redis性能优化
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2021/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="article-date">
+	  <time datetime="2021-07-08T13:55:19.000Z" itemprop="datePublished">2021-07-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Redis/" rel="tag">Redis</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2021/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="Redis性能优化"><a href="#Redis性能优化" class="headerlink" title="Redis性能优化"></a>Redis性能优化</h1><h4 id="布隆过滤器："><a href="#布隆过滤器：" class="headerlink" title="布隆过滤器："></a>布隆过滤器：</h4><p><strong>应用场景：</strong> 缓存穿透，海量数据去重 </p>
+<p>K 个哈希函数，每个字符串跟 k个bit对应，降低冲突概率<br>当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在<br><strong>Bloom Filter 和单哈希函数 Bit-Map不同：</strong>Bloom Filter使用了 k个哈希函数，每个 字符串跟 k个bit对应。降低冲突概率</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg" alt="DB32F606-7EE5-46FC-9E99-3B5438DC21F1" width="650" height="300"/>
+
+<h4 id="存在的问题："><a href="#存在的问题：" class="headerlink" title="存在的问题："></a>存在的问题：</h4><p><strong>存在误判：</strong>hash之后得到的  k个位置上值都是1，但可能此值不存在；<br><strong>解决：</strong>可以通过建立一个 白名单来存储可能会误判的元素<br>删除困难： 一个放入容器的元素映射到 bit数组的k个位置上是1，删除的时候不能简单的直接置为0，可能会影响其他元素的判断；<br>解决： 可以采用Counting Bloom Filter</p>
+<h4 id="分布式锁：-常规锁只能适用于单机，对于分布式架构无法保证"><a href="#分布式锁：-常规锁只能适用于单机，对于分布式架构无法保证" class="headerlink" title="分布式锁： 常规锁只能适用于单机，对于分布式架构无法保证"></a>分布式锁： 常规锁只能适用于单机，对于分布式架构无法保证</h4><p>避免不同节点重复相同的工作： 比如用户执行某个操作有可能不同节点会发送多封邮件；<br>避免破坏数据的正确性：如果两个节点在同一条数据上同时进行操作，可能会造成数据错误或不一致的情况出现；</p>
+<h4 id="Redis-分布式锁的问题：-锁超时"><a href="#Redis-分布式锁的问题：-锁超时" class="headerlink" title="Redis 分布式锁的问题： 锁超时"></a>Redis 分布式锁的问题： 锁超时</h4><p>有两台平行的服务 A B，其中 A 服务在 获取锁之后 由于某种原因突然 挂了，那么 B 服务就永远无法获取到锁； 需要额外设置一个超时时间，来保证服务的可用性。如果 加锁，释放锁 之间的逻辑执行得太长，以至于 超出了锁的超时限制，也会出现问题。<br>因为这时第一个线程持有锁过期了，而临界区逻辑还没执行完，与此同时第二个线程就提前拥有了这把锁，导致临界区的代码不能得到严格的串行执行。为避免这个问题，Redis 分布式锁 不要用于较长时间的任务。</p>
+<p><strong>解决：标记版本号</strong>  将锁 value 值设置为一个随机数，释放锁时先匹配随机数是否一致，然后再删除 key， 确保当前线程占有的锁不会被其他线程释放，除非这个锁是因为过期而被服务器自动释放的，但匹配  value 和 删除 key 在 Redis 中并不是一个原子性的操作，需要使用像 Lua 脚本来处理，因为 Lua 脚本可以 保证多个指令的原子性执行</p>
+<h4 id="分布式锁：setnx是-SET-if-Not-exists"><a href="#分布式锁：setnx是-SET-if-Not-exists" class="headerlink" title="分布式锁：setnx是 SET if Not exists"></a>分布式锁：setnx是 SET if Not exists</h4><p>设置过期时间：  EXPIRE name  5       # 5s 后过期<br>EXPIRE 命令依赖于 SETNX 的执行结果，而事务中没有 if-else 的分支逻辑，如果 SETNX 没有抢到锁，EXPIRE 就不应该执行。<br>加入 SET 指令扩展参数，使 SETNX 和 EXPIRE 指令一起执行： SET key value [EX seconds | PX milliseconds] [NX | XX] [KEEPTTL]<br>设置一个过期时间，就算线程 1挂了，也会在失效时间到了，自动释放<br>计数： 使用 INCR 命令进行 原子性 的自增操作，多个 客户端对同一个 key 进行操作，也决不会导致竞争的情况</p>
+<p>Setnx 加锁， expire 过期时间； 不是原子性操作；<br>Redis:: set( “my:lock”,   $token,  “nx”, “ex”, 10);<br>直接使用 set进行锁，参数配置，让 加锁+过期时间 成原子操作；传统的 del 解锁方式，存在问题； 如果  expire time 释放锁后， 其他线程重新获取，直接 del 解锁，会删除别人建立的锁了。通过 lua脚本（保证一系列操作的原子性），先进行 get，再进行 del； 外加 token 字段，一个随机数，当 lock的时候，往redis的 my:lock中存的是这个token，unlock的时候，先 get一下lock中的token，如果 和要删除的 token是一致的，说明这个锁是之前我 set的，否则说明这个锁已经过期，是别人set的，就不应该对它进行任何操作。</p>
+<h4 id="场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？"><a href="#场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？" class="headerlink" title="场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？"></a>场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？</h4><p>使用 keys 指令可以扫出 指定模式的 key列表；如果 redis正在给 线上的业务提供服务，那使用 keys指令会有什么问题？<br>Redis单线程的，keys指令会导致线程阻塞一段时间，线上服务会停顿，直到指令执行完毕，服务才能恢复。<br>可以使用 scan指令，无阻塞的提取出指定模式的key列表，但会有一定的重复概率，需要在客户端做一次去重，整体所花费的时间会比直接用keys指令长。<br>分布式场景下，多个微服务间协同调用，调用链使用 UUID 唯一</p>
+<h3 id="redis常见性能问题和解决方案："><a href="#redis常见性能问题和解决方案：" class="headerlink" title="redis常见性能问题和解决方案："></a>redis常见性能问题和解决方案：</h3><p>1.Master写内存快照，save命令调度rdbSave函数，会阻塞主线程的工作，当快照比较大时对性能影响是非常大的，会间断性暂停服务，所以 Master最好不要写内存快照。<br>2.Master AOF持久化，如果不重写AOF文件，这个持久化方式对性能的影响是最小的，但是AOF文件会不断增大，AOF文件过大会影响 Master重启的恢复速度。Master最好不要做任何持久化工作，包括内存快照和AOF日志文件，特别是不要启用内存快照做持久化, 如果数据比较关键，某个 Slave开启AOF备份数据，策略为每秒同步一次。<br>3.Master 调用bgrewrite AOF 重写AOF文件，AOF在重写的时候会占大量的CPU和内存资源，导致服务load过高，出现短暂服务暂停现象。<br>4.Redis主从复制的性能问题，为主从复制速度和连接的稳定性，Slave和 Master最好在同一个局域网内。</p>
+<h3 id="Redis-事务特征："><a href="#Redis-事务特征：" class="headerlink" title="Redis 事务特征："></a>Redis 事务特征：</h3><p>1.在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis 不会再为其它客户端请求提供任何服务，从而保证s事务中的所有命令被原子的执行。<br>2.和关系型数据库中的事务相比，在 Redis事务中，如果 某一条命令执行失败，其后的命令仍然会被继续执行。<br>3.通过 multi 命令开启一个事务，在该语句之后执行的命令都将被视为事务之内的操作，最后通过执行 exec&#x2F;discard  命令来提交&#x2F; 回滚 该事务内的所有操作。 这两个Redis命令可被视为等同于关系型数据库中的 commit&#x2F;rollback 语句。<br>4.在事务开启之前，如果 客户端与服务器之间出现通讯故障并导致网络断开，其后所有待执行的语句都将不会被服务器执行。如果网络中断事件是发生在客户端执行exec 命令之后，那么该事务中的所有命令都会被服务器执行。<br>5.当使用 Append-Only模式时，Redis会通过调用系统函数write 将该事务内的所有写操作在本次调用中全部写入磁盘。如果在写入过程中出现系统崩溃，如电源故障导致宕机，此时也许只有部分数据被写入到磁盘，而另一部分数据却已经丢失。Redis服务器会在重启时执行一系列必要的一致性检测，一旦发现类似问题，会立即退出并给出相应的错误提示。 此时需要充分利用Redis 工具包中提供的 redis-check-aof工具来定位到数据不一致的错误，并将已经写入的部分数据进行回滚。修复后就可以再次重新启动 Redis服务器了。</p>
+<h3 id="Redis做异步队列："><a href="#Redis做异步队列：" class="headerlink" title="Redis做异步队列："></a>Redis做异步队列：</h3><p>使用 list结构作为队列，rpush生产消息， lpop消费消息<br>当lpop没有消息的时候，要适当sleep一会再重试。不使用 sleep: list还有个指令叫 blpop，在没有消息的时候，它会阻塞住直到消息到来。</p>
+<p>使用 pub&#x2F;sub主题订阅者模式，可以实现 1:N 的消息队列。<br>pub&#x2F;sub缺点： 在消费者下线的情况下，生产的消息会丢失，得使用专业的消息队列如RocketMQ等</p>
+<h3 id="使用Redis-实现可靠的消息队列-ack-机制？"><a href="#使用Redis-实现可靠的消息队列-ack-机制？" class="headerlink" title="使用Redis 实现可靠的消息队列 ack 机制？"></a>使用Redis 实现可靠的消息队列 ack 机制？</h3><p>消费者用 rpop 取出元素，若消费者在 取出元素之后崩溃了，此时消息 已被取出且没有正确处理，会造成该消息的丢失<br>队列的备份：消费者程序在 从主消息队列中取出消息后，再将其插入到备份队列中，直到消费者程序完成正常的处理逻辑后再将该消息从备份队列中删除。<br>当备份队列中消息过期时，重新将其 再放回到主消息队列中，以便其它的消费者程序继续处理。RPOPLPUSH命令执行过程示意图如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwktpi57yj60yc0kyq4o02.jpg" alt="7D32B33D-052D-4C35-AB1A-9F995B4E0833" width="650" height="350" />
+
+<h3 id="Redis-如何实现延时队列？"><a href="#Redis-如何实现延时队列？" class="headerlink" title="Redis 如何实现延时队列？"></a>Redis 如何实现延时队列？</h3><p>使用 sortedset，拿时间戳作为 score，消息内容作为 key调用 zadd来生产消息，消费者用 zrangebyscore指令获取N秒之前的数据轮询进行处理。</p>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h1 id="Redis性能优化"><a href="#Redis性能优化" class="headerlink" title="Redis性能优化"></a>Redis性能优化</h1><h4 id="布隆过滤器："><a href="#布隆过滤器：" class="headerlink" title="布隆过滤器："></a>布隆过滤器：</h4><p><strong>应用场景：</strong> 缓存穿透，海量数据去重 </p>
+<p>K 个哈希函数，每个字符串跟 k个bit对应，降低冲突概率<br>当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在<br><strong>Bloom Filter 和单哈希函数 Bit-Map不同：</strong>Bloom Filter使用了 k个哈希函数，每个 字符串跟 k个bit对应。降低冲突概率</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg" alt="DB32F606-7EE5-46FC-9E99-3B5438DC21F1" width="650" height="300"/>
+
+<h4 id="存在的问题："><a href="#存在的问题：" class="headerlink" title="存在的问题："></a>存在的问题：</h4><p><strong>存在误判：</strong>hash之后得到的  k个位置上值都是1，但可能此值不存在；<br><strong>解决：</strong>可以通过建立一个 白名单来存储可能会误判的元素<br>删除困难： 一个放入容器的元素映射到 bit数组的k个位置上是1，删除的时候不能简单的直接置为0，可能会影响其他元素的判断；<br>解决： 可以采用Counting Bloom Filter</p>
+<h4 id="分布式锁：-常规锁只能适用于单机，对于分布式架构无法保证"><a href="#分布式锁：-常规锁只能适用于单机，对于分布式架构无法保证" class="headerlink" title="分布式锁： 常规锁只能适用于单机，对于分布式架构无法保证"></a>分布式锁： 常规锁只能适用于单机，对于分布式架构无法保证</h4><p>避免不同节点重复相同的工作： 比如用户执行某个操作有可能不同节点会发送多封邮件；<br>避免破坏数据的正确性：如果两个节点在同一条数据上同时进行操作，可能会造成数据错误或不一致的情况出现；</p>
+<h4 id="Redis-分布式锁的问题：-锁超时"><a href="#Redis-分布式锁的问题：-锁超时" class="headerlink" title="Redis 分布式锁的问题： 锁超时"></a>Redis 分布式锁的问题： 锁超时</h4><p>有两台平行的服务 A B，其中 A 服务在 获取锁之后 由于某种原因突然 挂了，那么 B 服务就永远无法获取到锁； 需要额外设置一个超时时间，来保证服务的可用性。如果 加锁，释放锁 之间的逻辑执行得太长，以至于 超出了锁的超时限制，也会出现问题。<br>因为这时第一个线程持有锁过期了，而临界区逻辑还没执行完，与此同时第二个线程就提前拥有了这把锁，导致临界区的代码不能得到严格的串行执行。为避免这个问题，Redis 分布式锁 不要用于较长时间的任务。</p>
+<p><strong>解决：标记版本号</strong>  将锁 value 值设置为一个随机数，释放锁时先匹配随机数是否一致，然后再删除 key， 确保当前线程占有的锁不会被其他线程释放，除非这个锁是因为过期而被服务器自动释放的，但匹配  value 和 删除 key 在 Redis 中并不是一个原子性的操作，需要使用像 Lua 脚本来处理，因为 Lua 脚本可以 保证多个指令的原子性执行</p>
+<h4 id="分布式锁：setnx是-SET-if-Not-exists"><a href="#分布式锁：setnx是-SET-if-Not-exists" class="headerlink" title="分布式锁：setnx是 SET if Not exists"></a>分布式锁：setnx是 SET if Not exists</h4><p>设置过期时间：  EXPIRE name  5       # 5s 后过期<br>EXPIRE 命令依赖于 SETNX 的执行结果，而事务中没有 if-else 的分支逻辑，如果 SETNX 没有抢到锁，EXPIRE 就不应该执行。<br>加入 SET 指令扩展参数，使 SETNX 和 EXPIRE 指令一起执行： SET key value [EX seconds | PX milliseconds] [NX | XX] [KEEPTTL]<br>设置一个过期时间，就算线程 1挂了，也会在失效时间到了，自动释放<br>计数： 使用 INCR 命令进行 原子性 的自增操作，多个 客户端对同一个 key 进行操作，也决不会导致竞争的情况</p>
+<p>Setnx 加锁， expire 过期时间； 不是原子性操作；<br>Redis:: set( “my:lock”,   $token,  “nx”, “ex”, 10);<br>直接使用 set进行锁，参数配置，让 加锁+过期时间 成原子操作；传统的 del 解锁方式，存在问题； 如果  expire time 释放锁后， 其他线程重新获取，直接 del 解锁，会删除别人建立的锁了。通过 lua脚本（保证一系列操作的原子性），先进行 get，再进行 del； 外加 token 字段，一个随机数，当 lock的时候，往redis的 my:lock中存的是这个token，unlock的时候，先 get一下lock中的token，如果 和要删除的 token是一致的，说明这个锁是之前我 set的，否则说明这个锁已经过期，是别人set的，就不应该对它进行任何操作。</p>
+<h4 id="场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？"><a href="#场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？" class="headerlink" title="场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？"></a>场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？</h4><p>使用 keys 指令可以扫出 指定模式的 key列表；如果 redis正在给 线上的业务提供服务，那使用 keys指令会有什么问题？<br>Redis单线程的，keys指令会导致线程阻塞一段时间，线上服务会停顿，直到指令执行完毕，服务才能恢复。<br>可以使用 scan指令，无阻塞的提取出指定模式的key列表，但会有一定的重复概率，需要在客户端做一次去重，整体所花费的时间会比直接用keys指令长。<br>分布式场景下，多个微服务间协同调用，调用链使用 UUID 唯一</p>
+<h3 id="redis常见性能问题和解决方案："><a href="#redis常见性能问题和解决方案：" class="headerlink" title="redis常见性能问题和解决方案："></a>redis常见性能问题和解决方案：</h3><p>1.Master写内存快照，save命令调度rdbSave函数，会阻塞主线程的工作，当快照比较大时对性能影响是非常大的，会间断性暂停服务，所以 Master最好不要写内存快照。<br>2.Master AOF持久化，如果不重写AOF文件，这个持久化方式对性能的影响是最小的，但是AOF文件会不断增大，AOF文件过大会影响 Master重启的恢复速度。Master最好不要做任何持久化工作，包括内存快照和AOF日志文件，特别是不要启用内存快照做持久化, 如果数据比较关键，某个 Slave开启AOF备份数据，策略为每秒同步一次。<br>3.Master 调用bgrewrite AOF 重写AOF文件，AOF在重写的时候会占大量的CPU和内存资源，导致服务load过高，出现短暂服务暂停现象。<br>4.Redis主从复制的性能问题，为主从复制速度和连接的稳定性，Slave和 Master最好在同一个局域网内。</p>
+<h3 id="Redis-事务特征："><a href="#Redis-事务特征：" class="headerlink" title="Redis 事务特征："></a>Redis 事务特征：</h3><p>1.在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis 不会再为其它客户端请求提供任何服务，从而保证s事务中的所有命令被原子的执行。<br>2.和关系型数据库中的事务相比，在 Redis事务中，如果 某一条命令执行失败，其后的命令仍然会被继续执行。<br>3.通过 multi 命令开启一个事务，在该语句之后执行的命令都将被视为事务之内的操作，最后通过执行 exec&#x2F;discard  命令来提交&#x2F; 回滚 该事务内的所有操作。 这两个Redis命令可被视为等同于关系型数据库中的 commit&#x2F;rollback 语句。<br>4.在事务开启之前，如果 客户端与服务器之间出现通讯故障并导致网络断开，其后所有待执行的语句都将不会被服务器执行。如果网络中断事件是发生在客户端执行exec 命令之后，那么该事务中的所有命令都会被服务器执行。<br>5.当使用 Append-Only模式时，Redis会通过调用系统函数write 将该事务内的所有写操作在本次调用中全部写入磁盘。如果在写入过程中出现系统崩溃，如电源故障导致宕机，此时也许只有部分数据被写入到磁盘，而另一部分数据却已经丢失。Redis服务器会在重启时执行一系列必要的一致性检测，一旦发现类似问题，会立即退出并给出相应的错误提示。 此时需要充分利用Redis 工具包中提供的 redis-check-aof工具来定位到数据不一致的错误，并将已经写入的部分数据进行回滚。修复后就可以再次重新启动 Redis服务器了。</p>
+<h3 id="Redis做异步队列："><a href="#Redis做异步队列：" class="headerlink" title="Redis做异步队列："></a>Redis做异步队列：</h3><p>使用 list结构作为队列，rpush生产消息， lpop消费消息<br>当lpop没有消息的时候，要适当sleep一会再重试。不使用 sleep: list还有个指令叫 blpop，在没有消息的时候，它会阻塞住直到消息到来。</p>
+<p>使用 pub&#x2F;sub主题订阅者模式，可以实现 1:N 的消息队列。<br>pub&#x2F;sub缺点： 在消费者下线的情况下，生产的消息会丢失，得使用专业的消息队列如RocketMQ等</p>
+<h3 id="使用Redis-实现可靠的消息队列-ack-机制？"><a href="#使用Redis-实现可靠的消息队列-ack-机制？" class="headerlink" title="使用Redis 实现可靠的消息队列 ack 机制？"></a>使用Redis 实现可靠的消息队列 ack 机制？</h3><p>消费者用 rpop 取出元素，若消费者在 取出元素之后崩溃了，此时消息 已被取出且没有正确处理，会造成该消息的丢失<br>队列的备份：消费者程序在 从主消息队列中取出消息后，再将其插入到备份队列中，直到消费者程序完成正常的处理逻辑后再将该消息从备份队列中删除。<br>当备份队列中消息过期时，重新将其 再放回到主消息队列中，以便其它的消费者程序继续处理。RPOPLPUSH命令执行过程示意图如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwktpi57yj60yc0kyq4o02.jpg" alt="7D32B33D-052D-4C35-AB1A-9F995B4E0833" width="650" height="350" />
+
+<h3 id="Redis-如何实现延时队列？"><a href="#Redis-如何实现延时队列？" class="headerlink" title="Redis 如何实现延时队列？"></a>Redis 如何实现延时队列？</h3><p>使用 sortedset，拿时间戳作为 score，消息内容作为 key调用 zadd来生产消息，消费者用 zrangebyscore指令获取N秒之前的数据轮询进行处理。</p>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://example.com/2021/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" title="Redis性能优化" target="_blank" rel="external">http://example.com/2021/07/08/Redis/A3-Redis 优化/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2021/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" title="集群一致性hash算法"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2021/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" title="持久化-哨兵/集群"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
