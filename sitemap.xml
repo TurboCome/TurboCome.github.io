@@ -272,14 +272,14 @@
 
   
   <url>
-    <loc>http://example.com/tags/Mysql/</loc>
+    <loc>http://example.com/tags/Redis/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://example.com/tags/Redis/</loc>
+    <loc>http://example.com/tags/Mysql/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -323,14 +323,14 @@
   </url>
   
   <url>
-    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/Mysql/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/Redis/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/Redis/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/Mysql/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
