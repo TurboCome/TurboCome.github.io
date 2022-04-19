@@ -272,6 +272,13 @@
 
   
   <url>
+    <loc>https://github.com/TurboCome/tags/Redis/</loc>
+    <lastmod>2022-04-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://github.com/TurboCome/tags/Mysql/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
@@ -286,21 +293,7 @@
   </url>
   
   <url>
-    <loc>https://github.com/TurboCome/tags/Redis/</loc>
-    <lastmod>2022-04-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://github.com/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2022-04-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://github.com/TurboCome/tags/%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -313,10 +306,24 @@
     <priority>0.2</priority>
   </url>
   
+  <url>
+    <loc>https://github.com/TurboCome/tags/%E7%BD%91%E7%BB%9C/</loc>
+    <lastmod>2022-04-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 
   
   <url>
     <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/</loc>
+    <lastmod>2022-04-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -337,13 +344,6 @@
   </url>
   
   <url>
-    <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/</loc>
-    <lastmod>2022-04-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
@@ -351,14 +351,14 @@
   </url>
   
   <url>
-    <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/</loc>
+    <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
+    <loc>https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
