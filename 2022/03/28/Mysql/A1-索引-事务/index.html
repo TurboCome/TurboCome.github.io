@@ -21,7 +21,7 @@
   <meta name="description" content="搜索引擎：InnoDB :   支持事务，外键，行锁（用MVCC支持高并发）；聚簇索引，叶子节点data域存行记录；跨平台copy 容易复制；Delete 表时一行一行删除MyIsAM:  不支持 事务，外键，行锁；   非聚簇索引，叶子节点data域中存引用地址；   跨平台难 copy 不易复制； Delete表时先Drop 再Create；  InooDB:InnoDB 采用 MVCC 来支">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Mysql:索引-事务">
-<meta property="og:url" content="http://example.com/2022/03/28/Mysql:%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/index.html">
+<meta property="og:url" content="https://github.com/TurboCome/2022/03/28/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/index.html">
 <meta property="og:site_name" content="TurboCome">
 <meta property="og:description" content="搜索引擎：InnoDB :   支持事务，外键，行锁（用MVCC支持高并发）；聚簇索引，叶子节点data域存行记录；跨平台copy 容易复制；Delete 表时一行一行删除MyIsAM:  不支持 事务，外键，行锁；   非聚簇索引，叶子节点data域中存引用地址；   跨平台难 copy 不易复制； Delete表时先Drop 再Create；  InooDB:InnoDB 采用 MVCC 来支">
 <meta property="og:locale" content="zh_CN">
@@ -40,7 +40,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurwcf2dv8j60zk0hgmz202.jpg">
   <!-- Canonical links -->
-  <link rel="canonical" href="http://example.com/2022/03/28/Mysql:%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/index.html">
+  <link rel="canonical" href="https://github.com/TurboCome/2022/03/28/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/index.html">
   
     <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
   
@@ -48,7 +48,7 @@
     <link rel="icon" href="/favicon.png" type="image/x-icon">
   
   
-<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/TurboCome/css/style.css">
 
   
   
@@ -65,7 +65,7 @@
       
       <div class="profile-block text-center">
         <a id="avatar" href="https://github.com/TurboCome" target="_blank">
-          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
         </a>
         <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
         <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
@@ -105,11 +105,11 @@
       </button>
     </div>
     <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
-      <ul class="nav navbar-nav main-nav ">
+      <ul class="nav navbar-nav main-nav menu-highlight">
         
         
         <li class="menu-item menu-item-home">
-          <a href="/.">
+          <a href="/TurboCome/.">
             
             <i class="icon icon-home-fill"></i>
             
@@ -119,7 +119,7 @@
         
         
         <li class="menu-item menu-item-archives">
-          <a href="/archives">
+          <a href="/TurboCome/archives">
             
             <i class="icon icon-archives-fill"></i>
             
@@ -129,7 +129,7 @@
         
         
         <li class="menu-item menu-item-categories">
-          <a href="/categories">
+          <a href="/TurboCome/categories">
             
             <i class="icon icon-folder"></i>
             
@@ -139,7 +139,7 @@
         
         
         <li class="menu-item menu-item-tags">
-          <a href="/tags">
+          <a href="/TurboCome/tags">
             
             <i class="icon icon-tags"></i>
             
@@ -149,7 +149,7 @@
         
         
         <li class="menu-item menu-item-repository">
-          <a href="/repository">
+          <a href="/TurboCome/repository">
             
             <i class="icon icon-project"></i>
             
@@ -159,7 +159,7 @@
         
         
         <li class="menu-item menu-item-about">
-          <a href="/about">
+          <a href="/TurboCome/about">
             
             <i class="icon icon-cup-fill"></i>
             
@@ -174,7 +174,7 @@
     	
         <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
-        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
     </ul>
 
@@ -191,7 +191,7 @@
     <div class="widget-body">
         <div id="board">
             <div class="content">
-                <p>欢迎交流与分享经验!</p>
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
             </div>
         </div>
     </div>
@@ -202,7 +202,7 @@
   <div class="widget">
     <h3 class="widget-title">分类</h3>
     <div class="widget-body">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">4</span></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
     </div>
   </div>
  -->
@@ -210,7 +210,7 @@
 
   <div class="category-block">
     <h3 class="title">categories</h3>
-       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">4</span></li></ul></li></ul>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
   </div>
 
 
@@ -218,7 +218,7 @@
 <!-- 
   <div class="widget tag">
     <h3 class="title">categories</h3>
-       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">4</span></li></ul></li></ul> 
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
   </div>
   -->
     
@@ -226,7 +226,7 @@
   <div class="widget">
     <h3 class="widget-title">标签</h3>
     <div class="widget-body">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">4</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
  -->
@@ -234,7 +234,7 @@
 
   <div class="tags-block">
     <h3 class="asidetitle">tags</h3>
-       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">4</span></li></ul>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
   </div>
 
 
@@ -245,7 +245,7 @@
   <div class="widget">
     <h3 class="widget-title">标签云</h3>
     <div class="widget-body tagcloud">
-      <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a>
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
     </div>
   </div>
 
@@ -254,7 +254,7 @@
   <div class="widget">
     <h3 class="widget-title">归档</h3>
     <div class="widget-body">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">4</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li></ul>
     </div>
   </div>
 
@@ -270,13 +270,13 @@
             
             <div class="item-inner">
               <p class="item-category">
-                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
               </p>
               <p class="item-title">
-                <a href="/2022/03/28/MySQL%E6%89%A9%E5%B1%95/" class="title">MySQL扩展</a>
+                <a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
               </p>
               <p class="item-date">
-                <time datetime="2022-03-28T13:55:36.000Z" itemprop="datePublished">2022-03-28</time>
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
               </p>
             </div>
           </li>
@@ -285,13 +285,13 @@
             
             <div class="item-inner">
               <p class="item-category">
-                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
               </p>
               <p class="item-title">
-                <a href="/2022/03/28/Mysql:%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/" class="title">Mysql:原理-优化</a>
+                <a href="/TurboCome/2022/05/06/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
               </p>
               <p class="item-date">
-                <time datetime="2022-03-28T13:55:28.000Z" itemprop="datePublished">2022-03-28</time>
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
               </p>
             </div>
           </li>
@@ -300,13 +300,13 @@
             
             <div class="item-inner">
               <p class="item-category">
-                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
               </p>
               <p class="item-title">
-                <a href="/2022/03/28/Mysql:%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" class="title">Mysql:索引-事务</a>
+                <a href="/TurboCome/2022/05/06/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
               </p>
               <p class="item-date">
-                <time datetime="2022-03-28T13:55:19.000Z" itemprop="datePublished">2022-03-28</time>
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
               </p>
             </div>
           </li>
@@ -315,13 +315,28 @@
             
             <div class="item-inner">
               <p class="item-category">
-                <a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
               </p>
               <p class="item-title">
-                <a href="/2022/03/28/%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" class="title">数据库隔离级别</a>
+                <a href="/TurboCome/2022/05/06/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
               </p>
               <p class="item-date">
-                <time datetime="2022-03-28T13:55:19.000Z" itemprop="datePublished">2022-03-28</time>
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/04/27/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/" class="title">消息队列-基础</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-27T13:55:19.000Z" itemprop="datePublished">2022-04-27</time>
               </p>
             </div>
           </li>
@@ -339,7 +354,7 @@
   
 <main class="main" role="main">
   <div class="content">
-  <article id="post-Mysql:索引-事务" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-Mysql/A1-索引-事务" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
@@ -354,26 +369,33 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/2022/03/28/Mysql:%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" class="article-date">
+	<a href="/TurboCome/2022/03/28/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" class="article-date">
 	  <time datetime="2022-03-28T13:55:19.000Z" itemprop="datePublished">2022-03-28</time>
 	</a>
 </span>
         
   <span class="article-category">
     <i class="icon icon-folder"></i>
-    <a class="article-category-link" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
   </span>
 
         
   <span class="article-tag">
     <i class="icon icon-tags"></i>
-	<a class="article-tag-link-link" href="/tags/Mysql/" rel="tag">Mysql</a>
+	<a class="article-tag-link-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a>
   </span>
 
 
         
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/03/28/Mysql:%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/#comments" class="article-comment-link">评论</a></span>
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/03/28/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
@@ -623,7 +645,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="http://example.com/2022/03/28/Mysql:%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" title="Mysql:索引-事务" target="_blank" rel="external">http://example.com/2022/03/28/Mysql:索引-事务/</a>
+      <a href="https://github.com/TurboCome/2022/03/28/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" title="Mysql:索引-事务" target="_blank" rel="external">https://github.com/TurboCome/2022/03/28/Mysql/A1-索引-事务/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -638,7 +660,7 @@
     <figure class="media">
       <div class="media-left">
         <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
-          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
         </a>
       </div>
       <div class="media-body">
@@ -670,12 +692,12 @@
   <ul class="pager pull-left">
     
     <li class="prev">
-      <a href="/2022/03/28/Mysql:%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/" title="Mysql:原理-优化"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+      <a href="/TurboCome/2022/03/28/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/" title="Mysql:原理-优化"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
     </li>
     
     
     <li class="next">
-      <a href="/2022/03/28/%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" title="数据库隔离级别"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/TurboCome/2022/03/28/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/" title="联合索引"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
@@ -691,7 +713,7 @@
   
   <div class="bar-right">
     
-    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
     
   </div>
   </div>
@@ -710,14 +732,14 @@
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane fade active in" id="alipay">
               <div class="donate-payimg">
-                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
               </div>
               <p class="text-muted mv">扫码打赏，你说多少就多少</p>
               <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
             </div>
             <div role="tabpanel" class="tab-pane fade" id="wechatpay">
               <div class="donate-payimg">
-                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
               </div>
               <p class="text-muted mv">扫码打赏，你说多少就多少</p>
               <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
@@ -750,7 +772,7 @@
     	
         <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
-        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
     </ul>
 
@@ -766,10 +788,10 @@
 window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
 </script>
 
-<script src="/js/plugin.min.js"></script>
+<script src="/TurboCome/js/plugin.min.js"></script>
 
 
-<script src="/js/application.js"></script>
+<script src="/TurboCome/js/application.js"></script>
 
 
     <script>
@@ -782,14 +804,14 @@ window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
             TAGS: '标签',
             UNTITLED: '(未命名)',
         },
-        ROOT_URL: '/',
-        CONTENT_URL: '/content.json',
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
     };
     window.INSIGHT_CONFIG = INSIGHT_CONFIG;
 })(window);
 </script>
 
-<script src="/js/insight.js"></script>
+<script src="/TurboCome/js/insight.js"></script>
 
 
 
@@ -797,6 +819,8 @@ window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
 
 
    
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
 
 
 
@@ -815,8 +839,8 @@ window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
     el: '#vcomments',
     verify: false,
     notify: false,
-    appId: '',
-    appKey: '',
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
     placeholder: 'Just go go',
     avatar: 'mm',
     meta: meta,

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>SQL语法 | Hexo</title>
+  <meta name="description" content="SQL语法本地启动： sudo  &#x2F;usr&#x2F;local&#x2F;mysql&#x2F;support-files&#x2F;mysql.server start –skip-grant-tables 关闭： sudo pkill -9 mysql 登陆 docker 中的 mysql:  mysql -h  10.85.172.27 -P  4058  -u  rootNam">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL语法">
+<meta property="og:url" content="https://github.com/TurboCome/2022/03/28/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="SQL语法本地启动： sudo  &#x2F;usr&#x2F;local&#x2F;mysql&#x2F;support-files&#x2F;mysql.server start –skip-grant-tables 关闭： sudo pkill -9 mysql 登陆 docker 中的 mysql:  mysql -h  10.85.172.27 -P  4058  -u  rootNam">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-28T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-18T11:35:35.393Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/03/28/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/04/27/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/" class="title">消息队列-基础</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-27T13:55:19.000Z" itemprop="datePublished">2022-04-27</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Mysql/B1-SQL语法" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      SQL语法
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/03/28/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/" class="article-date">
+	  <time datetime="2022-03-28T13:55:19.000Z" itemprop="datePublished">2022-03-28</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/03/28/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="SQL语法"><a href="#SQL语法" class="headerlink" title="SQL语法"></a>SQL语法</h2><p>本地启动： sudo  &#x2F;usr&#x2F;local&#x2F;mysql&#x2F;support-files&#x2F;mysql.server start –skip-grant-tables</p>
+<p>关闭： sudo pkill -9 mysql</p>
+<p>登陆 docker 中的 mysql:  mysql -h  10.85.172.27 -P  4058  -u  rootName -p  passWord  cashier </p>
+<p>忘记密码启动： 修改  mysql.user 表里面的password字段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\&gt;  update mysql.user set password=‘***&#x27;  where host=‘***&#x27;;</span><br><span class="line">\&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="数据库："><a href="#数据库：" class="headerlink" title="数据库："></a><strong>数据库：</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">create database **if not exists dbName character set utf8;**</span><br><span class="line"></span><br><span class="line">**show databases;**</span><br><span class="line">**drop database if exists dbName;**</span><br><span class="line"></span><br><span class="line">use dbName;</span><br><span class="line">select database();  -- 显示当前打开的数据库</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="创建表："><a href="#创建表：" class="headerlink" title="创建表："></a><strong>创建表：</strong></h4><p>PRIMARY KEY:  主键约束</p>
+<p>UNIQUE KEY:   唯一约束</p>
+<p>NOT NULL:     非空约束</p>
+<p>DEFAULT:      默认约束</p>
+<p>FOREIGN KEY:  外键约束</p>
+<p>主键可自动编号，则可加上 “AUTO_INCREMENT”</p>
+<p>级联外键字段：</p>
+<p>CASCADE：父表的删除、更新操作会使得子表中匹配的行也自动进行删除或更新；</p>
+<p>SET NULL：父表的删除、更新操作会使得子表中的外键列为NULL，并且前提是外键列没有指定为NOT NULL；</p>
+<p>RESTRICT：拒绝对父表的删除或更新操作；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">create table if not exists teacher(</span><br><span class="line">  id   **int primary key** unique key ,</span><br><span class="line">  name  varchar(20) not null ,</span><br><span class="line">  score  float(8,2) UNIQUE,</span><br><span class="line">  age   int not null</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">\# 子表</span><br><span class="line">CREATE TABLE users(</span><br><span class="line">  id    SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,</span><br><span class="line">  username VARCHAR(10) NOT NULL,</span><br><span class="line">  pid    SMALLINT UNSIGNED, </span><br><span class="line">  FOREIGN KEY (pid) REFERENCES province (id)  /* 外键列，外键列和参照列必须具有相似的数据类型 */</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">CREATE TABLE user3(</span><br><span class="line">  id     SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,</span><br><span class="line">  username  VARCHAR(10) NOT NULL,</span><br><span class="line">  pid     SMALLINT UNSIGNED,</span><br><span class="line">  FOREIGN KEY (pid) REFERENCES province (id) ON DELETE CASCADE</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">-- 外键</span><br><span class="line">create table province(</span><br><span class="line">  id   **SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,** </span><br><span class="line">  pname  VARCHAR(20) NOT NULL</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">show tables;</span><br><span class="line">**show columns** from teacher; -- 查看数据表结构</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="修改表属性："><a href="#修改表属性：" class="headerlink" title="修改表属性："></a><strong>修改表属性：</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">alter table user3  add  age tinyint unsigned not null; -- 添加一列</span><br><span class="line">alter table teacher add  (class varchar(20),  address varchar(10) not null);  —- 添加多列</span><br><span class="line">alter table teacher drop class; -- 删除一列</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>– 添加约束</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alter table  teacher  add  unique(age);</span><br><span class="line">alter table  user3   add  foreign key(pid) references province(id);</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 删除约束</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3  drop primary key;</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 修改列定义</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3 modify id smallint unsigned not null first;</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 修改列名</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3 change age userage tinyint unsigned;</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 修改表名</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3 rename as user33;</span><br></pre></td></tr></table></figure>
+
+<p><strong>删除表：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">drop table user;  </span><br></pre></td></tr></table></figure>
+
+<p><strong>增删改：</strong></p>
+<p><strong>增-删-改:</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">**insert into** teacher (id,name,score) values (0,&#x27;whq&#x27;,98.3241),(1,&#x27;wxb&#x27;,34.42);</span><br><span class="line"></span><br><span class="line">**delete from** teacher where id = 1;</span><br><span class="line"></span><br><span class="line">**update** teacher **set age=24** where name=&#x27;whq&#x27;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="查询："><a href="#查询：" class="headerlink" title="查询："></a>查询：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">SELECT select_expr1[,select_expr2,...]</span><br><span class="line">[</span><br><span class="line">  FROM table_name</span><br><span class="line">  [WHERE   where_condition]</span><br><span class="line">  [GROUP BY  &#123;col_name | position&#125; [ASC | DESC],...]</span><br><span class="line">  [HAVING   where_condition]</span><br><span class="line">  [ORDER BY  &#123;col_name | expr | position&#125; [ASC | DESC],...]</span><br><span class="line">  [LIMIT   &#123;[offset,] row_count | row_count OFFSET offset&#125;]</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">select name, age</span><br><span class="line">from teacher</span><br><span class="line">group by age asc;</span><br><span class="line">select name, age</span><br><span class="line">from teacher</span><br><span class="line">group by age asc having age&gt;=10;</span><br><span class="line"></span><br><span class="line">/* 从查询结果中的第3行开始（从0开始计数），共返回4行 */</span><br><span class="line">SELECT name,age </span><br><span class="line">FROM teacher </span><br><span class="line">ORDER BY age ASC </span><br><span class="line">LIMIT 3,4;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/* 子查询的结果作为上一层查询的条件。可使用IN()/NOT IN()、ANY()、SOME()、ALL()等操作符和比较运算符搭配使用。 */</span><br><span class="line">SELECT goods_id,goods_name,goods_price </span><br><span class="line">FROM tdb_goods </span><br><span class="line">WHERE goods_price &gt;= </span><br><span class="line">						(SELECT AVG(goods_price) FROM tdb_goods);</span><br><span class="line"></span><br><span class="line">-- LEFT/RIGHT [OUTER] JOIN左外连接/右外连接</span><br><span class="line">SELECT goods_id, goods_name, cate_name </span><br><span class="line">FROM tdb_goods as tg **LEFT JOIN** tdb_goods_cates as tgc</span><br><span class="line">**ON tg.cate_id = tgc.cate_id;**</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>– 多表删除</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">DELETE t1 </span><br><span class="line">FROM tdb_goods AS t1 </span><br><span class="line">LEFT JOIN (SELECT goods_id,goods_name </span><br><span class="line">					  FROM tdb_goods </span><br><span class="line">						GROUP BY goods_name </span><br><span class="line">						HAVING count(goods_name) &gt;= 2 ) AS t2 </span><br><span class="line">ON t1.goods_name = t2.goods_name </span><br><span class="line">WHERE t1.goods_id &gt; t2.goods_id;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数:"></a><strong>聚合函数:</strong></h4><ol>
+<li><p>AVG()：求平均值；</p>
+</li>
+<li><p>COUNT()：计数；</p>
+</li>
+<li><p>MAX()：求最大值；</p>
+</li>
+<li><p>MIN()：求最小值；</p>
+</li>
+<li><p>SUM()：求和</p>
+</li>
+</ol>
+<h4 id="数值运算："><a href="#数值运算：" class="headerlink" title="数值运算："></a><strong>数值运算：</strong></h4><ol>
+<li>ceil(x)：返回大于 x的最小整数值；</li>
+<li>div：整数除法，即结果中只保留整数部分；</li>
+<li>floor(x)：返回小于 x的最大整数值；</li>
+<li>mod：取余；</li>
+<li>power(x, y)：幂运算，即 x的y次方；</li>
+<li>round(x, y)：四舍五入，即将数值 x四舍五入为y位小数。</li>
+<li>truncate(x, y)：数字截取，将数值 x保留y位小数（不进行四舍五入）</li>
+</ol>
+<h4 id="比较运算"><a href="#比较运算" class="headerlink" title="比较运算:"></a><strong>比较运算:</strong></h4><ol>
+<li>[NOT] BETWEEN…AND…：【不】在范围之内；</li>
+<li>[NOT] IN()：【不】在列出值范围内；</li>
+<li>IS [NOT] NULL：【非】空</li>
+</ol>
+<h4 id="字符函数"><a href="#字符函数" class="headerlink" title="字符函数:"></a><strong>字符函数:</strong></h4><ol>
+<li><p>CONCAT(  str1, str2, …)： 字符连接；</p>
+</li>
+<li><p>CONCAT_WS(separator, str1, str2, …)： 使用指定的分隔符进行字符连接；</p>
+</li>
+<li><p>FORMAT(x, d)： x为某数字，d为小数位；</p>
+</li>
+<li><p>LOWER(str)： 将字符串转化为小写字母；</p>
+</li>
+<li><p>UPPER(str)： 将字符串转化为大写字母；</p>
+</li>
+<li><p>LEFT(str, len)：  返回指定长度的字符串的左侧部分；</p>
+</li>
+<li><p>RIGHT(str, len)： 返回指定长度的字符串的右侧部分；</p>
+</li>
+<li><p>MID(str, pos[, len])： 返回str里从pos位置开始，长度为len的字符串部分；</p>
+</li>
+<li><p>SUBSTRING(str, pos, len)： 返回str里从pos位置开始，长度为len的字符串部分；</p>
+</li>
+<li><p>LENGTH(str)： 返回字符串str的长度，空格也会一起计算长度，以字节为单位；</p>
+</li>
+<li><p>LTRIM(str)： 删除前导空格；</p>
+</li>
+<li><p>RTRIM(str)： 删除后续空格；</p>
+</li>
+<li><p>TRIM([{BOTH | LEADING | TRAILING} [removed_str]] FROM str)： 删除前后缀不需要的字符；</p>
+</li>
+<li><p>[NOT]LIKE()： 与通配符一起使用选择数据。MySQL提供两个通配符（%和_），其中，“%”用于匹配任何字符串，“_”用于匹配任何单个字符。如果需要匹配的字符本身就是通配符，可使用ESCAPE；</p>
+</li>
+<li><p>REPLACE(str, old_str, new_str)：将str字符串里的old_str字符串部分替换为new_str；</p>
+</li>
+<li><p>LOCATE(substr,str)： 返回子符串substr在字符串str的第一个出现的位置；</p>
+</li>
+<li><p>LOCATE(substr,str,pos)：返回子符串substr在字符串str，从pos处开始的第一次出现的位置。</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/* LIKE()举例 */</span><br><span class="line">SELECT * FROM test WHERE first_name LIKE &#x27;%1%%&#x27; ESCAPE &#x27;1’;    --  不将“1”后的“%”认为是通配符 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="日期时间函数"><a href="#日期时间函数" class="headerlink" title="日期时间函数:"></a><strong>日期时间函数:</strong></h4><ol>
+<li>NOW()： 当前日期和时间；</li>
+<li>DATE(date)： 返回日期；</li>
+<li>CURDATE()： 当前日期；</li>
+<li>CURTIME()： 当前时间；</li>
+<li>YEAR(date)： 返回date中的年份；</li>
+<li>MONTH(date)： 返回date中的月份；</li>
+<li>DAY(date)：    返回date的中的日；</li>
+<li>DATE_ADD(date, INTERVAL expr type)：日期加减。type类型可以是DAY、WEEK、MONTH、YEAR等。例：SELECT DATE_ADD( ‘2017-11-20’, INTERVAL 2 DAY);</li>
+<li>DATEDIFF()：返回两个日期之间的天数；</li>
+<li>DATE_FORMAT( date, format)：日期时间格式化。例如%d、%m、%Y等</li>
+</ol>
+<h4 id="信息函数"><a href="#信息函数" class="headerlink" title="信息函数:"></a><strong>信息函数:</strong></h4><ol>
+<li>CONNECTION_ID()：返回数据库的连接次数</li>
+<li>DATABASE()：  当前数据库；</li>
+<li>LAST_INSERT_ID()： 最后插入记录的id；</li>
+<li>USER()： 当前用户；</li>
+<li>VERSION()： 版本信息</li>
+</ol>
+<h4 id="加密函数："><a href="#加密函数：" class="headerlink" title="加密函数："></a><strong>加密函数：</strong></h4><ol>
+<li>MD5()：信息摘要算法；</li>
+<li>PASSWORD()：密码算法</li>
+</ol>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h2 id="SQL语法"><a href="#SQL语法" class="headerlink" title="SQL语法"></a>SQL语法</h2><p>本地启动： sudo  &#x2F;usr&#x2F;local&#x2F;mysql&#x2F;support-files&#x2F;mysql.server start –skip-grant-tables</p>
+<p>关闭： sudo pkill -9 mysql</p>
+<p>登陆 docker 中的 mysql:  mysql -h  10.85.172.27 -P  4058  -u  rootName -p  passWord  cashier </p>
+<p>忘记密码启动： 修改  mysql.user 表里面的password字段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\&gt;  update mysql.user set password=‘***&#x27;  where host=‘***&#x27;;</span><br><span class="line">\&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="数据库："><a href="#数据库：" class="headerlink" title="数据库："></a><strong>数据库：</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">create database **if not exists dbName character set utf8;**</span><br><span class="line"></span><br><span class="line">**show databases;**</span><br><span class="line">**drop database if exists dbName;**</span><br><span class="line"></span><br><span class="line">use dbName;</span><br><span class="line">select database();  -- 显示当前打开的数据库</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="创建表："><a href="#创建表：" class="headerlink" title="创建表："></a><strong>创建表：</strong></h4><p>PRIMARY KEY:  主键约束</p>
+<p>UNIQUE KEY:   唯一约束</p>
+<p>NOT NULL:     非空约束</p>
+<p>DEFAULT:      默认约束</p>
+<p>FOREIGN KEY:  外键约束</p>
+<p>主键可自动编号，则可加上 “AUTO_INCREMENT”</p>
+<p>级联外键字段：</p>
+<p>CASCADE：父表的删除、更新操作会使得子表中匹配的行也自动进行删除或更新；</p>
+<p>SET NULL：父表的删除、更新操作会使得子表中的外键列为NULL，并且前提是外键列没有指定为NOT NULL；</p>
+<p>RESTRICT：拒绝对父表的删除或更新操作；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">create table if not exists teacher(</span><br><span class="line">  id   **int primary key** unique key ,</span><br><span class="line">  name  varchar(20) not null ,</span><br><span class="line">  score  float(8,2) UNIQUE,</span><br><span class="line">  age   int not null</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">\# 子表</span><br><span class="line">CREATE TABLE users(</span><br><span class="line">  id    SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,</span><br><span class="line">  username VARCHAR(10) NOT NULL,</span><br><span class="line">  pid    SMALLINT UNSIGNED, </span><br><span class="line">  FOREIGN KEY (pid) REFERENCES province (id)  /* 外键列，外键列和参照列必须具有相似的数据类型 */</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">CREATE TABLE user3(</span><br><span class="line">  id     SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,</span><br><span class="line">  username  VARCHAR(10) NOT NULL,</span><br><span class="line">  pid     SMALLINT UNSIGNED,</span><br><span class="line">  FOREIGN KEY (pid) REFERENCES province (id) ON DELETE CASCADE</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">-- 外键</span><br><span class="line">create table province(</span><br><span class="line">  id   **SMALLINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,** </span><br><span class="line">  pname  VARCHAR(20) NOT NULL</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">show tables;</span><br><span class="line">**show columns** from teacher; -- 查看数据表结构</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="修改表属性："><a href="#修改表属性：" class="headerlink" title="修改表属性："></a><strong>修改表属性：</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">alter table user3  add  age tinyint unsigned not null; -- 添加一列</span><br><span class="line">alter table teacher add  (class varchar(20),  address varchar(10) not null);  —- 添加多列</span><br><span class="line">alter table teacher drop class; -- 删除一列</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>– 添加约束</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alter table  teacher  add  unique(age);</span><br><span class="line">alter table  user3   add  foreign key(pid) references province(id);</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 删除约束</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3  drop primary key;</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 修改列定义</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3 modify id smallint unsigned not null first;</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 修改列名</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3 change age userage tinyint unsigned;</span><br></pre></td></tr></table></figure>
+
+<p><strong>– 修改表名</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table user3 rename as user33;</span><br></pre></td></tr></table></figure>
+
+<p><strong>删除表：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">drop table user;  </span><br></pre></td></tr></table></figure>
+
+<p><strong>增删改：</strong></p>
+<p><strong>增-删-改:</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">**insert into** teacher (id,name,score) values (0,&#x27;whq&#x27;,98.3241),(1,&#x27;wxb&#x27;,34.42);</span><br><span class="line"></span><br><span class="line">**delete from** teacher where id = 1;</span><br><span class="line"></span><br><span class="line">**update** teacher **set age=24** where name=&#x27;whq&#x27;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="查询："><a href="#查询：" class="headerlink" title="查询："></a>查询：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">SELECT select_expr1[,select_expr2,...]</span><br><span class="line">[</span><br><span class="line">  FROM table_name</span><br><span class="line">  [WHERE   where_condition]</span><br><span class="line">  [GROUP BY  &#123;col_name | position&#125; [ASC | DESC],...]</span><br><span class="line">  [HAVING   where_condition]</span><br><span class="line">  [ORDER BY  &#123;col_name | expr | position&#125; [ASC | DESC],...]</span><br><span class="line">  [LIMIT   &#123;[offset,] row_count | row_count OFFSET offset&#125;]</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">select name, age</span><br><span class="line">from teacher</span><br><span class="line">group by age asc;</span><br><span class="line">select name, age</span><br><span class="line">from teacher</span><br><span class="line">group by age asc having age&gt;=10;</span><br><span class="line"></span><br><span class="line">/* 从查询结果中的第3行开始（从0开始计数），共返回4行 */</span><br><span class="line">SELECT name,age </span><br><span class="line">FROM teacher </span><br><span class="line">ORDER BY age ASC </span><br><span class="line">LIMIT 3,4;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/* 子查询的结果作为上一层查询的条件。可使用IN()/NOT IN()、ANY()、SOME()、ALL()等操作符和比较运算符搭配使用。 */</span><br><span class="line">SELECT goods_id,goods_name,goods_price </span><br><span class="line">FROM tdb_goods </span><br><span class="line">WHERE goods_price &gt;= </span><br><span class="line">						(SELECT AVG(goods_price) FROM tdb_goods);</span><br><span class="line"></span><br><span class="line">-- LEFT/RIGHT [OUTER] JOIN左外连接/右外连接</span><br><span class="line">SELECT goods_id, goods_name, cate_name </span><br><span class="line">FROM tdb_goods as tg **LEFT JOIN** tdb_goods_cates as tgc</span><br><span class="line">**ON tg.cate_id = tgc.cate_id;**</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>– 多表删除</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">DELETE t1 </span><br><span class="line">FROM tdb_goods AS t1 </span><br><span class="line">LEFT JOIN (SELECT goods_id,goods_name </span><br><span class="line">					  FROM tdb_goods </span><br><span class="line">						GROUP BY goods_name </span><br><span class="line">						HAVING count(goods_name) &gt;= 2 ) AS t2 </span><br><span class="line">ON t1.goods_name = t2.goods_name </span><br><span class="line">WHERE t1.goods_id &gt; t2.goods_id;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数:"></a><strong>聚合函数:</strong></h4><ol>
+<li><p>AVG()：求平均值；</p>
+</li>
+<li><p>COUNT()：计数；</p>
+</li>
+<li><p>MAX()：求最大值；</p>
+</li>
+<li><p>MIN()：求最小值；</p>
+</li>
+<li><p>SUM()：求和</p>
+</li>
+</ol>
+<h4 id="数值运算："><a href="#数值运算：" class="headerlink" title="数值运算："></a><strong>数值运算：</strong></h4><ol>
+<li>ceil(x)：返回大于 x的最小整数值；</li>
+<li>div：整数除法，即结果中只保留整数部分；</li>
+<li>floor(x)：返回小于 x的最大整数值；</li>
+<li>mod：取余；</li>
+<li>power(x, y)：幂运算，即 x的y次方；</li>
+<li>round(x, y)：四舍五入，即将数值 x四舍五入为y位小数。</li>
+<li>truncate(x, y)：数字截取，将数值 x保留y位小数（不进行四舍五入）</li>
+</ol>
+<h4 id="比较运算"><a href="#比较运算" class="headerlink" title="比较运算:"></a><strong>比较运算:</strong></h4><ol>
+<li>[NOT] BETWEEN…AND…：【不】在范围之内；</li>
+<li>[NOT] IN()：【不】在列出值范围内；</li>
+<li>IS [NOT] NULL：【非】空</li>
+</ol>
+<h4 id="字符函数"><a href="#字符函数" class="headerlink" title="字符函数:"></a><strong>字符函数:</strong></h4><ol>
+<li><p>CONCAT(  str1, str2, …)： 字符连接；</p>
+</li>
+<li><p>CONCAT_WS(separator, str1, str2, …)： 使用指定的分隔符进行字符连接；</p>
+</li>
+<li><p>FORMAT(x, d)： x为某数字，d为小数位；</p>
+</li>
+<li><p>LOWER(str)： 将字符串转化为小写字母；</p>
+</li>
+<li><p>UPPER(str)： 将字符串转化为大写字母；</p>
+</li>
+<li><p>LEFT(str, len)：  返回指定长度的字符串的左侧部分；</p>
+</li>
+<li><p>RIGHT(str, len)： 返回指定长度的字符串的右侧部分；</p>
+</li>
+<li><p>MID(str, pos[, len])： 返回str里从pos位置开始，长度为len的字符串部分；</p>
+</li>
+<li><p>SUBSTRING(str, pos, len)： 返回str里从pos位置开始，长度为len的字符串部分；</p>
+</li>
+<li><p>LENGTH(str)： 返回字符串str的长度，空格也会一起计算长度，以字节为单位；</p>
+</li>
+<li><p>LTRIM(str)： 删除前导空格；</p>
+</li>
+<li><p>RTRIM(str)： 删除后续空格；</p>
+</li>
+<li><p>TRIM([{BOTH | LEADING | TRAILING} [removed_str]] FROM str)： 删除前后缀不需要的字符；</p>
+</li>
+<li><p>[NOT]LIKE()： 与通配符一起使用选择数据。MySQL提供两个通配符（%和_），其中，“%”用于匹配任何字符串，“_”用于匹配任何单个字符。如果需要匹配的字符本身就是通配符，可使用ESCAPE；</p>
+</li>
+<li><p>REPLACE(str, old_str, new_str)：将str字符串里的old_str字符串部分替换为new_str；</p>
+</li>
+<li><p>LOCATE(substr,str)： 返回子符串substr在字符串str的第一个出现的位置；</p>
+</li>
+<li><p>LOCATE(substr,str,pos)：返回子符串substr在字符串str，从pos处开始的第一次出现的位置。</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/* LIKE()举例 */</span><br><span class="line">SELECT * FROM test WHERE first_name LIKE &#x27;%1%%&#x27; ESCAPE &#x27;1’;    --  不将“1”后的“%”认为是通配符 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="日期时间函数"><a href="#日期时间函数" class="headerlink" title="日期时间函数:"></a><strong>日期时间函数:</strong></h4><ol>
+<li>NOW()： 当前日期和时间；</li>
+<li>DATE(date)： 返回日期；</li>
+<li>CURDATE()： 当前日期；</li>
+<li>CURTIME()： 当前时间；</li>
+<li>YEAR(date)： 返回date中的年份；</li>
+<li>MONTH(date)： 返回date中的月份；</li>
+<li>DAY(date)：    返回date的中的日；</li>
+<li>DATE_ADD(date, INTERVAL expr type)：日期加减。type类型可以是DAY、WEEK、MONTH、YEAR等。例：SELECT DATE_ADD( ‘2017-11-20’, INTERVAL 2 DAY);</li>
+<li>DATEDIFF()：返回两个日期之间的天数；</li>
+<li>DATE_FORMAT( date, format)：日期时间格式化。例如%d、%m、%Y等</li>
+</ol>
+<h4 id="信息函数"><a href="#信息函数" class="headerlink" title="信息函数:"></a><strong>信息函数:</strong></h4><ol>
+<li>CONNECTION_ID()：返回数据库的连接次数</li>
+<li>DATABASE()：  当前数据库；</li>
+<li>LAST_INSERT_ID()： 最后插入记录的id；</li>
+<li>USER()： 当前用户；</li>
+<li>VERSION()： 版本信息</li>
+</ol>
+<h4 id="加密函数："><a href="#加密函数：" class="headerlink" title="加密函数："></a><strong>加密函数：</strong></h4><ol>
+<li>MD5()：信息摘要算法；</li>
+<li>PASSWORD()：密码算法</li>
+</ol>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/03/28/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/" title="SQL语法" target="_blank" rel="external">https://github.com/TurboCome/2022/03/28/Mysql/B1-SQL语法/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/TurboCome/2022/03/28/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/" title="SQL实践案例"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

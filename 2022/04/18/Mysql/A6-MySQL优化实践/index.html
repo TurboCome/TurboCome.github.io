@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>MySQL优化实践 | Hexo</title>
+  <meta name="description" content="MySQL优化实践1.大数据量拆分：123update coupons set status &#x3D; 1 where status&#x3D; 0 and create_time &gt;&#x3D; &amp;#x27;2020-10-01 00:00:00&amp;#x27; and create_time &lt;&#x3D; &amp;#x27;2020-10-07 23:59:59&amp;#x27;;  问题： 一个 SQL只能使用一个 cpu co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL优化实践">
+<meta property="og:url" content="https://github.com/TurboCome/2022/04/18/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="MySQL优化实践1.大数据量拆分：123update coupons set status &#x3D; 1 where status&#x3D; 0 and create_time &gt;&#x3D; &amp;#x27;2020-10-01 00:00:00&amp;#x27; and create_time &lt;&#x3D; &amp;#x27;2020-10-07 23:59:59&amp;#x27;;  问题： 一个 SQL只能使用一个 cpu co">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg">
+<meta property="article:published_time" content="2022-04-18T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-18T11:32:17.739Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/04/18/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/04/27/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/" class="title">消息队列-基础</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-27T13:55:19.000Z" itemprop="datePublished">2022-04-27</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Mysql/A6-MySQL优化实践" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MySQL优化实践
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/04/18/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" class="article-date">
+	  <time datetime="2022-04-18T13:55:19.000Z" itemprop="datePublished">2022-04-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/04/18/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="MySQL优化实践"><a href="#MySQL优化实践" class="headerlink" title="MySQL优化实践"></a>MySQL优化实践</h2><h4 id="1-大数据量拆分："><a href="#1-大数据量拆分：" class="headerlink" title="1.大数据量拆分："></a>1.大数据量拆分：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">update coupons </span><br><span class="line">set status = 1 </span><br><span class="line">where status= 0 and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>问题： 一个 SQL只能使用一个 cpu core去处理，如果 SQL很复杂或执行很慢，就会 阻塞后面的 SQL请求，造成活动连接数暴增，MySQL CPU 100%，相应的 接口Timeout，同时对于 主从复制架构，做了业务读写分离，更新500w数据需要5分钟，Master上执行了5分钟，binlog传到了slave也需要执行5分钟，那就是Slave延迟5分钟，在这期间会造成 业务脏数据，比如重复下单等。</p>
+<p>1.先获取 where 条件中的 最小id  ，最大id，<br>2.然后 分批次去更新，每个批次 1000条，这样既能快速完成更新，又能保证 主从复制不会出现延迟</p>
+<p>先获取要更新的 数据范围内的 最小id和最大id（表没有物理delete，所以id是连续的）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">select min(id) min_id, max(id) max_id from coupons </span><br><span class="line">where status=0 </span><br><span class="line">and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’; </span><br><span class="line"></span><br><span class="line">current_id = min_id;</span><br><span class="line">for current_id &lt; max_id do</span><br><span class="line">    update coupons set status=1 </span><br><span class="line">    where id&gt;= current_id and id&lt;= current_id + 1000;    //通过主键id更新1000条很快</span><br><span class="line">commit;</span><br><span class="line">current_id += 1000;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>充分利用 辅助索引包含主键id的特性，先通过索引获取主键 id走覆盖索引扫描，不需要回表，然后再通过id去关联操作是高效的，同时根据 MySQL的特性 使用分而治之的思想既能高效完成操作，又能避免主从复制延迟产生的业务数据混乱。</p>
+<h4 id="2-分解多表连接："><a href="#2-分解多表连接：" class="headerlink" title="2.分解多表连接："></a>2.分解多表连接：</h4><p>例如，使用 IN() 代替连接查询（in 等价于等值查询）可排序，让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM tag</span><br><span class="line">    JOIN tag_post ON tag_post.tag_id= tag.id</span><br><span class="line">    JOIN post ON tag_post.post_id= post.id</span><br><span class="line">    WHERE tag.tag=&#x27;mysql’;</span><br><span class="line"></span><br><span class="line">SELECT * FROM tag WHERE tag=&#x27;mysql&#x27;;           --&gt; tag_id = 1234</span><br><span class="line">SELECT * FROM tag_post WHERE tag_id=1234;      —&gt; (123,456,567,9098,8904)</span><br><span class="line">SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-MRR优化："><a href="#3-MRR优化：" class="headerlink" title="3.MRR优化："></a>3.MRR优化：</h4><p><strong>应用实例一：</strong>（mysql优化器改变where 条件顺序—&gt;匹配联合索引） </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t WHERE key_part1&gt;=1000 and key_part1&lt;2000 AND key_part2=1000;</span><br></pre></td></tr></table></figure>
+
+<p>表 t 有 ( key_part1,  key_part2 ) 的联合索引 ，因此索引根据 key_part1,  key_part2 的位置关系进行排序。<br>没有MRR：SQL优化器会先将 key_part1&gt;1000 and key_part2&lt;2000 的数据查询出来，待取出的数据后，再根据key_part2的条件进行过滤。这会导致无用的数据被取出，如果有大量的数据是 key_part2 !&#x3D;1000，则启用MRR优化会使性能有巨大的提升.<br>启用MRR优化：优化器会先 将查询条件进行拆分，然后在进行数据查询。优化器会将查询条件拆分为(1000,1000),(1001,1000),(1002,1000),…,(1999,1000)，然后在根据这些拆分出的条件，使用索引下推进行数据查询，避免回表。</p>
+<p><strong>应用实例二：</strong><br> 在没有MRR之前,或没有开启 MRR特性时，MySQL 针对基于辅助索引的查询策略是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select non_key_column </span><br><span class="line">from tb where key_column=x;</span><br></pre></td></tr></table></figure>
+
+<p>MySQL 执行查询的伪代码<br>第一步 先根据 where 条件中的 辅助索引，获取辅助索引与主键的集合，结果集为 rest</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select key_column, pk_column from tb </span><br><span class="line">where key_column=x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 通过第一步获取的主键来获取 对应的值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for each pk_column value in rest do:</span><br><span class="line">select non_key_column from tb where pk_column=val</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg" alt="71AD8A06-C4D7-4035-A63F-E0978354FC50" width="450" height="350"/>
+
+<p>由于MySQL存储数据的方式： 辅助索引的存储顺序并非与主键的顺序一致，从图中可以看出,根据辅助索引获取的主键来访问表中的数据会导致随机的IO . 不同主键不在同一个page 里面时必然导致多次IO 和随机读。<br>  在使用 MRR优化特性的情况下，MySQL 针对基于辅助索引的查询策略是这样的：<br>第一步 先根据 where条件中的辅助索引获取辅助索引与主键的集合，结果集为rest</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select key_column, pk_column from tb where key_column = x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 将结果集rest 放在buffer里面(read_rnd_buffer_size 大小直到buffer满了)，然后对结果集 rest按照pk_column排序，得到结果集是rest_sort<br>第三步 利用已经排序过的结果集，访问表中的数据，此时是顺序IO.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select non_key_column fromtb where pk_column in ( rest_sort )</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg" alt="863DB3B3-6049-45F0-B0DC-16D319E21722" width="650" height="350"/>
+
+<p>​        从图示MRR原理，MySQL 将根据 辅助索引获取的结果集根据主键进行排序，将乱序化为有序，可以用-主键顺序访问基表，将随机读转化为顺序读，多页数据记录可一次性读入或 根据此次的主键范围分次读入，以减少IO操作，提高查询效率。<br>MRR的使用与否，是由 MySQL中的开关控制，只要设置开启，它会自动在 read_rnd_buffer_size 缓冲区 内，对primaryKey进行排序。但这个开关并不是一直开着，因为对于 大多数的单条查询，重新在中间添加一步排序，是对性能的损失，没有必要。所以Mysql 中还有一个 mrr_cost_based 开关，如果设置关闭，则完全按照 mrr 开关来执行了；如果设为开启，MySQL的优化器会通过 CBO算法确定是否开启MRR特性（进行对 primaryKey的排序）<br>mrr&#x3D;{on|off}<br>mrr_cost_based&#x3D;{on|off}</p>
+<h4 id="4-大数据量下分页查询-limit-offset-batchSize"><a href="#4-大数据量下分页查询-limit-offset-batchSize" class="headerlink" title="4.大数据量下分页查询 limit offset, batchSize :"></a>4.大数据量下分页查询 limit offset, batchSize :</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">select  * from trade_info </span><br><span class="line">where status = 0 and </span><br><span class="line">create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’ </span><br><span class="line">order by id desc </span><br><span class="line">limit 102120, 20;</span><br></pre></td></tr></table></figure>
+
+<p>表 trade_info 上有索引 idx_status_create_time(status, create_time); 等价于索引（status, create_time,id)<br>对于典型的 分页 limit m, n来说，越往后翻页越慢( m越大会越慢);  因为要 定位 m位置需要扫描的数据越来越多，导致IO开销比较大。这里可以利用 辅助索引的覆盖扫描来进行优化，先获取id，这一步就是 索引覆盖扫描，不需要回表，然后通过 id 跟原表 trade_info进行关联<br>&#x2F;&#x2F; 改写后的SQL如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">select * </span><br><span class="line">from trade_info a , </span><br><span class="line">   (select id from trade_info </span><br><span class="line">    where status = 0 </span><br><span class="line">    and create_time &gt;=&#x27;2020-10-01 00:00:00&#x27; and create_time &lt;=&#x27;2020-10-07 23:59:59’ </span><br><span class="line">    order by id desc limit 102120, 20)  as b    -- 这一步走的是索引覆盖扫描，不需要回表</span><br><span class="line"> where a.id = b.id;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题：</strong> 分页查询时，MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，而且在取offset+N 行数据时，因为是select * … 的操作，所以是需要回表的，查询到索引叶子节点数据，根据叶子节点上的主键值去聚簇索引上查询需要的全部字段值。<br>那当 offset 特别大的时候，此时使用 limit m,n 效率就非常的低下，因为回表了 M 行无用的数据，并且占用了大量的 buffer pool 缓存。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h4><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
+<h4 id="常见慢查询问题："><a href="#常见慢查询问题：" class="headerlink" title="常见慢查询问题："></a>常见慢查询问题：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg" alt="14B56083-7EBD-4768-AD40-E3C00DFA418D" width="850" height="500" />
+
+
+
+<p>1.确定主键，索引字段，将它们作为查询条件<br>2.数据量过大，使用 limit 做分页处理，  limit  起始id, 条数count<br>3.当 limit 起始行数很大时， 查询效率会降低， 可以考虑使用自增 id </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Select *. From table limit  150000 , 5000</span><br><span class="line"></span><br><span class="line">优化： Select * from table where id&gt;150000 and id&lt;200000;  -- 速度会有提升</span><br></pre></td></tr></table></figure>
+
+<p>4.数据导入，可尝试批量导入数据 ；   性能：    Load  &gt; insert.<br> load 只操作一次，之后数据 批量插入<br> insert 每个数据操作一次，’就要遍历 一次字段索引</p>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h2 id="MySQL优化实践"><a href="#MySQL优化实践" class="headerlink" title="MySQL优化实践"></a>MySQL优化实践</h2><h4 id="1-大数据量拆分："><a href="#1-大数据量拆分：" class="headerlink" title="1.大数据量拆分："></a>1.大数据量拆分：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">update coupons </span><br><span class="line">set status = 1 </span><br><span class="line">where status= 0 and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>问题： 一个 SQL只能使用一个 cpu core去处理，如果 SQL很复杂或执行很慢，就会 阻塞后面的 SQL请求，造成活动连接数暴增，MySQL CPU 100%，相应的 接口Timeout，同时对于 主从复制架构，做了业务读写分离，更新500w数据需要5分钟，Master上执行了5分钟，binlog传到了slave也需要执行5分钟，那就是Slave延迟5分钟，在这期间会造成 业务脏数据，比如重复下单等。</p>
+<p>1.先获取 where 条件中的 最小id  ，最大id，<br>2.然后 分批次去更新，每个批次 1000条，这样既能快速完成更新，又能保证 主从复制不会出现延迟</p>
+<p>先获取要更新的 数据范围内的 最小id和最大id（表没有物理delete，所以id是连续的）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">select min(id) min_id, max(id) max_id from coupons </span><br><span class="line">where status=0 </span><br><span class="line">and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’; </span><br><span class="line"></span><br><span class="line">current_id = min_id;</span><br><span class="line">for current_id &lt; max_id do</span><br><span class="line">    update coupons set status=1 </span><br><span class="line">    where id&gt;= current_id and id&lt;= current_id + 1000;    //通过主键id更新1000条很快</span><br><span class="line">commit;</span><br><span class="line">current_id += 1000;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>充分利用 辅助索引包含主键id的特性，先通过索引获取主键 id走覆盖索引扫描，不需要回表，然后再通过id去关联操作是高效的，同时根据 MySQL的特性 使用分而治之的思想既能高效完成操作，又能避免主从复制延迟产生的业务数据混乱。</p>
+<h4 id="2-分解多表连接："><a href="#2-分解多表连接：" class="headerlink" title="2.分解多表连接："></a>2.分解多表连接：</h4><p>例如，使用 IN() 代替连接查询（in 等价于等值查询）可排序，让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM tag</span><br><span class="line">    JOIN tag_post ON tag_post.tag_id= tag.id</span><br><span class="line">    JOIN post ON tag_post.post_id= post.id</span><br><span class="line">    WHERE tag.tag=&#x27;mysql’;</span><br><span class="line"></span><br><span class="line">SELECT * FROM tag WHERE tag=&#x27;mysql&#x27;;           --&gt; tag_id = 1234</span><br><span class="line">SELECT * FROM tag_post WHERE tag_id=1234;      —&gt; (123,456,567,9098,8904)</span><br><span class="line">SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-MRR优化："><a href="#3-MRR优化：" class="headerlink" title="3.MRR优化："></a>3.MRR优化：</h4><p><strong>应用实例一：</strong>（mysql优化器改变where 条件顺序—&gt;匹配联合索引） </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t WHERE key_part1&gt;=1000 and key_part1&lt;2000 AND key_part2=1000;</span><br></pre></td></tr></table></figure>
+
+<p>表 t 有 ( key_part1,  key_part2 ) 的联合索引 ，因此索引根据 key_part1,  key_part2 的位置关系进行排序。<br>没有MRR：SQL优化器会先将 key_part1&gt;1000 and key_part2&lt;2000 的数据查询出来，待取出的数据后，再根据key_part2的条件进行过滤。这会导致无用的数据被取出，如果有大量的数据是 key_part2 !&#x3D;1000，则启用MRR优化会使性能有巨大的提升.<br>启用MRR优化：优化器会先 将查询条件进行拆分，然后在进行数据查询。优化器会将查询条件拆分为(1000,1000),(1001,1000),(1002,1000),…,(1999,1000)，然后在根据这些拆分出的条件，使用索引下推进行数据查询，避免回表。</p>
+<p><strong>应用实例二：</strong><br> 在没有MRR之前,或没有开启 MRR特性时，MySQL 针对基于辅助索引的查询策略是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select non_key_column </span><br><span class="line">from tb where key_column=x;</span><br></pre></td></tr></table></figure>
+
+<p>MySQL 执行查询的伪代码<br>第一步 先根据 where 条件中的 辅助索引，获取辅助索引与主键的集合，结果集为 rest</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select key_column, pk_column from tb </span><br><span class="line">where key_column=x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 通过第一步获取的主键来获取 对应的值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for each pk_column value in rest do:</span><br><span class="line">select non_key_column from tb where pk_column=val</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg" alt="71AD8A06-C4D7-4035-A63F-E0978354FC50" width="450" height="350"/>
+
+<p>由于MySQL存储数据的方式： 辅助索引的存储顺序并非与主键的顺序一致，从图中可以看出,根据辅助索引获取的主键来访问表中的数据会导致随机的IO . 不同主键不在同一个page 里面时必然导致多次IO 和随机读。<br>  在使用 MRR优化特性的情况下，MySQL 针对基于辅助索引的查询策略是这样的：<br>第一步 先根据 where条件中的辅助索引获取辅助索引与主键的集合，结果集为rest</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select key_column, pk_column from tb where key_column = x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 将结果集rest 放在buffer里面(read_rnd_buffer_size 大小直到buffer满了)，然后对结果集 rest按照pk_column排序，得到结果集是rest_sort<br>第三步 利用已经排序过的结果集，访问表中的数据，此时是顺序IO.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select non_key_column fromtb where pk_column in ( rest_sort )</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg" alt="863DB3B3-6049-45F0-B0DC-16D319E21722" width="650" height="350"/>
+
+<p>​        从图示MRR原理，MySQL 将根据 辅助索引获取的结果集根据主键进行排序，将乱序化为有序，可以用-主键顺序访问基表，将随机读转化为顺序读，多页数据记录可一次性读入或 根据此次的主键范围分次读入，以减少IO操作，提高查询效率。<br>MRR的使用与否，是由 MySQL中的开关控制，只要设置开启，它会自动在 read_rnd_buffer_size 缓冲区 内，对primaryKey进行排序。但这个开关并不是一直开着，因为对于 大多数的单条查询，重新在中间添加一步排序，是对性能的损失，没有必要。所以Mysql 中还有一个 mrr_cost_based 开关，如果设置关闭，则完全按照 mrr 开关来执行了；如果设为开启，MySQL的优化器会通过 CBO算法确定是否开启MRR特性（进行对 primaryKey的排序）<br>mrr&#x3D;{on|off}<br>mrr_cost_based&#x3D;{on|off}</p>
+<h4 id="4-大数据量下分页查询-limit-offset-batchSize"><a href="#4-大数据量下分页查询-limit-offset-batchSize" class="headerlink" title="4.大数据量下分页查询 limit offset, batchSize :"></a>4.大数据量下分页查询 limit offset, batchSize :</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">select  * from trade_info </span><br><span class="line">where status = 0 and </span><br><span class="line">create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’ </span><br><span class="line">order by id desc </span><br><span class="line">limit 102120, 20;</span><br></pre></td></tr></table></figure>
+
+<p>表 trade_info 上有索引 idx_status_create_time(status, create_time); 等价于索引（status, create_time,id)<br>对于典型的 分页 limit m, n来说，越往后翻页越慢( m越大会越慢);  因为要 定位 m位置需要扫描的数据越来越多，导致IO开销比较大。这里可以利用 辅助索引的覆盖扫描来进行优化，先获取id，这一步就是 索引覆盖扫描，不需要回表，然后通过 id 跟原表 trade_info进行关联<br>&#x2F;&#x2F; 改写后的SQL如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">select * </span><br><span class="line">from trade_info a , </span><br><span class="line">   (select id from trade_info </span><br><span class="line">    where status = 0 </span><br><span class="line">    and create_time &gt;=&#x27;2020-10-01 00:00:00&#x27; and create_time &lt;=&#x27;2020-10-07 23:59:59’ </span><br><span class="line">    order by id desc limit 102120, 20)  as b    -- 这一步走的是索引覆盖扫描，不需要回表</span><br><span class="line"> where a.id = b.id;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题：</strong> 分页查询时，MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，而且在取offset+N 行数据时，因为是select * … 的操作，所以是需要回表的，查询到索引叶子节点数据，根据叶子节点上的主键值去聚簇索引上查询需要的全部字段值。<br>那当 offset 特别大的时候，此时使用 limit m,n 效率就非常的低下，因为回表了 M 行无用的数据，并且占用了大量的 buffer pool 缓存。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h4><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
+<h4 id="常见慢查询问题："><a href="#常见慢查询问题：" class="headerlink" title="常见慢查询问题："></a>常见慢查询问题：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg" alt="14B56083-7EBD-4768-AD40-E3C00DFA418D" width="850" height="500" />
+
+
+
+<p>1.确定主键，索引字段，将它们作为查询条件<br>2.数据量过大，使用 limit 做分页处理，  limit  起始id, 条数count<br>3.当 limit 起始行数很大时， 查询效率会降低， 可以考虑使用自增 id </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Select *. From table limit  150000 , 5000</span><br><span class="line"></span><br><span class="line">优化： Select * from table where id&gt;150000 and id&lt;200000;  -- 速度会有提升</span><br></pre></td></tr></table></figure>
+
+<p>4.数据导入，可尝试批量导入数据 ；   性能：    Load  &gt; insert.<br> load 只操作一次，之后数据 批量插入<br> insert 每个数据操作一次，’就要遍历 一次字段索引</p>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/04/18/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" title="MySQL优化实践" target="_blank" rel="external">https://github.com/TurboCome/2022/04/18/Mysql/A6-MySQL优化实践/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/TurboCome/2022/04/27/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/" title="Kafka-高级"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/TurboCome/2022/04/18/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/" title="计算机网络概述"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

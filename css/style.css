@@ -6155,6 +6155,39 @@ a.category-list-link:before{
 
 }
 
+.self-intro {
+  margin: 10px 1px 1px 1px;
+  position: relative;
+  font-size: 15px;
+  left:250px;
+  width:650px
+  /* right: 250px; */
+}
+
+.edu {
+  margin: 10px 1px 1px 1px;
+  position: relative;
+  font-size: 20px;
+  left:250px;
+  width:650px 
+}
+.skills {
+  margin: 10px 1px 1px 1px;
+  position: relative;
+  font-size: 15px;
+  left:250px;
+  width:650px
+  /* right: 250px; */
+}
+.work-experience {
+  margin: 10px 1px 1px 1px;
+  position: relative;
+  font-size: 15px;
+  left:250px;
+  width:650px
+  /* right: 250px; */ 
+}
+
 
 
 /*文章底部标签样式*/

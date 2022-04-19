@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>操作系统-基础 | Hexo</title>
+  <meta name="description" content="操作系统基本知识点进程的五大状态：    Sleep, wait 区别：sleep() 休眠：让调用线程进入睡眠，让出执行机会给其他线程，等到休眠时间结束，线程进入就绪状态和其他线程一起竞争cpu执行时间。Thread的静态方法，不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，线程虽然进入休眠，但是对象的锁没有被释放，其他线程依然无法访问这个对象。wait() 挂">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-基础">
+<meta property="og:url" content="https://github.com/TurboCome/2022/04/10/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="操作系统基本知识点进程的五大状态：    Sleep, wait 区别：sleep() 休眠：让调用线程进入睡眠，让出执行机会给其他线程，等到休眠时间结束，线程进入就绪状态和其他线程一起竞争cpu执行时间。Thread的静态方法，不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，线程虽然进入休眠，但是对象的锁没有被释放，其他线程依然无法访问这个对象。wait() 挂">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guqvcdozn9j60wq0n440c02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guqvemj5ggj60ka0leq3w02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guqvgjnc0gj611w0j4mzh02.jpg">
+<meta property="article:published_time" content="2022-04-10T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-19T03:57:05.628Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/04/10/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/04/27/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/" class="title">消息队列-基础</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-27T13:55:19.000Z" itemprop="datePublished">2022-04-27</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-操作系统/1.操作系统-基础" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      操作系统-基础
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/04/10/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/" class="article-date">
+	  <time datetime="2022-04-10T13:55:19.000Z" itemprop="datePublished">2022-04-10</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/04/10/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="操作系统基本知识点"><a href="#操作系统基本知识点" class="headerlink" title="操作系统基本知识点"></a>操作系统基本知识点</h1><h3 id="进程的五大状态："><a href="#进程的五大状态：" class="headerlink" title="进程的五大状态："></a><strong>进程的五大状态：</strong></h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg" alt="C4503148-288A-4F82-8FC9-348D8A500B94" width="650" height="300" />
+
+
+
+<h3 id="Sleep-wait-区别："><a href="#Sleep-wait-区别：" class="headerlink" title="Sleep, wait 区别："></a><strong>Sleep, wait 区别：</strong></h3><p><strong>sleep() 休眠：</strong>让调用线程进入睡眠，让出执行机会给其他线程，等到休眠时间结束，线程进入就绪状态和其他线程一起竞争cpu执行时间。Thread的静态方法，不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，线程虽然进入休眠，但是对象的锁没有被释放，其他线程依然无法访问这个对象。<br><strong>wait() 挂起：</strong>是Object类的方法，当一个线程执行到wait方法时，它就进入到一个和该对象相关的等待池，同时释放对象的锁，使得其他线程能够访问，可以通过notify，notifyAll方法来唤醒等待的线程。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>1.sleep不释放对象锁，只是让出CPU； wait释放对象锁，也让出CPU<br>2.sleep 是Thread 的静态方法； wait 是Object 类的私有方法<br>3.sleep可以指定休眠时间，无法唤醒；wait 可指定时间，也可通过notify&#x2F;notifyAll唤醒，实现多线程间通信</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvcdozn9j60wq0n440c02.jpg" alt="D3CA871F-D18B-4198-B93E-785CB79A032A" width="450" height="300" />
+
+<h3 id="CPU-执行程序的过程"><a href="#CPU-执行程序的过程" class="headerlink" title="CPU 执行程序的过程:"></a>CPU 执行程序的过程:</h3><p>CPU 根据 程序计数器里的内存地址，从内存里面把需要执行的 指令序列读取到 指令寄存器 里面执行，然后根据 指令长度自增，开始顺序读取下一条指令。<br><strong>CPU 的指令周期：</strong> CPU 从程序计数器读取指令、到执行、再到下一条指令，这个过程会不断循环，直到程序执行结束。</p>
+<h3 id="操作系统中的死锁："><a href="#操作系统中的死锁：" class="headerlink" title="操作系统中的死锁："></a>操作系统中的死锁：</h3><p>一组进程中，每个进程都 无限等待被该组进程中另一进程所占有的资源，而永远无法得到资源，这种现象称为进程死锁，这一组 进程称为死锁进程。如果死锁发生，会浪费大量系统资源，甚至导致系统崩溃。</p>
+<p><strong>产生死锁必要的四个条件：</strong><br>(1)互斥使用 (资源独占)：   一个资源 每次只能给一个进程使用<br>(2)请求和保持(部分分配)：进程在 申请新的资源的同时 保持对原有资源的占有<br>(3)不可抢占 (不可剥夺)：资源申请者不能强行的从资源占有者手中夺取资源，资源只能由占有者自愿释放<br>(4)循环等待：存在一个进程等待队列 {P1 , P2 , … , Pn}，其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路。</p>
+<p><strong>解除死锁：</strong>   资源剥夺法、   进程撤销法、进程回退法、    系统重启法<br><strong>破坏环路等待：</strong>给资源统一编号，进程只能按编号顺序来请求资源。<br><strong>死锁避免：</strong>在程序运行时避免发生死锁</p>
+<h3 id="同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO："><a href="#同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO：" class="headerlink" title="同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO："></a>同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO：</h3><p><strong>等待过程：</strong> 数据从网络 到 网卡, 再到 内核空间<br><strong>读写(copy)过程：</strong> 内核空间，和 用户空间 相互拷贝<br>IO： 读入&#x2F;写出 数据的过程，和等待 读入&#x2F;写出数据的过程<br><strong>同步&#x2F;异步：</strong>  是否 等待数据到 内核空间（网络—&gt;网卡—&gt;内核）<br><strong>阻塞&#x2F;非阻塞：</strong>  是否 等待 copy数据 （ 内核—&gt; 用户）</p>
+<p><strong>阻塞IO：</strong>用户线程被阻塞在等待数据上和拷贝数据上。<br>应用程序都运行在 用户空间，能操作的 数据也都在用户空间；如果此时用户线程已经参与，那它一定 会被阻塞在IO上，这就是常说的阻塞IO，用户线程被阻塞在等待数据，拷贝数据。<br><strong>非阻塞IO：</strong>数据已经拷贝到用户空间后，才去通知用户线程，一上来就可以直接操作数据，用户线程没有因为IO的事情出现阻塞。</p>
+<h3 id="同步IO-x2F-同步阻塞IO："><a href="#同步IO-x2F-同步阻塞IO：" class="headerlink" title="同步IO&#x2F;同步阻塞IO："></a>同步IO&#x2F;同步阻塞IO：</h3><p><strong>同步IO:</strong> 发起 IO请求后，必须拿到 IO数据才继续执行，在 等待和拷贝数据过程中，线程都在阻塞，因为后续操作依赖IO数据<br><strong>非阻塞IO：</strong>发起IO请求后，可以继续往下执行，后续执行不依赖于IO数据，所以它肯定不是同步的。<br>同步IO 一定是 阻塞IO，也就是同步阻塞IO。</p>
+<p><strong>异步：</strong> 等待数据继续执行，  阻塞：copy 数据时阻塞<br><strong>异步IO：</strong>IO请求后，不用拿到IO的数据就可继续执行，用户线程继续执行，和操作系统准备IO数据的过程是同时进行。<br><strong>异步阻塞 IO：</strong> 在等待数据过程中，用户线程继续执行，在拷贝数据过程中，用户线程在阻塞；用户线程没有参与数据等待的过程，所以是异步的。但用户线程参与数据拷贝的过程，所以是阻塞的,合起来异步阻塞IO。<br><strong>异步非阻塞IO：</strong> 等待数据， copy 数据时 用户线程都在继续执行；在 等待数据的过程中，和拷贝数据的过程中，用户线程都在继续执行；用户线程 没有参与等待过程也没有参与拷贝过程，当接到通知时数据已经准备好了，没有因为IO数据而阻塞，是非阻塞的。</p>
+<h3 id="I-x2F-O多路复用"><a href="#I-x2F-O多路复用" class="headerlink" title="I&#x2F;O多路复用"></a>I&#x2F;O多路复用</h3><p>通过一种机制，一个进程可以监视多个描述符，一旦某个描述符就绪（读就绪或写就绪），能通知程序进行相应的读写操作<br>select，poll，epoll 本质上都是 同步I&#x2F;O，因为他们都需要在读写事件就绪后自己负责进行读写，也就是说这个读写过程是阻塞的，而异步I&#x2F;O 则无需自己负责进行读写，异步 I&#x2F;O的实现会负责把数据从  内核拷贝到用户空间。</p>
+<h4 id="Select-原理："><a href="#Select-原理：" class="headerlink" title="Select 原理："></a>Select 原理：</h4><p>1.从 用户空间 拷贝 fd_set 到 内核空间，fds 文件描述符（ 3类，分别是writefds，readfds，和exceptfds ）<br>2.注册回调函数 __pollwait ，然后将 current（当前进程）挂到 设备的等待队列中，不同的设备有不同的等待队列。（有数据 可读、可写、或超时timeout等待时间）<br>3.有描述符 就绪后，通过回调函数进行通知，select 会对 fd_set 进行遍历，来找到就绪的描述符。<br>遍历完 所有的 fd，还没有返回一个 可读写的 mask掩码，调用 schedule_timeout 是 调用select的进程（current）进入睡眠<br>缺点：<br>1）支持的文件描述符数量太小，默认是 1024<br>2）每次 调用 select，需要把 fds 集合从 用户态拷贝 到内核态，在 fds 很大时, 开销较大<br>3）每次调用 select 需要在 内核遍历传递进来的 所有 fds，找到处于 就绪的描述符，开销较大</p>
+<h4 id="poll-："><a href="#poll-：" class="headerlink" title="poll ："></a>poll ：</h4><p>实现和 select 相似，只是 描述 fd集合 不同，poll使用 poll fd结构而不是select的fd_set结构，链表存储的。<br>优：没有最大连接数的限制，原因：基于链表来存储的<br>缺：<br>1.poll, select  大量的 fds 的数组被整体 复制于 用户态和内核地址空间之间<br>2.select, poll 都要通过 遍历文件描述符来获取已经就绪的socket，如果同时连接大量客户端，但只有很少的处于就绪状态，这会导致随着监视的 描述符数量的增长，效率下降。</p>
+<h4 id="epoll"><a href="#epoll" class="headerlink" title="epoll:"></a>epoll:</h4><p>提供三个函数：epoll_create创建一个epoll句柄； epoll_ctl 注册要监听的事件类型； epoll_wait 是等待事件的产生 。</p>
+<p>1.解决反复 copy fds 问题：epoll更加灵活，没有描述符限制。epoll 使用一个 文件描述符管理多个描述符， 将 用户关系的文件描述符的事件 存放到 内核的一个事件表 中，这样在 用户空间和内核空间的 copy只需一次。<br>2.epoll 使用 “事件”就绪通知方式，通过 epoll_ctl时把 current 遍历一遍，并 为每个 fd 指定一个回调函数，当设备就绪，唤醒 等待队列上的等待者时，会调用这个回调函数，而这个 回调函数会把就绪的 fd 加入一个就绪链表；epoll_wait 工作实际上就是在这个 就绪链表中查看有没有就绪的fd 。</p>
+<p><strong>总结：</strong>select，poll 每次调用都要把fd集合从用户态往内核态拷贝一次，并且要把 current往设备等待队列中挂一次，而 epoll只要一次拷贝，而且把 current 往等待队列上挂也只挂一次。<br>只有活跃可用的 FD才会调用 callback函数；即 epoll最大的优点就在于它只管你“活跃”的连接，而跟连接总数无关，因此在实际的网络环境中，epoll的效率就会远远高于select和poll。</p>
+<p><strong>内存拷贝：</strong>利用 mmap()文件 映射内存加速 与 内核空间的消息传递；即 epoll使用mmap减少复制开销<br>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant">https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant</a>   </p>
+<h3 id="用户态-lt-—-gt-内核态："><a href="#用户态-lt-—-gt-内核态：" class="headerlink" title="用户态 &lt;—&gt; 内核态："></a>用户态 &lt;—&gt; 内核态：</h3><p>所有程序都在 用户空间运行（用户态），但很多操作 可能涉及内核运行，就需要进入内核态</p>
+<ol>
+<li>用户态把一些 数据放到寄存器，或创建对应的堆栈，表明需要操作系统提供的服务</li>
+<li>用户态 执行 系统调用（系统调用是操作系统的最小功能单位）</li>
+<li>CPU 切换到内核态，跳到对应的内存指定的位置执行指令</li>
+<li>系统调用 处理器 去读取先前放到 内存的数据参数，执行程序的请求 </li>
+<li>调用完成，操作系统重置 CPU为用户态返回结果，并执行下个指令</li>
+</ol>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvemj5ggj60ka0leq3w02.jpg" alt="0BCDE869-93F4-4F5A-9A33-090FFB41FDF0" width="350" height="350" />
+
+
+
+<p>内核 &lt;—&gt;用户</p>
+<p>1.系统调用：本身就是中断，但是软件中断，跟硬中断不同</p>
+<p>2.异常：如果当前进程运行在用户态，如果此时发生异常事件，就会触发切换， 例如：缺页异常</p>
+<p>3.外设中断：当外设完成用户的请求时，会向CPU发送中断信号<br>用户态进程通过 系统调用申请使用 操作系统提供的服务程序完成工作，比如 fork() 实际上就是执行了一个 创建新进程的系统调用；CPU 在执行 用户态下的程序时，发生不可知的异常，这时会触发当前运行进程切换到处理此异常的内核相关程序中，转到内核态，比如缺页异常。<br>用户态: 上层应用程序的活动空间，应用程序的执行必须依托于 内核提供的资源，包括CPU资源、存储资源、I&#x2F;O资源等。为了使上层应用能够访问到这些资源，内核 必须为上层应用提供访问的接口：即系统调用。</p>
+<p>系统调用：操作系统的最小功能单位<br>Shell (命令行)  是一个特殊的应用程序，下通系统调用，上通各种应用，让不同程序能够以一个清晰的接口协同工作，从而增强各个程序的功能。同时 Shell是可编程的，可以执行符合 Shell语法的文本(Shell脚本)。为方便用户和系统交互，一个Shell对应一个终端，可以通过终端窗口输入或输出文本，这个文本直接传递给shell 进行分析解释，然后执行。</p>
+<h3 id="进程、线程区别："><a href="#进程、线程区别：" class="headerlink" title="进程、线程区别："></a>进程、线程区别：</h3><p>进程： 操作系统 资源分配的基本单位<br>线程： 任务调度、执行的基本单位， cpu调度和分派的基本单位。</p>
+<h4 id="开销："><a href="#开销：" class="headerlink" title="开销："></a>开销：</h4><p>每个进程都有独立的 代码 和 数据 空间（程序上下文），程序之间的切换会有较大的开销；<br>线程就像轻量级的进程，同一类 线程 共享代码和数据空间，每个线程都有自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小</p>
+<h4 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h4><p>操作系统中能 同时运行多个进程（程序）；<br>在同一个进程（程序）中有多个线程同时执行（通过CPU调度，在每个时间片中只有一个线程执行）</p>
+<h4 id="内存分配："><a href="#内存分配：" class="headerlink" title="内存分配："></a>内存分配：</h4><p>系统在运行的时候会为 每个进程分配不同的内存空间<br>对线程而言，除了CPU外，系统不会为线程分配内存， 线程所使用的资源来自其所属进程的资源，线程组之间只能共享资源</p>
+<h3 id="进程间通信方式："><a href="#进程间通信方式：" class="headerlink" title="进程间通信方式："></a>进程间通信方式：</h3><h4 id="1-P、V信号量（Semaphore）："><a href="#1-P、V信号量（Semaphore）：" class="headerlink" title="1.P、V信号量（Semaphore）："></a>1.P、V信号量（Semaphore）：</h4><p>操作系统提供一种进程间的通信方式，主要用来协调并发程序对共享资源的访问，操作系统可以保证对信号量操作的原子性<br>信号量（semaphore）与已经介绍过的 IPC 结构不同，它是一个计数器。信号量用于实现进程间的互斥与同步，而不是用于存储进程间通信数据。<br>特点</p>
+<ol>
+<li>信号量用于进程间同步，若要在进程间传递数据需要结合共享内存。</li>
+<li>信号量基于操作系统的 PV 操作，程序对信号量的操作都是原子操作。</li>
+</ol>
+<h4 id="2-管程："><a href="#2-管程：" class="headerlink" title="2.管程："></a>2.管程：</h4><p>原理：所有进程对某一种临界资源的同步操作都集中起来，构成一个秘书进程。凡要访问该临界资源的进程，都需要先报告秘书进程，由秘书来实现进程对同一临界资源的互斥使用。</p>
+<p>管程可以理解为一个对象监视器，任何线程想要访问共享资源，需要排队进入监控范围，接受检查，不符合条件，则要等待直到被通知，然后再进入监视器.</p>
+<ol>
+<li>它是 半双工的（即数据只能在一个方向上流动），具有固定的读端和写端。</li>
+<li>它只能用于具有亲缘关系的进程之间的通信（也是父子进程或者兄弟进程之间）。<br>注意：信号量和管程两者是等价的，信号量可以实现管程，管程也可以实现信号量，两者的表现形式不同，管程对开发者更加友好。</li>
+</ol>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvgjnc0gj611w0j4mzh02.jpg" alt="1F787016-667F-4A87-BEFF-61790414A89F" width="650" height="320" />
+
+
+
+
+<p>管程为了解决信号量在临界区的 PV 操作上的配对的麻烦，把配对的 PV 操作集中在一起，并且加入了条件变量的概念，使得在多条件下线程间的同步实现变得更加简单。</p>
+<h4 id="3-消息队列："><a href="#3-消息队列：" class="headerlink" title="3.消息队列："></a>3.消息队列：</h4><p>容量受系统限制<br>消息队列，是消息的链接表，存放在内核中。一个消息队列由一个标识符（即队列ID）来标识。<br><strong>特点：</strong></p>
+<ol>
+<li>消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级。</li>
+<li>消息队列独立于发送与接收进程。进程终止时，消息队列及其内容并不会被删除。</li>
+</ol>
+<h4 id="4-共享内存："><a href="#4-共享内存：" class="headerlink" title="4.共享内存："></a>4.共享内存：</h4><p>速度快，各个进程间共享同一个内存区域，实现共享变量的访问<br>共享内存（Shared Memory），指两个或多个进程共享一个给定的存储区。<br>特点</p>
+<ol>
+<li>共享内存是 最快的一种 IPC，因为进程是直接对内存进行存取。</li>
+<li>因为 多个进程可以同时操作，所以需要进行同步。</li>
+<li>信号量+共享内存:  通常结合在一起使用，信号量用来同步对共享内存的访问。</li>
+</ol>
+<h4 id="5-套接字"><a href="#5-套接字" class="headerlink" title="5.套接字"></a>5.套接字</h4><p>用于不同设备间的进程通信</p>
+<h3 id="线程间通信方式："><a href="#线程间通信方式：" class="headerlink" title="线程间通信方式："></a>线程间通信方式：</h3><p>1.互斥锁：   以排他的方式防止数据结构并发修改<br>2.条件变量：阻塞进程，知道某个条件满足<br>3.读写锁：   多线程同时读，互斥写<br>4.信号量：   类似进程间信号量通信，主同步</p>
+<h3 id="进程调度算法；"><a href="#进程调度算法；" class="headerlink" title="进程调度算法；"></a>进程调度算法；</h3><p>1.先来先服务<br>2.最短作业优先<br>3.响应比最高者优先<br>4.优先级调度算法<br>5.时间片轮转调度算法</p>
+<p>参考：<strong>文件系统</strong>：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ">https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ</a></p>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h1 id="操作系统基本知识点"><a href="#操作系统基本知识点" class="headerlink" title="操作系统基本知识点"></a>操作系统基本知识点</h1><h3 id="进程的五大状态："><a href="#进程的五大状态：" class="headerlink" title="进程的五大状态："></a><strong>进程的五大状态：</strong></h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg" alt="C4503148-288A-4F82-8FC9-348D8A500B94" width="650" height="300" />
+
+
+
+<h3 id="Sleep-wait-区别："><a href="#Sleep-wait-区别：" class="headerlink" title="Sleep, wait 区别："></a><strong>Sleep, wait 区别：</strong></h3><p><strong>sleep() 休眠：</strong>让调用线程进入睡眠，让出执行机会给其他线程，等到休眠时间结束，线程进入就绪状态和其他线程一起竞争cpu执行时间。Thread的静态方法，不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，线程虽然进入休眠，但是对象的锁没有被释放，其他线程依然无法访问这个对象。<br><strong>wait() 挂起：</strong>是Object类的方法，当一个线程执行到wait方法时，它就进入到一个和该对象相关的等待池，同时释放对象的锁，使得其他线程能够访问，可以通过notify，notifyAll方法来唤醒等待的线程。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>1.sleep不释放对象锁，只是让出CPU； wait释放对象锁，也让出CPU<br>2.sleep 是Thread 的静态方法； wait 是Object 类的私有方法<br>3.sleep可以指定休眠时间，无法唤醒；wait 可指定时间，也可通过notify&#x2F;notifyAll唤醒，实现多线程间通信</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvcdozn9j60wq0n440c02.jpg" alt="D3CA871F-D18B-4198-B93E-785CB79A032A" width="450" height="300" />
+
+<h3 id="CPU-执行程序的过程"><a href="#CPU-执行程序的过程" class="headerlink" title="CPU 执行程序的过程:"></a>CPU 执行程序的过程:</h3><p>CPU 根据 程序计数器里的内存地址，从内存里面把需要执行的 指令序列读取到 指令寄存器 里面执行，然后根据 指令长度自增，开始顺序读取下一条指令。<br><strong>CPU 的指令周期：</strong> CPU 从程序计数器读取指令、到执行、再到下一条指令，这个过程会不断循环，直到程序执行结束。</p>
+<h3 id="操作系统中的死锁："><a href="#操作系统中的死锁：" class="headerlink" title="操作系统中的死锁："></a>操作系统中的死锁：</h3><p>一组进程中，每个进程都 无限等待被该组进程中另一进程所占有的资源，而永远无法得到资源，这种现象称为进程死锁，这一组 进程称为死锁进程。如果死锁发生，会浪费大量系统资源，甚至导致系统崩溃。</p>
+<p><strong>产生死锁必要的四个条件：</strong><br>(1)互斥使用 (资源独占)：   一个资源 每次只能给一个进程使用<br>(2)请求和保持(部分分配)：进程在 申请新的资源的同时 保持对原有资源的占有<br>(3)不可抢占 (不可剥夺)：资源申请者不能强行的从资源占有者手中夺取资源，资源只能由占有者自愿释放<br>(4)循环等待：存在一个进程等待队列 {P1 , P2 , … , Pn}，其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路。</p>
+<p><strong>解除死锁：</strong>   资源剥夺法、   进程撤销法、进程回退法、    系统重启法<br><strong>破坏环路等待：</strong>给资源统一编号，进程只能按编号顺序来请求资源。<br><strong>死锁避免：</strong>在程序运行时避免发生死锁</p>
+<h3 id="同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO："><a href="#同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO：" class="headerlink" title="同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO："></a>同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO：</h3><p><strong>等待过程：</strong> 数据从网络 到 网卡, 再到 内核空间<br><strong>读写(copy)过程：</strong> 内核空间，和 用户空间 相互拷贝<br>IO： 读入&#x2F;写出 数据的过程，和等待 读入&#x2F;写出数据的过程<br><strong>同步&#x2F;异步：</strong>  是否 等待数据到 内核空间（网络—&gt;网卡—&gt;内核）<br><strong>阻塞&#x2F;非阻塞：</strong>  是否 等待 copy数据 （ 内核—&gt; 用户）</p>
+<p><strong>阻塞IO：</strong>用户线程被阻塞在等待数据上和拷贝数据上。<br>应用程序都运行在 用户空间，能操作的 数据也都在用户空间；如果此时用户线程已经参与，那它一定 会被阻塞在IO上，这就是常说的阻塞IO，用户线程被阻塞在等待数据，拷贝数据。<br><strong>非阻塞IO：</strong>数据已经拷贝到用户空间后，才去通知用户线程，一上来就可以直接操作数据，用户线程没有因为IO的事情出现阻塞。</p>
+<h3 id="同步IO-x2F-同步阻塞IO："><a href="#同步IO-x2F-同步阻塞IO：" class="headerlink" title="同步IO&#x2F;同步阻塞IO："></a>同步IO&#x2F;同步阻塞IO：</h3><p><strong>同步IO:</strong> 发起 IO请求后，必须拿到 IO数据才继续执行，在 等待和拷贝数据过程中，线程都在阻塞，因为后续操作依赖IO数据<br><strong>非阻塞IO：</strong>发起IO请求后，可以继续往下执行，后续执行不依赖于IO数据，所以它肯定不是同步的。<br>同步IO 一定是 阻塞IO，也就是同步阻塞IO。</p>
+<p><strong>异步：</strong> 等待数据继续执行，  阻塞：copy 数据时阻塞<br><strong>异步IO：</strong>IO请求后，不用拿到IO的数据就可继续执行，用户线程继续执行，和操作系统准备IO数据的过程是同时进行。<br><strong>异步阻塞 IO：</strong> 在等待数据过程中，用户线程继续执行，在拷贝数据过程中，用户线程在阻塞；用户线程没有参与数据等待的过程，所以是异步的。但用户线程参与数据拷贝的过程，所以是阻塞的,合起来异步阻塞IO。<br><strong>异步非阻塞IO：</strong> 等待数据， copy 数据时 用户线程都在继续执行；在 等待数据的过程中，和拷贝数据的过程中，用户线程都在继续执行；用户线程 没有参与等待过程也没有参与拷贝过程，当接到通知时数据已经准备好了，没有因为IO数据而阻塞，是非阻塞的。</p>
+<h3 id="I-x2F-O多路复用"><a href="#I-x2F-O多路复用" class="headerlink" title="I&#x2F;O多路复用"></a>I&#x2F;O多路复用</h3><p>通过一种机制，一个进程可以监视多个描述符，一旦某个描述符就绪（读就绪或写就绪），能通知程序进行相应的读写操作<br>select，poll，epoll 本质上都是 同步I&#x2F;O，因为他们都需要在读写事件就绪后自己负责进行读写，也就是说这个读写过程是阻塞的，而异步I&#x2F;O 则无需自己负责进行读写，异步 I&#x2F;O的实现会负责把数据从  内核拷贝到用户空间。</p>
+<h4 id="Select-原理："><a href="#Select-原理：" class="headerlink" title="Select 原理："></a>Select 原理：</h4><p>1.从 用户空间 拷贝 fd_set 到 内核空间，fds 文件描述符（ 3类，分别是writefds，readfds，和exceptfds ）<br>2.注册回调函数 __pollwait ，然后将 current（当前进程）挂到 设备的等待队列中，不同的设备有不同的等待队列。（有数据 可读、可写、或超时timeout等待时间）<br>3.有描述符 就绪后，通过回调函数进行通知，select 会对 fd_set 进行遍历，来找到就绪的描述符。<br>遍历完 所有的 fd，还没有返回一个 可读写的 mask掩码，调用 schedule_timeout 是 调用select的进程（current）进入睡眠<br>缺点：<br>1）支持的文件描述符数量太小，默认是 1024<br>2）每次 调用 select，需要把 fds 集合从 用户态拷贝 到内核态，在 fds 很大时, 开销较大<br>3）每次调用 select 需要在 内核遍历传递进来的 所有 fds，找到处于 就绪的描述符，开销较大</p>
+<h4 id="poll-："><a href="#poll-：" class="headerlink" title="poll ："></a>poll ：</h4><p>实现和 select 相似，只是 描述 fd集合 不同，poll使用 poll fd结构而不是select的fd_set结构，链表存储的。<br>优：没有最大连接数的限制，原因：基于链表来存储的<br>缺：<br>1.poll, select  大量的 fds 的数组被整体 复制于 用户态和内核地址空间之间<br>2.select, poll 都要通过 遍历文件描述符来获取已经就绪的socket，如果同时连接大量客户端，但只有很少的处于就绪状态，这会导致随着监视的 描述符数量的增长，效率下降。</p>
+<h4 id="epoll"><a href="#epoll" class="headerlink" title="epoll:"></a>epoll:</h4><p>提供三个函数：epoll_create创建一个epoll句柄； epoll_ctl 注册要监听的事件类型； epoll_wait 是等待事件的产生 。</p>
+<p>1.解决反复 copy fds 问题：epoll更加灵活，没有描述符限制。epoll 使用一个 文件描述符管理多个描述符， 将 用户关系的文件描述符的事件 存放到 内核的一个事件表 中，这样在 用户空间和内核空间的 copy只需一次。<br>2.epoll 使用 “事件”就绪通知方式，通过 epoll_ctl时把 current 遍历一遍，并 为每个 fd 指定一个回调函数，当设备就绪，唤醒 等待队列上的等待者时，会调用这个回调函数，而这个 回调函数会把就绪的 fd 加入一个就绪链表；epoll_wait 工作实际上就是在这个 就绪链表中查看有没有就绪的fd 。</p>
+<p><strong>总结：</strong>select，poll 每次调用都要把fd集合从用户态往内核态拷贝一次，并且要把 current往设备等待队列中挂一次，而 epoll只要一次拷贝，而且把 current 往等待队列上挂也只挂一次。<br>只有活跃可用的 FD才会调用 callback函数；即 epoll最大的优点就在于它只管你“活跃”的连接，而跟连接总数无关，因此在实际的网络环境中，epoll的效率就会远远高于select和poll。</p>
+<p><strong>内存拷贝：</strong>利用 mmap()文件 映射内存加速 与 内核空间的消息传递；即 epoll使用mmap减少复制开销<br>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant">https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant</a>   </p>
+<h3 id="用户态-lt-—-gt-内核态："><a href="#用户态-lt-—-gt-内核态：" class="headerlink" title="用户态 &lt;—&gt; 内核态："></a>用户态 &lt;—&gt; 内核态：</h3><p>所有程序都在 用户空间运行（用户态），但很多操作 可能涉及内核运行，就需要进入内核态</p>
+<ol>
+<li>用户态把一些 数据放到寄存器，或创建对应的堆栈，表明需要操作系统提供的服务</li>
+<li>用户态 执行 系统调用（系统调用是操作系统的最小功能单位）</li>
+<li>CPU 切换到内核态，跳到对应的内存指定的位置执行指令</li>
+<li>系统调用 处理器 去读取先前放到 内存的数据参数，执行程序的请求 </li>
+<li>调用完成，操作系统重置 CPU为用户态返回结果，并执行下个指令</li>
+</ol>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvemj5ggj60ka0leq3w02.jpg" alt="0BCDE869-93F4-4F5A-9A33-090FFB41FDF0" width="350" height="350" />
+
+
+
+<p>内核 &lt;—&gt;用户</p>
+<p>1.系统调用：本身就是中断，但是软件中断，跟硬中断不同</p>
+<p>2.异常：如果当前进程运行在用户态，如果此时发生异常事件，就会触发切换， 例如：缺页异常</p>
+<p>3.外设中断：当外设完成用户的请求时，会向CPU发送中断信号<br>用户态进程通过 系统调用申请使用 操作系统提供的服务程序完成工作，比如 fork() 实际上就是执行了一个 创建新进程的系统调用；CPU 在执行 用户态下的程序时，发生不可知的异常，这时会触发当前运行进程切换到处理此异常的内核相关程序中，转到内核态，比如缺页异常。<br>用户态: 上层应用程序的活动空间，应用程序的执行必须依托于 内核提供的资源，包括CPU资源、存储资源、I&#x2F;O资源等。为了使上层应用能够访问到这些资源，内核 必须为上层应用提供访问的接口：即系统调用。</p>
+<p>系统调用：操作系统的最小功能单位<br>Shell (命令行)  是一个特殊的应用程序，下通系统调用，上通各种应用，让不同程序能够以一个清晰的接口协同工作，从而增强各个程序的功能。同时 Shell是可编程的，可以执行符合 Shell语法的文本(Shell脚本)。为方便用户和系统交互，一个Shell对应一个终端，可以通过终端窗口输入或输出文本，这个文本直接传递给shell 进行分析解释，然后执行。</p>
+<h3 id="进程、线程区别："><a href="#进程、线程区别：" class="headerlink" title="进程、线程区别："></a>进程、线程区别：</h3><p>进程： 操作系统 资源分配的基本单位<br>线程： 任务调度、执行的基本单位， cpu调度和分派的基本单位。</p>
+<h4 id="开销："><a href="#开销：" class="headerlink" title="开销："></a>开销：</h4><p>每个进程都有独立的 代码 和 数据 空间（程序上下文），程序之间的切换会有较大的开销；<br>线程就像轻量级的进程，同一类 线程 共享代码和数据空间，每个线程都有自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小</p>
+<h4 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h4><p>操作系统中能 同时运行多个进程（程序）；<br>在同一个进程（程序）中有多个线程同时执行（通过CPU调度，在每个时间片中只有一个线程执行）</p>
+<h4 id="内存分配："><a href="#内存分配：" class="headerlink" title="内存分配："></a>内存分配：</h4><p>系统在运行的时候会为 每个进程分配不同的内存空间<br>对线程而言，除了CPU外，系统不会为线程分配内存， 线程所使用的资源来自其所属进程的资源，线程组之间只能共享资源</p>
+<h3 id="进程间通信方式："><a href="#进程间通信方式：" class="headerlink" title="进程间通信方式："></a>进程间通信方式：</h3><h4 id="1-P、V信号量（Semaphore）："><a href="#1-P、V信号量（Semaphore）：" class="headerlink" title="1.P、V信号量（Semaphore）："></a>1.P、V信号量（Semaphore）：</h4><p>操作系统提供一种进程间的通信方式，主要用来协调并发程序对共享资源的访问，操作系统可以保证对信号量操作的原子性<br>信号量（semaphore）与已经介绍过的 IPC 结构不同，它是一个计数器。信号量用于实现进程间的互斥与同步，而不是用于存储进程间通信数据。<br>特点</p>
+<ol>
+<li>信号量用于进程间同步，若要在进程间传递数据需要结合共享内存。</li>
+<li>信号量基于操作系统的 PV 操作，程序对信号量的操作都是原子操作。</li>
+</ol>
+<h4 id="2-管程："><a href="#2-管程：" class="headerlink" title="2.管程："></a>2.管程：</h4><p>原理：所有进程对某一种临界资源的同步操作都集中起来，构成一个秘书进程。凡要访问该临界资源的进程，都需要先报告秘书进程，由秘书来实现进程对同一临界资源的互斥使用。</p>
+<p>管程可以理解为一个对象监视器，任何线程想要访问共享资源，需要排队进入监控范围，接受检查，不符合条件，则要等待直到被通知，然后再进入监视器.</p>
+<ol>
+<li>它是 半双工的（即数据只能在一个方向上流动），具有固定的读端和写端。</li>
+<li>它只能用于具有亲缘关系的进程之间的通信（也是父子进程或者兄弟进程之间）。<br>注意：信号量和管程两者是等价的，信号量可以实现管程，管程也可以实现信号量，两者的表现形式不同，管程对开发者更加友好。</li>
+</ol>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvgjnc0gj611w0j4mzh02.jpg" alt="1F787016-667F-4A87-BEFF-61790414A89F" width="650" height="320" />
+
+
+
+
+<p>管程为了解决信号量在临界区的 PV 操作上的配对的麻烦，把配对的 PV 操作集中在一起，并且加入了条件变量的概念，使得在多条件下线程间的同步实现变得更加简单。</p>
+<h4 id="3-消息队列："><a href="#3-消息队列：" class="headerlink" title="3.消息队列："></a>3.消息队列：</h4><p>容量受系统限制<br>消息队列，是消息的链接表，存放在内核中。一个消息队列由一个标识符（即队列ID）来标识。<br><strong>特点：</strong></p>
+<ol>
+<li>消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级。</li>
+<li>消息队列独立于发送与接收进程。进程终止时，消息队列及其内容并不会被删除。</li>
+</ol>
+<h4 id="4-共享内存："><a href="#4-共享内存：" class="headerlink" title="4.共享内存："></a>4.共享内存：</h4><p>速度快，各个进程间共享同一个内存区域，实现共享变量的访问<br>共享内存（Shared Memory），指两个或多个进程共享一个给定的存储区。<br>特点</p>
+<ol>
+<li>共享内存是 最快的一种 IPC，因为进程是直接对内存进行存取。</li>
+<li>因为 多个进程可以同时操作，所以需要进行同步。</li>
+<li>信号量+共享内存:  通常结合在一起使用，信号量用来同步对共享内存的访问。</li>
+</ol>
+<h4 id="5-套接字"><a href="#5-套接字" class="headerlink" title="5.套接字"></a>5.套接字</h4><p>用于不同设备间的进程通信</p>
+<h3 id="线程间通信方式："><a href="#线程间通信方式：" class="headerlink" title="线程间通信方式："></a>线程间通信方式：</h3><p>1.互斥锁：   以排他的方式防止数据结构并发修改<br>2.条件变量：阻塞进程，知道某个条件满足<br>3.读写锁：   多线程同时读，互斥写<br>4.信号量：   类似进程间信号量通信，主同步</p>
+<h3 id="进程调度算法；"><a href="#进程调度算法；" class="headerlink" title="进程调度算法；"></a>进程调度算法；</h3><p>1.先来先服务<br>2.最短作业优先<br>3.响应比最高者优先<br>4.优先级调度算法<br>5.时间片轮转调度算法</p>
+<p>参考：<strong>文件系统</strong>：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ">https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ</a></p>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/04/10/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/" title="操作系统-基础" target="_blank" rel="external">https://github.com/TurboCome/2022/04/10/操作系统/1.操作系统-基础/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/TurboCome/2022/04/11/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/" title="段/页式存储"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/TurboCome/2022/04/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/" title="多线程-基础"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

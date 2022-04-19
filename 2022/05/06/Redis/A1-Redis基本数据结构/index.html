@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Redis数据结构 | Hexo</title>
+  <meta name="description" content="A1-Redis基本数据结构基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLogString :动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构 SDS 与 C 字符串的区别： C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis数据结构">
+<meta property="og:url" content="https://github.com/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="A1-Redis基本数据结构基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLogString :动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构 SDS 与 C 字符串的区别： C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk020cnij611w0bwdgr02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk0n3hsdj611807ajs102.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk1cugrtj61120e4jsw02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk1xfew3j611a0cwgmx02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk2o47wcj60xi0eywft02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk36f5cej60ze0j0jsx02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk71tl5oj60g6038jre02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk7wpk4pj60u012tq6f02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk9dz2toj60dw0bgjrl02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwka6pez0j60v80hwdid02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwkb4wfj2j610s04kmxq02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwkbpk601j6156050gmo02.jpg">
+<meta property="article:published_time" content="2022-05-06T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-18T12:09:38.312Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/05/06/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/04/27/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/" class="title">消息队列-基础</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-27T13:55:19.000Z" itemprop="datePublished">2022-04-27</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Redis/A1-Redis基本数据结构" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Redis数据结构
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="article-date">
+	  <time datetime="2022-05-06T13:55:19.000Z" itemprop="datePublished">2022-05-06</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
+<h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
+
+
+
+<p><strong>1.计数方式不同：</strong>  C 不保存数组长度，每次都需要遍历一遍整个数组，获取字符串长度 O(N) ；  redis 自己本身就保存 长度信息<br><strong>2.避免缓冲区溢出：</strong>执行 拼接 or 缩短字符串的操作时，可能出现 缓冲区溢出&#x2F;内存泄漏 的问题<br>现在需要在后面拼接，但是没计算好内存，结果可能因 内存不足，被意外的修改；<br>SDS 结构存储 当前长度+ free未使用长度，在做拼接操作时，会判断是否可以放得下，如果长度够直接执行，如果 不够那就进行扩容<br>    <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk020cnij611w0bwdgr02.jpg" alt="30466B01-C2DD-46B1-B7C0-90DD45C08A93" width="650" height="200"  /></p>
+<p><strong>3.减少 修改字符串时带来的内存重分配次数：</strong> Redis是个高速缓存数据库，如果需要对字符串进行 频繁的拼接和截断操作，在写代码时忘记了重新分配内存，就可能造成缓冲区溢出，以及内存泄露。Redis为避免 C字符串这样的缺陷，就分别采用了两种解决方案，去达到性能最大化，空间利用最大化：<br>***空间预分配：对SDS进行扩展操作的时候，Redis会为 SDS分配好内存，并且根据特定的公式，分配多余的 free空间，还有多余的 1byte空间（这1byte也是为了存空字符），这样就可以避免连续执行 字符串添加所带来的内存分配消耗。<br>*** 算法动态计算调整free值：字符串变长了，Redis还会根据算法计算出一个 free值给他备用；再继续拼接会发现，备用的 free用上了，省去这次的内存重分配</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk0n3hsdj611807ajs102.jpg" alt="DC43FF4A-EFE1-468A-AFF3-6123FF14F3E0" width="650" height="150" />
+
+<p><strong>4.惰性空间释放：</strong> 当执行完一个字符串缩减的操作，为了预防继续添加的操作，redis并不会马上收回空间，这样来减少分配空间带来的消耗；当再次操作还没用到多余空间的时候，Redis就会收回多余的空间，防止内存的浪费。<br>调用删减函数，并不会马上释放掉 free空间；如果需要继续添加，则这个空间就能用上，减少内存的重分配，如果空间不需要，调用函数删掉</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1cugrtj61120e4jsw02.jpg" alt="DB44101E-34A5-4AEF-AFCE-B7A66ACAC422" width="650" height="200" />
+
+<p><strong>5.二进制安全：</strong> 因为 C 语言中的字符串必须符合某种编码（如 ASCII），中间出现 ‘\0’ 可能会被判定为提前结束的字符串而识别不了；因此 C的字符串  只能保存文本数据；<br>Redis 保存字符串的长度，不判断空字符而是判断长度； 所以redis 可以保存 各种二进制数据，更加安全；</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1xfew3j611a0cwgmx02.jpg" alt="FBB69EB8-5F6F-40D6-BD76-9111B9FCBF10"  width="650" height="200" />
+
+<p>List：双向链表，类似于 Java 中的 LinkedList，插入、删除 性能好，时间复杂度为 O(1)，但索引定位慢，查询 O(n)；   应用：消息队列；  结构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">typedef struct list&#123;</span><br><span class="line">    <span class="comment">//表 头结点</span></span><br><span class="line">    listNode  *head;</span><br><span class="line">    <span class="comment">//表 尾节点</span></span><br><span class="line">    listNode  *tail;</span><br><span class="line">    <span class="comment">//链表 长度</span></span><br><span class="line">    unsigned <span class="type">long</span> len;</span><br><span class="line">    <span class="comment">//节点值复制函数</span></span><br><span class="line">    <span class="keyword">void</span> *(*dup) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值释放函数</span></span><br><span class="line">    <span class="keyword">void</span>  (*free) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值对比函数</span></span><br><span class="line">    <span class="type">int</span> (*match) (<span class="keyword">void</span> *ptr,<span class="keyword">void</span> *key);</span><br><span class="line">&#125;list</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk2o47wcj60xi0eywft02.jpg" alt="C494BCEE-029D-4025-94D4-5B8B64A68BC5" width="650" height="250"/>
+
+<h4 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h4><p>1.无环双向链表<br>2.获取表头指针，表尾指针，链表节点长度的 时间复杂度均为O(1)<br>3.链表使用 void *指针来保存节点值，可以保存各种不同类型的值</p>
+<h3 id="Hash"><a href="#Hash" class="headerlink" title="Hash:"></a>Hash:</h3><p>数组 + 链表， 类似于 Java 中的 HashMap ，链地址法来解决部分 哈希冲突， 2倍扩容， 初始容量 16.</p>
+<h4 id="结构："><a href="#结构：" class="headerlink" title="结构："></a>结构：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk36f5cej60ze0j0jsx02.jpg" alt="406435D6-0269-4F31-AAD5-4483C7B8FDC2" width="650" height="300" />
+
+<p>ht[0]： 用于存放真实的key-vlaue数据； ht[1]：用于扩容(rehash)<br>Redis中哈希算法和哈希冲突跟Java实现的差不多，它俩差异: Redis哈希冲突，链表头插法；JDK1.8后，Java哈希冲突，链表尾插法。</p>
+<h4 id="渐进式-rehash："><a href="#渐进式-rehash：" class="headerlink" title="渐进式 rehash："></a>渐进式 rehash：</h4><p>Hash 扩容是比较耗时间的，需重新申请新的数组，然后将旧字典所有链表中的元素重新挂接到新数组下面，这是一个 O(n) 的操作，作为 单线程的 Redis 很难承受这样耗时的过程，所以 Redis 使用 渐进式 rehash 来实现小步搬迁。</p>
+<p>在 rehash时，保留新旧两个 hash结构，查询时先查新hash, 没有再查旧hash，并搬迁至新hash;  增加直接加到新hash;  修改先改hash, 没有改旧hash, 然后删除搬迁至新hash; 删除先删新hash, 没有再删旧hash。</p>
+<p><strong>扩容条件：</strong>当 hash表中 元素个数 &#x3D;&#x3D; 数组.size()  扩容 原数组大小 2 倍。 如果 Redis 正在做 bgsave(持久化命令)，为减少内存，尽量不去扩容，但如果 hash 表非常满，达到一维数组长度 5 倍，这时就会 强制扩容。<br><strong>缩容条件：</strong>当 hash 表中  元素个数 &lt;  数组.size() * 10% ，缩容不会考虑  是否在做 bgsave</p>
+<p>在对哈希表进行 扩展或者收缩操作时，reash过程并不是一次性地完成的，而是 渐进式地完成的。<br>Redis在 rehash时采取渐进式的原因：数据量如果过大的话，一次性rehash会有庞大的计算量，这很可能导致服务器一段时间内停止服务。<br>Redis具体是rehash时这么干的：<br>1: 在字典中维持一个 索引计数器变量 rehashidx，并将设置为0，表示rehash开始。<br>2:在 rehash期间每次对字典进行 增加、查询、删除和更新操作时，除了执行指定命令外；还会将ht[0]中rehashidx 索引上的值 rehash到ht[1]，操作完成后 rehashidx+1。<br>3:字典操作不断执行，最终在某个时间点，所有的键值对完成rehash，这时将rehashidx设置为-1，表示rehash完成<br>4:在渐进式rehash过程中，字典会 同时使用两个哈希表ht[0]和ht[1]，所有的更新、删除、查找操作也会在两个哈希表进行。例如要查找一个键的话，服务器会优先查找ht[0]，如果不存在，再查找ht[1]，诸如此类。此外当执行新增操作时，新的键值对一律保存到ht[1]，不再对ht[0]进行任何操作，以保证ht[0]的键值对数量只减不增，直至变为空表。</p>
+<h3 id="Set-："><a href="#Set-：" class="headerlink" title="Set ："></a>Set ：</h3><p> 键值对 无序、唯一，类似于 Java 语言中的 HashSet， 在 HashMap 的基础上对所有的 value &#x3D; NULL </p>
+<h3 id="SortedSet（zset）"><a href="#SortedSet（zset）" class="headerlink" title="SortedSet（zset）:"></a>SortedSet（zset）:</h3><p>ziplist  +  跳表（ skiplist）；  应用：排行榜 ；    参考： <a target="_blank" rel="noopener" href="http://blog.jobbole.com/111731/">http://blog.jobbole.com/111731/</a><br>zset 可以按照 用户指定的 排序规则对输入字段进行排序， 支持随机插入、删除<br>同时满足如下条件时, 使用的是 ziplist,  其他时候使用 skiplist<br><strong>1.有序集合保存的元素  数量小于128个</strong><br><strong>2.有序集合保存的所有元素的 长度小于64字节</strong><br>ziplist 为存储结构时,每个集合元素使用 两个紧挨在一起的 压缩列表结点 来保存, 第一个 节点保存元素的成员, 第二个元素保存元素的分值score 。 </p>
+<h4 id="为什么不考虑平衡树，红黑树？"><a href="#为什么不考虑平衡树，红黑树？" class="headerlink" title="为什么不考虑平衡树，红黑树？"></a>为什么不考虑平衡树，红黑树？</h4><p>1.性能考虑： 在高并发情况下，树形结构需要执行一些 rebalance 这样的可能涉及整棵树的操作，相对来说跳跃表的变化 只涉及局部 ；<br>2.实现考虑： 在复杂度与红黑树相同的情况下，跳跃表实现起来更简单；</p>
+<p>在新产生的链表上，每两个相邻的节点增加一个指针，从而产生第三层链表：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk71tl5oj60g6038jre02.jpg" alt="03F9B84C-612F-40A8-A518-1B898D67ADA4" width="750" height="150" />
+
+
+<p>skiplist  为每个节点随机出一个层数(level)，比如：一个节点随机出的层数 3，就把它链入到 第 1 层到第 3 层这三层链表中</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk7wpk4pj60u012tq6f02.jpg" alt="35A292CF-7CF8-48E7-9E0F-11775A623FBB" width="750" height="750" />
+
+<p>每一个节点的层数（level）是随机出来的，而且新插入一个节点并不会影响到其他节点的层数，因此 插入操作只需要 修改节点前后的指针，而不需要对多个节点都进行调整，这就降低插入操作的复杂度。 从刚才创建的这个结构中查找 23 这个不存在的数，查找路径：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg" alt="54079B05-6914-4965-B95B-FA58520C9192" width="750" height="250" />
+
+<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><p><strong>随机层数：</strong><br>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
+<p><strong>节点更新:</strong><br>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
+<p><strong>元素排名：</strong>跳跃表是有序的， 在 skiplist 的 forward 指针上，为每一个 forward 指针都增加 span 属性，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点 中间会跳过多少个节点<br>在 插入、删除操作时，都会更新 span 值的大小，所以沿着 “搜索路径”把所有经过节点的 跨度 span 值累加 就可以算出当前元素的最终 rank 值。极端情况, 跳跃表中所有 score 值都是一样，zset 的查找性能会退化为 O(n)</p>
+<h3 id="BitMap-位图"><a href="#BitMap-位图" class="headerlink" title="BitMap:  位图"></a>BitMap:  位图</h3><p><strong>应用场景：</strong>对于统计浏览某个网页的 独立访客数量 UV（Unique visitor）的业务场景，考虑使用 BitMap、 布隆过滤器（缓存穿透）  </p>
+<p>Redis 位图是一个 二进制位组成的数组，数组的每个单元只能存储 0和1。 将数组中的每个 二进制位与用户 ID 一一对应， 使用位图去记录每个用户当日是否访问，存储的 1的个数就是UV数量。以 当天的日期加固定的前缀作为key，建立一个Bitmap，每一位二进制的 offset做为一个用户 ID的标识，当今天用户访问时就将Bitmap中标识此用户的二进制（value）从0置为1。最后统计所有bitmap 中 1 的个数，即为独立访客数量。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk9dz2toj60dw0bgjrl02.jpg" alt="F49C49F5-90EC-4448-870F-23D9E3A0A472" width="350" height="250" />
+
+
+
+<h3 id="HyperLogLog："><a href="#HyperLogLog：" class="headerlink" title="HyperLogLog："></a>HyperLogLog：</h3><p>基数统计 通常是用来 统计一个集合中不重复的元素个数 ；某个网页的 独立访客数量 UV（Unique visitor）的业务场景<br>Bitmap 已经节约了内存，但如果页面访问量非常大（例如用户规模达到1亿），那么用于统计单个页面的UV内存占用需要 100000000&#x2F;8&#x2F;1024&#x2F;1024 ≈ 12M；若分别统计多个页面，则内存占用会线性增加。如果只需要 每天的UV大致统计数量，使用HyperLogLog 比较合适。<br>HyperLogLog 是用来做 基数估计的算法，HyperLogLog 用12K字节的内存占用，可以计算接近 264 个不同元素的基数（UV）</p>
+<p>2.比特串的基数估计<br>在UV统计中需要统计一组集合中 不重复元素的个数。利用哈希算法将集合中的数据转换成 0和1构成的二进制数串，那么一个二进制串可以类比为一次抛硬币实验，1是抛到正面，0是反面。<br>使用 MurmurHash2 算法来计算 集合数据的哈希值，该算法有很好的均匀性，即使输入集合数据按规律排列，哈希之后仍能保证数据随机分布，因此可以保证每 bit出现 0或1的概率均为1&#x2F;2，Redis中采用的是MurmurHash2固定64比特版本，另外该算法的计算速度也较快。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwka6pez0j60v80hwdid02.jpg" alt="AC03EB09-D3C4-4316-80D1-D5A6723A1C4C" width="650" height="350" />
+
+<p>HLL算法思想的核心就在于通过 保留少量的比特信息，来 估计或观察消息流。二进制串中从低位开始第一个 1出现的位置可以理解为抛硬币试验中第一次出现正面的抛掷次数k，那么基于上面的结论，可以 通过多次抛硬币实验的最大抛到正面的次数来预估总共进行了多少次实验，通过第一个1出现位置的最大值  kmax来预估总共有多少个不同数字</p>
+<h4 id="分桶平均"><a href="#分桶平均" class="headerlink" title="分桶平均"></a>分桶平均</h4><p>如果直接应用上面的HLL方法进行基数估计会由于偶然性带来较大的误差，因此 HLL算法采用分桶平均的方法来消减偶然性的误差、提高估计的准确度。<br>1.先把数据 分成若干个分组（桶bucket），估计每个分组的基数<br>2.然后用所有 分组基数的平均数来估计总的基数。<br>Redis 中桶的个数是16384，对于每个哈希值（64bit），14 位作为 桶编号用来定位数据分布的桶位置，剩余的50bit 即伯努利过程，每个桶对应 6 bit大小，记录kmax。<br>举例说明，若 UV值通过Hash 算法得到比特串:  10110000 00000000 01101100 00000100 00101001 11000000 00 000100 00011101<br>后面 14位确定桶编号，即bucket&#x3D;1053; 前面的50 bit 伯努利过程，该例中 kmax&#x3D; 9，那么UV基数估计为29<br>多个桶用平均数计算，HLL采用的是 调和平均方法，然后再基于 因子修正公式计算得出，调和平均较比 几何平均有更高的精度<br>Redis中规定 分桶个数16384，每个桶的kmax用 6bit空间来存放，6*16384&#x2F;8 字节，再加上结构头等数据，加起来一共12304个字节；用12K字节的内存占用，即可 计算接近 264 个不同元素的基数。这和基数越大占用内存越大的其它计算基数的方式形成鲜明对比。<br>但Redis对应内存的节约还不止于此，12K字节内存是 encoding&#x3D;HLL_DENSE(密集)模式下的内存占用；<br>对于基数值比较少，大多数桶的计数值kmax为0的情况，Redis采用HLL_SPARSE稀疏模式的存储，稀疏存储的空间占用远小于12K字节。对密集存储和稀疏存储方式，本文做简单介绍：<br>密集存储的结构很简单，就是连续的 16384个6比特连起来的位图。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkb4wfj2j610s04kmxq02.jpg" alt="6715C6C3-8585-4629-BD40-59DE35B1111B" width="650" height="100" />
+
+<p>稀疏存储 针对的就是很多的桶计数值为 0的情况，因此会有大量连续0的情况出现</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkbpk601j6156050gmo02.jpg" alt="23A5FB80-92CF-4E8B-8236-40C6F3C4ABAA" width="650" height="100" />
+
+<h4 id="使用-set-集合问题："><a href="#使用-set-集合问题：" class="headerlink" title="使用 set 集合问题："></a>使用 set 集合问题：</h4><ol>
+<li>存储空间巨大： 如果数量庞大，则需要用来存储的 set 集合就会非常大，去重功能将耗费较高的时间复杂度 ，影响性能</li>
+<li>统计复杂： 每个场景都需要一个set，对于多个 set 集合，如果要聚合统计一下，也是一个复杂的事情</li>
+</ol>
+<h4 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h4><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
+<p>定期没删，也没查询，那可咋整？</p>
+<h4 id="内存淘汰策略："><a href="#内存淘汰策略：" class="headerlink" title="内存淘汰策略："></a>内存淘汰策略：</h4><p>1.noeviction:  永不删除<br>2.allkeys-random:  无过期时间的数据，随机删除一部分<br>3.allkeys-lru: 无过期时间的数据，删除 最近最少使用的（LRU）<br>4.volatile-random:  设置过期时间的数据，随机删除一部分<br>5.volatile-lru: 有过期时间的数据，删除最近最少使用的（LRU）<br>6.volatile-ttl: 有过期时间的数据，删除 剩余时间最短的（TTL）</p>
+<h4 id="缓存穿透："><a href="#缓存穿透：" class="headerlink" title="缓存穿透："></a>缓存穿透：</h4><p>缓存和数据库 中都没有的数据，而用户不断发起请求，导致请求不走缓存，直接访问到数据库，数据库压力过大<br>通常是 请求参数非法导致，(例如 id&#x3D;-1)</p>
+<h4 id="解决："><a href="#解决：" class="headerlink" title="解决："></a>解决：</h4><p>1.接口层 增加校验，比如 用户鉴权校验，参数做校验<br>2.在缓存中取不到，数据库中也没有取到，此时将对应Key的 Value 改写：{ null、位置错误、稍后重试 }，参照具体的场景<br>3.布隆过滤器（Bloom Filter）利用bitMap结构和hash算法，判断出这个Key是否在数据库中存在，不存在 return，存在就去查 DB刷新KV 再return</p>
+<p><strong>缓存击穿：</strong>一个热点 Key，扛着高并发，当这个Key在失效瞬间，持续的高并发击穿缓存，直接请求到数据库<br>解决：<br>1.设置 热点数据永远不过期<br>2.加上互斥锁，保证 同一进程中对同一数据，不会并发请求到DB</p>
+<p><strong>缓存雪崩：</strong>同一时间多个热点 Key值， 大面积失效，导致大量请求访问到DB<br>解决：<br>1.把每个 Key的失效时间都加个随机值，保证 数据不会在同一时间大面积失效<br>2.设置 热点数据永远不过期<br>3.将 多个热点数据 均匀分布在不同的Redis库中<br>4.使用主从、集群模型，提高缓存服务的高可用<br>缓存雪崩需要做 熔断等策略</p>
+<ul>
+<li>事前： Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃</li>
+<li>事中： 本地 ehcache 缓存 + Hystrix 限流+降级，避免MySQL被打死</li>
+<li>事后： Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据</li>
+</ul>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
+<h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
+
+
+
+<p><strong>1.计数方式不同：</strong>  C 不保存数组长度，每次都需要遍历一遍整个数组，获取字符串长度 O(N) ；  redis 自己本身就保存 长度信息<br><strong>2.避免缓冲区溢出：</strong>执行 拼接 or 缩短字符串的操作时，可能出现 缓冲区溢出&#x2F;内存泄漏 的问题<br>现在需要在后面拼接，但是没计算好内存，结果可能因 内存不足，被意外的修改；<br>SDS 结构存储 当前长度+ free未使用长度，在做拼接操作时，会判断是否可以放得下，如果长度够直接执行，如果 不够那就进行扩容<br>    <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk020cnij611w0bwdgr02.jpg" alt="30466B01-C2DD-46B1-B7C0-90DD45C08A93" width="650" height="200"  /></p>
+<p><strong>3.减少 修改字符串时带来的内存重分配次数：</strong> Redis是个高速缓存数据库，如果需要对字符串进行 频繁的拼接和截断操作，在写代码时忘记了重新分配内存，就可能造成缓冲区溢出，以及内存泄露。Redis为避免 C字符串这样的缺陷，就分别采用了两种解决方案，去达到性能最大化，空间利用最大化：<br>***空间预分配：对SDS进行扩展操作的时候，Redis会为 SDS分配好内存，并且根据特定的公式，分配多余的 free空间，还有多余的 1byte空间（这1byte也是为了存空字符），这样就可以避免连续执行 字符串添加所带来的内存分配消耗。<br>*** 算法动态计算调整free值：字符串变长了，Redis还会根据算法计算出一个 free值给他备用；再继续拼接会发现，备用的 free用上了，省去这次的内存重分配</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk0n3hsdj611807ajs102.jpg" alt="DC43FF4A-EFE1-468A-AFF3-6123FF14F3E0" width="650" height="150" />
+
+<p><strong>4.惰性空间释放：</strong> 当执行完一个字符串缩减的操作，为了预防继续添加的操作，redis并不会马上收回空间，这样来减少分配空间带来的消耗；当再次操作还没用到多余空间的时候，Redis就会收回多余的空间，防止内存的浪费。<br>调用删减函数，并不会马上释放掉 free空间；如果需要继续添加，则这个空间就能用上，减少内存的重分配，如果空间不需要，调用函数删掉</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1cugrtj61120e4jsw02.jpg" alt="DB44101E-34A5-4AEF-AFCE-B7A66ACAC422" width="650" height="200" />
+
+<p><strong>5.二进制安全：</strong> 因为 C 语言中的字符串必须符合某种编码（如 ASCII），中间出现 ‘\0’ 可能会被判定为提前结束的字符串而识别不了；因此 C的字符串  只能保存文本数据；<br>Redis 保存字符串的长度，不判断空字符而是判断长度； 所以redis 可以保存 各种二进制数据，更加安全；</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1xfew3j611a0cwgmx02.jpg" alt="FBB69EB8-5F6F-40D6-BD76-9111B9FCBF10"  width="650" height="200" />
+
+<p>List：双向链表，类似于 Java 中的 LinkedList，插入、删除 性能好，时间复杂度为 O(1)，但索引定位慢，查询 O(n)；   应用：消息队列；  结构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">typedef struct list&#123;</span><br><span class="line">    <span class="comment">//表 头结点</span></span><br><span class="line">    listNode  *head;</span><br><span class="line">    <span class="comment">//表 尾节点</span></span><br><span class="line">    listNode  *tail;</span><br><span class="line">    <span class="comment">//链表 长度</span></span><br><span class="line">    unsigned <span class="type">long</span> len;</span><br><span class="line">    <span class="comment">//节点值复制函数</span></span><br><span class="line">    <span class="keyword">void</span> *(*dup) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值释放函数</span></span><br><span class="line">    <span class="keyword">void</span>  (*free) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值对比函数</span></span><br><span class="line">    <span class="type">int</span> (*match) (<span class="keyword">void</span> *ptr,<span class="keyword">void</span> *key);</span><br><span class="line">&#125;list</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk2o47wcj60xi0eywft02.jpg" alt="C494BCEE-029D-4025-94D4-5B8B64A68BC5" width="650" height="250"/>
+
+<h4 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h4><p>1.无环双向链表<br>2.获取表头指针，表尾指针，链表节点长度的 时间复杂度均为O(1)<br>3.链表使用 void *指针来保存节点值，可以保存各种不同类型的值</p>
+<h3 id="Hash"><a href="#Hash" class="headerlink" title="Hash:"></a>Hash:</h3><p>数组 + 链表， 类似于 Java 中的 HashMap ，链地址法来解决部分 哈希冲突， 2倍扩容， 初始容量 16.</p>
+<h4 id="结构："><a href="#结构：" class="headerlink" title="结构："></a>结构：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk36f5cej60ze0j0jsx02.jpg" alt="406435D6-0269-4F31-AAD5-4483C7B8FDC2" width="650" height="300" />
+
+<p>ht[0]： 用于存放真实的key-vlaue数据； ht[1]：用于扩容(rehash)<br>Redis中哈希算法和哈希冲突跟Java实现的差不多，它俩差异: Redis哈希冲突，链表头插法；JDK1.8后，Java哈希冲突，链表尾插法。</p>
+<h4 id="渐进式-rehash："><a href="#渐进式-rehash：" class="headerlink" title="渐进式 rehash："></a>渐进式 rehash：</h4><p>Hash 扩容是比较耗时间的，需重新申请新的数组，然后将旧字典所有链表中的元素重新挂接到新数组下面，这是一个 O(n) 的操作，作为 单线程的 Redis 很难承受这样耗时的过程，所以 Redis 使用 渐进式 rehash 来实现小步搬迁。</p>
+<p>在 rehash时，保留新旧两个 hash结构，查询时先查新hash, 没有再查旧hash，并搬迁至新hash;  增加直接加到新hash;  修改先改hash, 没有改旧hash, 然后删除搬迁至新hash; 删除先删新hash, 没有再删旧hash。</p>
+<p><strong>扩容条件：</strong>当 hash表中 元素个数 &#x3D;&#x3D; 数组.size()  扩容 原数组大小 2 倍。 如果 Redis 正在做 bgsave(持久化命令)，为减少内存，尽量不去扩容，但如果 hash 表非常满，达到一维数组长度 5 倍，这时就会 强制扩容。<br><strong>缩容条件：</strong>当 hash 表中  元素个数 &lt;  数组.size() * 10% ，缩容不会考虑  是否在做 bgsave</p>
+<p>在对哈希表进行 扩展或者收缩操作时，reash过程并不是一次性地完成的，而是 渐进式地完成的。<br>Redis在 rehash时采取渐进式的原因：数据量如果过大的话，一次性rehash会有庞大的计算量，这很可能导致服务器一段时间内停止服务。<br>Redis具体是rehash时这么干的：<br>1: 在字典中维持一个 索引计数器变量 rehashidx，并将设置为0，表示rehash开始。<br>2:在 rehash期间每次对字典进行 增加、查询、删除和更新操作时，除了执行指定命令外；还会将ht[0]中rehashidx 索引上的值 rehash到ht[1]，操作完成后 rehashidx+1。<br>3:字典操作不断执行，最终在某个时间点，所有的键值对完成rehash，这时将rehashidx设置为-1，表示rehash完成<br>4:在渐进式rehash过程中，字典会 同时使用两个哈希表ht[0]和ht[1]，所有的更新、删除、查找操作也会在两个哈希表进行。例如要查找一个键的话，服务器会优先查找ht[0]，如果不存在，再查找ht[1]，诸如此类。此外当执行新增操作时，新的键值对一律保存到ht[1]，不再对ht[0]进行任何操作，以保证ht[0]的键值对数量只减不增，直至变为空表。</p>
+<h3 id="Set-："><a href="#Set-：" class="headerlink" title="Set ："></a>Set ：</h3><p> 键值对 无序、唯一，类似于 Java 语言中的 HashSet， 在 HashMap 的基础上对所有的 value &#x3D; NULL </p>
+<h3 id="SortedSet（zset）"><a href="#SortedSet（zset）" class="headerlink" title="SortedSet（zset）:"></a>SortedSet（zset）:</h3><p>ziplist  +  跳表（ skiplist）；  应用：排行榜 ；    参考： <a target="_blank" rel="noopener" href="http://blog.jobbole.com/111731/">http://blog.jobbole.com/111731/</a><br>zset 可以按照 用户指定的 排序规则对输入字段进行排序， 支持随机插入、删除<br>同时满足如下条件时, 使用的是 ziplist,  其他时候使用 skiplist<br><strong>1.有序集合保存的元素  数量小于128个</strong><br><strong>2.有序集合保存的所有元素的 长度小于64字节</strong><br>ziplist 为存储结构时,每个集合元素使用 两个紧挨在一起的 压缩列表结点 来保存, 第一个 节点保存元素的成员, 第二个元素保存元素的分值score 。 </p>
+<h4 id="为什么不考虑平衡树，红黑树？"><a href="#为什么不考虑平衡树，红黑树？" class="headerlink" title="为什么不考虑平衡树，红黑树？"></a>为什么不考虑平衡树，红黑树？</h4><p>1.性能考虑： 在高并发情况下，树形结构需要执行一些 rebalance 这样的可能涉及整棵树的操作，相对来说跳跃表的变化 只涉及局部 ；<br>2.实现考虑： 在复杂度与红黑树相同的情况下，跳跃表实现起来更简单；</p>
+<p>在新产生的链表上，每两个相邻的节点增加一个指针，从而产生第三层链表：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk71tl5oj60g6038jre02.jpg" alt="03F9B84C-612F-40A8-A518-1B898D67ADA4" width="750" height="150" />
+
+
+<p>skiplist  为每个节点随机出一个层数(level)，比如：一个节点随机出的层数 3，就把它链入到 第 1 层到第 3 层这三层链表中</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk7wpk4pj60u012tq6f02.jpg" alt="35A292CF-7CF8-48E7-9E0F-11775A623FBB" width="750" height="750" />
+
+<p>每一个节点的层数（level）是随机出来的，而且新插入一个节点并不会影响到其他节点的层数，因此 插入操作只需要 修改节点前后的指针，而不需要对多个节点都进行调整，这就降低插入操作的复杂度。 从刚才创建的这个结构中查找 23 这个不存在的数，查找路径：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg" alt="54079B05-6914-4965-B95B-FA58520C9192" width="750" height="250" />
+
+<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><p><strong>随机层数：</strong><br>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
+<p><strong>节点更新:</strong><br>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
+<p><strong>元素排名：</strong>跳跃表是有序的， 在 skiplist 的 forward 指针上，为每一个 forward 指针都增加 span 属性，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点 中间会跳过多少个节点<br>在 插入、删除操作时，都会更新 span 值的大小，所以沿着 “搜索路径”把所有经过节点的 跨度 span 值累加 就可以算出当前元素的最终 rank 值。极端情况, 跳跃表中所有 score 值都是一样，zset 的查找性能会退化为 O(n)</p>
+<h3 id="BitMap-位图"><a href="#BitMap-位图" class="headerlink" title="BitMap:  位图"></a>BitMap:  位图</h3><p><strong>应用场景：</strong>对于统计浏览某个网页的 独立访客数量 UV（Unique visitor）的业务场景，考虑使用 BitMap、 布隆过滤器（缓存穿透）  </p>
+<p>Redis 位图是一个 二进制位组成的数组，数组的每个单元只能存储 0和1。 将数组中的每个 二进制位与用户 ID 一一对应， 使用位图去记录每个用户当日是否访问，存储的 1的个数就是UV数量。以 当天的日期加固定的前缀作为key，建立一个Bitmap，每一位二进制的 offset做为一个用户 ID的标识，当今天用户访问时就将Bitmap中标识此用户的二进制（value）从0置为1。最后统计所有bitmap 中 1 的个数，即为独立访客数量。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk9dz2toj60dw0bgjrl02.jpg" alt="F49C49F5-90EC-4448-870F-23D9E3A0A472" width="350" height="250" />
+
+
+
+<h3 id="HyperLogLog："><a href="#HyperLogLog：" class="headerlink" title="HyperLogLog："></a>HyperLogLog：</h3><p>基数统计 通常是用来 统计一个集合中不重复的元素个数 ；某个网页的 独立访客数量 UV（Unique visitor）的业务场景<br>Bitmap 已经节约了内存，但如果页面访问量非常大（例如用户规模达到1亿），那么用于统计单个页面的UV内存占用需要 100000000&#x2F;8&#x2F;1024&#x2F;1024 ≈ 12M；若分别统计多个页面，则内存占用会线性增加。如果只需要 每天的UV大致统计数量，使用HyperLogLog 比较合适。<br>HyperLogLog 是用来做 基数估计的算法，HyperLogLog 用12K字节的内存占用，可以计算接近 264 个不同元素的基数（UV）</p>
+<p>2.比特串的基数估计<br>在UV统计中需要统计一组集合中 不重复元素的个数。利用哈希算法将集合中的数据转换成 0和1构成的二进制数串，那么一个二进制串可以类比为一次抛硬币实验，1是抛到正面，0是反面。<br>使用 MurmurHash2 算法来计算 集合数据的哈希值，该算法有很好的均匀性，即使输入集合数据按规律排列，哈希之后仍能保证数据随机分布，因此可以保证每 bit出现 0或1的概率均为1&#x2F;2，Redis中采用的是MurmurHash2固定64比特版本，另外该算法的计算速度也较快。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwka6pez0j60v80hwdid02.jpg" alt="AC03EB09-D3C4-4316-80D1-D5A6723A1C4C" width="650" height="350" />
+
+<p>HLL算法思想的核心就在于通过 保留少量的比特信息，来 估计或观察消息流。二进制串中从低位开始第一个 1出现的位置可以理解为抛硬币试验中第一次出现正面的抛掷次数k，那么基于上面的结论，可以 通过多次抛硬币实验的最大抛到正面的次数来预估总共进行了多少次实验，通过第一个1出现位置的最大值  kmax来预估总共有多少个不同数字</p>
+<h4 id="分桶平均"><a href="#分桶平均" class="headerlink" title="分桶平均"></a>分桶平均</h4><p>如果直接应用上面的HLL方法进行基数估计会由于偶然性带来较大的误差，因此 HLL算法采用分桶平均的方法来消减偶然性的误差、提高估计的准确度。<br>1.先把数据 分成若干个分组（桶bucket），估计每个分组的基数<br>2.然后用所有 分组基数的平均数来估计总的基数。<br>Redis 中桶的个数是16384，对于每个哈希值（64bit），14 位作为 桶编号用来定位数据分布的桶位置，剩余的50bit 即伯努利过程，每个桶对应 6 bit大小，记录kmax。<br>举例说明，若 UV值通过Hash 算法得到比特串:  10110000 00000000 01101100 00000100 00101001 11000000 00 000100 00011101<br>后面 14位确定桶编号，即bucket&#x3D;1053; 前面的50 bit 伯努利过程，该例中 kmax&#x3D; 9，那么UV基数估计为29<br>多个桶用平均数计算，HLL采用的是 调和平均方法，然后再基于 因子修正公式计算得出，调和平均较比 几何平均有更高的精度<br>Redis中规定 分桶个数16384，每个桶的kmax用 6bit空间来存放，6*16384&#x2F;8 字节，再加上结构头等数据，加起来一共12304个字节；用12K字节的内存占用，即可 计算接近 264 个不同元素的基数。这和基数越大占用内存越大的其它计算基数的方式形成鲜明对比。<br>但Redis对应内存的节约还不止于此，12K字节内存是 encoding&#x3D;HLL_DENSE(密集)模式下的内存占用；<br>对于基数值比较少，大多数桶的计数值kmax为0的情况，Redis采用HLL_SPARSE稀疏模式的存储，稀疏存储的空间占用远小于12K字节。对密集存储和稀疏存储方式，本文做简单介绍：<br>密集存储的结构很简单，就是连续的 16384个6比特连起来的位图。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkb4wfj2j610s04kmxq02.jpg" alt="6715C6C3-8585-4629-BD40-59DE35B1111B" width="650" height="100" />
+
+<p>稀疏存储 针对的就是很多的桶计数值为 0的情况，因此会有大量连续0的情况出现</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkbpk601j6156050gmo02.jpg" alt="23A5FB80-92CF-4E8B-8236-40C6F3C4ABAA" width="650" height="100" />
+
+<h4 id="使用-set-集合问题："><a href="#使用-set-集合问题：" class="headerlink" title="使用 set 集合问题："></a>使用 set 集合问题：</h4><ol>
+<li>存储空间巨大： 如果数量庞大，则需要用来存储的 set 集合就会非常大，去重功能将耗费较高的时间复杂度 ，影响性能</li>
+<li>统计复杂： 每个场景都需要一个set，对于多个 set 集合，如果要聚合统计一下，也是一个复杂的事情</li>
+</ol>
+<h4 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h4><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
+<p>定期没删，也没查询，那可咋整？</p>
+<h4 id="内存淘汰策略："><a href="#内存淘汰策略：" class="headerlink" title="内存淘汰策略："></a>内存淘汰策略：</h4><p>1.noeviction:  永不删除<br>2.allkeys-random:  无过期时间的数据，随机删除一部分<br>3.allkeys-lru: 无过期时间的数据，删除 最近最少使用的（LRU）<br>4.volatile-random:  设置过期时间的数据，随机删除一部分<br>5.volatile-lru: 有过期时间的数据，删除最近最少使用的（LRU）<br>6.volatile-ttl: 有过期时间的数据，删除 剩余时间最短的（TTL）</p>
+<h4 id="缓存穿透："><a href="#缓存穿透：" class="headerlink" title="缓存穿透："></a>缓存穿透：</h4><p>缓存和数据库 中都没有的数据，而用户不断发起请求，导致请求不走缓存，直接访问到数据库，数据库压力过大<br>通常是 请求参数非法导致，(例如 id&#x3D;-1)</p>
+<h4 id="解决："><a href="#解决：" class="headerlink" title="解决："></a>解决：</h4><p>1.接口层 增加校验，比如 用户鉴权校验，参数做校验<br>2.在缓存中取不到，数据库中也没有取到，此时将对应Key的 Value 改写：{ null、位置错误、稍后重试 }，参照具体的场景<br>3.布隆过滤器（Bloom Filter）利用bitMap结构和hash算法，判断出这个Key是否在数据库中存在，不存在 return，存在就去查 DB刷新KV 再return</p>
+<p><strong>缓存击穿：</strong>一个热点 Key，扛着高并发，当这个Key在失效瞬间，持续的高并发击穿缓存，直接请求到数据库<br>解决：<br>1.设置 热点数据永远不过期<br>2.加上互斥锁，保证 同一进程中对同一数据，不会并发请求到DB</p>
+<p><strong>缓存雪崩：</strong>同一时间多个热点 Key值， 大面积失效，导致大量请求访问到DB<br>解决：<br>1.把每个 Key的失效时间都加个随机值，保证 数据不会在同一时间大面积失效<br>2.设置 热点数据永远不过期<br>3.将 多个热点数据 均匀分布在不同的Redis库中<br>4.使用主从、集群模型，提高缓存服务的高可用<br>缓存雪崩需要做 熔断等策略</p>
+<ul>
+<li>事前： Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃</li>
+<li>事中： 本地 ehcache 缓存 + Hystrix 限流+降级，避免MySQL被打死</li>
+<li>事后： Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据</li>
+</ul>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/05/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="Redis数据结构" target="_blank" rel="external">https://github.com/TurboCome/2022/05/06/Redis/A1-Redis基本数据结构/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/TurboCome/2022/05/06/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" title="持久化-哨兵/集群"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
