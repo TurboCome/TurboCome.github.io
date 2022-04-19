@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>段/页式存储 | Hexo</title>
+  <meta name="description" content="段&#x2F;页式存储背景：​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。 ​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="段&#x2F;页式存储">
+<meta property="og:url" content="https://github.com/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="段&#x2F;页式存储背景：​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。 ​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0omkxpj612e0rwjt702.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0m9lzqj60tb0i376302.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0jfow0j60tn0m575h02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0h4ljqj61320nt76302.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0ern33j60s00e53zb02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0blh3cj614c0jfac602.jpg">
+<meta property="article:published_time" content="2022-02-27T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-19T06:42:00.254Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurk0omkxpj612e0rwjt702.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/07/">七月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/06/">六月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/02/">二月 2022</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-09T13:55:19.000Z" itemprop="datePublished">2022-07-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-08T13:55:19.000Z" itemprop="datePublished">2022-07-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-07T13:55:19.000Z" itemprop="datePublished">2022-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-06T13:55:19.000Z" itemprop="datePublished">2022-07-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/" class="title">多线程-AQS详解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-09T13:55:19.000Z" itemprop="datePublished">2022-06-09</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-操作系统/2.段页式存储" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      段/页式存储
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/" class="article-date">
+	  <time datetime="2022-02-27T13:55:19.000Z" itemprop="datePublished">2022-02-27</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="段-x2F-页式存储"><a href="#段-x2F-页式存储" class="headerlink" title="段&#x2F;页式存储"></a>段&#x2F;页式存储</h1><h3 id="背景："><a href="#背景：" class="headerlink" title="背景："></a>背景：</h3><p>​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。</p>
+<p>​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使用的内存暂时存放到硬盘 （换出），在需要时再装载回物理内存（换入）。</p>
+<p>​    有了虚拟地址空间，必然要把 虚拟地址「映射」到 物理地址，这个事情通常由操作系统来维护，对于虚拟地址与物理地址的映射关系，可以有 分段，分页，段页的方式。访问虚拟地址时，由操作系统转换成不同的 物理地址，这样不同进程运行的时候，写入不同的物理地址，就不会冲突。</p>
+<p>程序所使用的内存地址： <strong>虚拟内存地址</strong><br>实际存硬件里面的空间地址：<strong>物理内存地址</strong></p>
+<h3 id="内存分段（Segmentation）"><a href="#内存分段（Segmentation）" class="headerlink" title="内存分段（Segmentation）"></a>内存分段（Segmentation）</h3><p>​    程序由若干个逻辑分段组成： 代码分段、数据分段、栈段、堆段；不同段 有不同的属性，用分段形式把这些段分离出来。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0omkxpj612e0rwjt702.jpg" alt="F3F67004-8E73-43E9-9085-55FD89A5D40D" width="750" height="500"/>
+
+<h3 id="内存分段-寻址方式"><a href="#内存分段-寻址方式" class="headerlink" title="内存分段-寻址方式"></a>内存分段-寻址方式</h3><p><strong>段选择因子：</strong>保存在段寄存器里；</p>
+<p><strong>段号：</strong>段表的索引，段表里面保存 段的基地址、段的界限和 特权等级等；</p>
+<p><strong>段内偏移量：</strong>位于（0~段界限）；  </p>
+<p>物理内存地址 &#x3D; 段基地址 + 段内偏移量； 虚拟地址：通过 段表与 物理地址映射，分段机制把程序的虚拟地址分成 4 个段，每个段在 段表中有一个项，在这一项找到段的基地址，再加上偏移量，就能找到物理内存中的地址。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0m9lzqj60tb0i376302.jpg" alt="255BA9F7-C651-478C-AC47-73750F6D3619" width="600" height="350" />
+
+
+
+<h3 id="段式存储问题：-1-内存碎片；2-内存交换的效率低"><a href="#段式存储问题：-1-内存碎片；2-内存交换的效率低" class="headerlink" title="段式存储问题： 1.内存碎片；2.内存交换的效率低"></a><strong>段式存储问题：</strong> 1.内存碎片；2.内存交换的效率低</h3><h4 id="1-内存锁片："><a href="#1-内存锁片：" class="headerlink" title="1.内存锁片："></a>1.内存锁片：</h4><p><strong>外部内存碎片：</strong>在物理内存中产生多个 不连续的小物理内存，导致 新的程序无法被装载；<br><strong>内部内存碎片：</strong>程序所有的内存都被装载到物理内存，但程序 有部分的内存 可能并不是很常使用，这也会导致内存的浪费；</p>
+<p><strong>内存交换：</strong>解决–外部内存碎片问题<br>        把一个程序占用的 256MB 内存写到硬盘上，然后再从硬盘上读回来到内存里。不过再读回时，不装载回原来位置，而是紧紧跟在已经被占用的 512MB 内存后面。这样就 就使得空间利用连续，避免内存碎片产生。</p>
+<h4 id="2-内存交换的效率低："><a href="#2-内存交换的效率低：" class="headerlink" title="2.内存交换的效率低："></a>2.内存交换的效率低：</h4><p>​        内存交换空间在 Linux 系统里就是 Swap 空间，这块 空间是从硬盘划分出来，用于内存与硬盘的空间交换<br>对于多进程系统，内存碎片很容易产生，需要经常进行 内存交换操作，但Swap空间是硬盘，有性能瓶颈；硬盘访问速度比内存慢很多，每次内存交换都需要把 一大段连续的内存数据写到硬盘上。如果内存交换时，交换占内存空间很大的程序，整个机器都会卡顿。</p>
+<h3 id="内存分页："><a href="#内存分页：" class="headerlink" title="内存分页："></a><strong>内存分页：</strong></h3><p>解决 内存碎片，内存交换效率低；把整个 虚拟，物理内存空间切成一段段 固定尺寸的大小-页（Page）：一个连续并尺寸固定的内存空间，Linux 一页大小 4KB。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0jfow0j60tn0m575h02.jpg" alt="5724EB13-9A0A-4AA4-9C44-043EA8D0D3D0" width="600" height="450" />
+
+<p>虚拟地址分为： 页号，页内偏移<br><strong>页号：</strong> 页表的索引，页表包含 物理页每页所在 物理内存的基地址，物理内存地址 &#x3D;  基地址 与 页内偏移的组合<br>内存分页寻址过程：<br>1.把虚拟内存地址，切分成 页号，偏移量<br>2.根据页号，从 页表里查询对应的物理页号<br>3.直接拿 物理页号 + 偏移量，得到 物理内存地址</p>
+<p>**内存空间： **预先划分好，不像分段那样产生 间隙非常小的内存，这正是分段会产生内存碎片的原因。释放的内存都是以页为单位释放的，也不会产生无法给进程使用的小内存。<br>**页表： **存储在 CPU 内存管理单元 （MMU） 中；  CPU 可以直接 通过 MMU 找出实际要访问的 物理内存地址。<br>当 进程访问的虚拟地址在页表中查不到时，系统会产生：缺页异常<br><strong>解决：</strong> 进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0h4ljqj61320nt76302.jpg" alt="C547F405-C521-41CA-AA71-DD30DC86D94F" width="650" height="350" />
+
+<p>​    如果内存空间不够，操作系统会把 其他正在运行的进程中的「最近没被使用LRU」的 内存页面换出（Swap Out）， 暂时写在硬盘上；需要时再加载进来，称为换入（Swap In）。一次性写入磁盘只有少数一个页或几个页，不会花太多时间，内存交换效率相对比较高。<br>​    分页方式在加载程序时，不需要一次性把程序加载到物理内存中。在虚拟内存 和物理内存的页映射之后，并不真的把页加载到物理内存里，而 只有在 程序运行中，需要用到对应虚拟内存页里面的 指令和数据时，再加载到 物理内存里面去。</p>
+<h3 id="页式存储空间上的缺陷："><a href="#页式存储空间上的缺陷：" class="headerlink" title="页式存储空间上的缺陷："></a>页式存储空间上的缺陷：</h3><p>操作系统可以同时运行非常多的进程，意味着页表会非常的庞大。在 32 位的环境下，虚拟地址空间共有 4GB，一个页大小 4KB，就需要大约 100 万 （2^20） 个页，每个「页表项」需要 4 个字节大小来存储，整个 4GB 空间的映射就需要有 4MB 内存来存储页表。每个进程都是有自己的虚拟地址空间，如果有 100 个进程的话，就需要 400MB 内存来存储页表，这是非常大的内存，而 64 位环境则会更大。</p>
+<p><strong>多级页表  解决：</strong>多进程页表占用空间过大问题<br>使用 二级分页，一级页表 就可以覆盖整个 4GB 虚拟地址空间，但如果某个一级页表的页表项没有被用到，也就不需要创建这个页表项对应的二级页表，即可以在需要时才创建二级页表。例如：假设只有 20% 一级页表项被用到，那么页表占用内存空间就只有  4KB（一级页表）+  20% * 4 MB（二级页表）&#x3D; 0.804MB</p>
+<h3 id="局部性原理"><a href="#局部性原理" class="headerlink" title="局部性原理"></a>局部性原理</h3><p>​    每个进程有 4GB 虚拟地址空间，对于大多数程序来说，其使用的空间远未达到4GB，因为会有部分对应的页表项都是空的，没有分配，对于已分配的页表项，如果是最近一段时间未访问的页表，在物理内存紧张的情况下，操作系统会将页面换出到硬盘，不会占用物理内存。</p>
+<h4 id="程序的局部性"><a href="#程序的局部性" class="headerlink" title="程序的局部性"></a><strong>程序的局部性</strong></h4><p>​    把常访问的 几个页表项存储到访问速度更快的硬件，在 CPU 芯片中加入一个专门存放 程序最常访问的 页表项的 Cache，这个 Cache 就是 TLB（Translation Lookaside Buffer） ，通常称为：页表缓存、转址旁路缓存、快表等。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0ern33j60s00e53zb02.jpg" alt="F2665293-6C21-4F33-8C0D-16EA3F0A15E9" width="600" height="300" />
+
+<h4 id="地址转换："><a href="#地址转换：" class="headerlink" title="地址转换："></a>地址转换：</h4><p>在 CPU 芯片里封装了 内存管理单元（Memory Management Unit）芯片，它用来完成 地址转换和 TLB 的访问与交互。CPU 在寻址时，会先查 TLB，如果没找到，才继续查常规的页表。TLB 命中率其实是很高的，因为程序最常访问的页就那几个 。</p>
+<h4 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h4><p>内存分段和内存分页并不是对立的，它们可以组合起来在同一个系统中使用，组合后称为：段页式内存管理<br><strong>段页式内存管理：</strong><br>1.先将程序划分为 多个有逻辑意义的段<br>2.再把 每个段划分为 多个页，对分段划分出来的连续空间，再划分 固定大小的页<br>这样地址结构就由 段号、段内页号，页内位移 三部分组成。用于 段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址 是 页表的起始地址，而 页表中的地址是 某页的物理页号 </p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0blh3cj614c0jfac602.jpg" alt="431DF29B-F743-4129-B9C7-377E6C0D1DE8" width="600" height="300" />
+
+<h3 id="段页式地址–-gt-物理地址过程："><a href="#段页式地址–-gt-物理地址过程：" class="headerlink" title="段页式地址–&gt;物理地址过程："></a><strong>段页式地址–&gt;物理地址过程：</strong></h3><p>1.访问段表，得到页表起始地址<br>2.访问页表，得到物理页号<br>3.将物理页号 + 页内位移 组合，得到物理地址</p>
+<p>Linux 虚拟地址和物理地址映射方式：<br>Linux 系统中，每个段都是从 0 地址开始的整个 4GB 虚拟空间（32 位），所有段的起始地址都是一样的。Linux 系统中的代码，包括操作系统本身的代码和 应用程序代码，所面对的 地址空间都是线性地址空间（虚拟地址），相当于屏蔽处理器中的 逻辑地址概念，段只被用于 访问控制和内存保护。<br>Linux 本身采用的实际是段式和页式都有，但不叫段页式； linux的段和页式顺序的两个过程，只不过 段式相当于啥也不干，目的是为了保证兼容性，所以 Linux内存管理的方式实际上相当于 只有页式管理，但查询过程 经过一层段式查询。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p><strong>内存分段：</strong><br>根据程序逻辑角度，分成 栈段、堆段、数据段、代码段 等，分离出不同属性的段，同时是一块连续的空间。<br>每个段的 大小都不是统一的，这会导致 内存碎片，内存交换效率低 的问题。<br>于是出现：内存分页<br>把 虚拟空间和 物理空间分成 大小固定的页，在 Linux 系统中每一页大小为 4KB。<br>1.分页后就不会 产生细小的内存碎片。<br>2.在内存交换时，写入硬盘是 一个页或几个页，提高内存交换的效率。<br>多级页表：为解决 简单分页产生页表过大 问题，但会导致 CPU 在寻址过程中，需要 有很多层表参与，加大时间上的开销。<br>根据程序局部性原理，在 CPU 芯片中加入了 Cache 就是TLB（Translation Lookaside Buffer），负责 缓存最近常被访问的页表项，来提高 地址的转换速度。<br>Linux 系统主要采用 分页管理，但由于 Intel 处理器的发展史，Linux 系统无法避免 分段管理。于是 Linux 把所有 段的基地址设为 0，所有程序的地址空间都是 线性地址空间（虚拟地址），相当于屏蔽了 CPU 逻辑地址的概念，所以段只被用于访问控制和内存保护。<br>另外，Linxu 系统中 虚拟空间分布可分为用户态和内核态两部分，用户态：代码段、全局变量、BSS、函数栈、堆内存、映射区。</p>
+<p>参考：</p>
+<p>Linux 段页存储：  <a target="_blank" rel="noopener" href="https://blog.csdn.net/jinking01/article/details/107098437">https://blog.csdn.net/jinking01/article/details/107098437</a></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2>
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h1 id="段-x2F-页式存储"><a href="#段-x2F-页式存储" class="headerlink" title="段&#x2F;页式存储"></a>段&#x2F;页式存储</h1><h3 id="背景："><a href="#背景：" class="headerlink" title="背景："></a>背景：</h3><p>​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。</p>
+<p>​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使用的内存暂时存放到硬盘 （换出），在需要时再装载回物理内存（换入）。</p>
+<p>​    有了虚拟地址空间，必然要把 虚拟地址「映射」到 物理地址，这个事情通常由操作系统来维护，对于虚拟地址与物理地址的映射关系，可以有 分段，分页，段页的方式。访问虚拟地址时，由操作系统转换成不同的 物理地址，这样不同进程运行的时候，写入不同的物理地址，就不会冲突。</p>
+<p>程序所使用的内存地址： <strong>虚拟内存地址</strong><br>实际存硬件里面的空间地址：<strong>物理内存地址</strong></p>
+<h3 id="内存分段（Segmentation）"><a href="#内存分段（Segmentation）" class="headerlink" title="内存分段（Segmentation）"></a>内存分段（Segmentation）</h3><p>​    程序由若干个逻辑分段组成： 代码分段、数据分段、栈段、堆段；不同段 有不同的属性，用分段形式把这些段分离出来。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0omkxpj612e0rwjt702.jpg" alt="F3F67004-8E73-43E9-9085-55FD89A5D40D" width="750" height="500"/>
+
+<h3 id="内存分段-寻址方式"><a href="#内存分段-寻址方式" class="headerlink" title="内存分段-寻址方式"></a>内存分段-寻址方式</h3><p><strong>段选择因子：</strong>保存在段寄存器里；</p>
+<p><strong>段号：</strong>段表的索引，段表里面保存 段的基地址、段的界限和 特权等级等；</p>
+<p><strong>段内偏移量：</strong>位于（0~段界限）；  </p>
+<p>物理内存地址 &#x3D; 段基地址 + 段内偏移量； 虚拟地址：通过 段表与 物理地址映射，分段机制把程序的虚拟地址分成 4 个段，每个段在 段表中有一个项，在这一项找到段的基地址，再加上偏移量，就能找到物理内存中的地址。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0m9lzqj60tb0i376302.jpg" alt="255BA9F7-C651-478C-AC47-73750F6D3619" width="600" height="350" />
+
+
+
+<h3 id="段式存储问题：-1-内存碎片；2-内存交换的效率低"><a href="#段式存储问题：-1-内存碎片；2-内存交换的效率低" class="headerlink" title="段式存储问题： 1.内存碎片；2.内存交换的效率低"></a><strong>段式存储问题：</strong> 1.内存碎片；2.内存交换的效率低</h3><h4 id="1-内存锁片："><a href="#1-内存锁片：" class="headerlink" title="1.内存锁片："></a>1.内存锁片：</h4><p><strong>外部内存碎片：</strong>在物理内存中产生多个 不连续的小物理内存，导致 新的程序无法被装载；<br><strong>内部内存碎片：</strong>程序所有的内存都被装载到物理内存，但程序 有部分的内存 可能并不是很常使用，这也会导致内存的浪费；</p>
+<p><strong>内存交换：</strong>解决–外部内存碎片问题<br>        把一个程序占用的 256MB 内存写到硬盘上，然后再从硬盘上读回来到内存里。不过再读回时，不装载回原来位置，而是紧紧跟在已经被占用的 512MB 内存后面。这样就 就使得空间利用连续，避免内存碎片产生。</p>
+<h4 id="2-内存交换的效率低："><a href="#2-内存交换的效率低：" class="headerlink" title="2.内存交换的效率低："></a>2.内存交换的效率低：</h4><p>​        内存交换空间在 Linux 系统里就是 Swap 空间，这块 空间是从硬盘划分出来，用于内存与硬盘的空间交换<br>对于多进程系统，内存碎片很容易产生，需要经常进行 内存交换操作，但Swap空间是硬盘，有性能瓶颈；硬盘访问速度比内存慢很多，每次内存交换都需要把 一大段连续的内存数据写到硬盘上。如果内存交换时，交换占内存空间很大的程序，整个机器都会卡顿。</p>
+<h3 id="内存分页："><a href="#内存分页：" class="headerlink" title="内存分页："></a><strong>内存分页：</strong></h3><p>解决 内存碎片，内存交换效率低；把整个 虚拟，物理内存空间切成一段段 固定尺寸的大小-页（Page）：一个连续并尺寸固定的内存空间，Linux 一页大小 4KB。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0jfow0j60tn0m575h02.jpg" alt="5724EB13-9A0A-4AA4-9C44-043EA8D0D3D0" width="600" height="450" />
+
+<p>虚拟地址分为： 页号，页内偏移<br><strong>页号：</strong> 页表的索引，页表包含 物理页每页所在 物理内存的基地址，物理内存地址 &#x3D;  基地址 与 页内偏移的组合<br>内存分页寻址过程：<br>1.把虚拟内存地址，切分成 页号，偏移量<br>2.根据页号，从 页表里查询对应的物理页号<br>3.直接拿 物理页号 + 偏移量，得到 物理内存地址</p>
+<p>**内存空间： **预先划分好，不像分段那样产生 间隙非常小的内存，这正是分段会产生内存碎片的原因。释放的内存都是以页为单位释放的，也不会产生无法给进程使用的小内存。<br>**页表： **存储在 CPU 内存管理单元 （MMU） 中；  CPU 可以直接 通过 MMU 找出实际要访问的 物理内存地址。<br>当 进程访问的虚拟地址在页表中查不到时，系统会产生：缺页异常<br><strong>解决：</strong> 进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0h4ljqj61320nt76302.jpg" alt="C547F405-C521-41CA-AA71-DD30DC86D94F" width="650" height="350" />
+
+<p>​    如果内存空间不够，操作系统会把 其他正在运行的进程中的「最近没被使用LRU」的 内存页面换出（Swap Out）， 暂时写在硬盘上；需要时再加载进来，称为换入（Swap In）。一次性写入磁盘只有少数一个页或几个页，不会花太多时间，内存交换效率相对比较高。<br>​    分页方式在加载程序时，不需要一次性把程序加载到物理内存中。在虚拟内存 和物理内存的页映射之后，并不真的把页加载到物理内存里，而 只有在 程序运行中，需要用到对应虚拟内存页里面的 指令和数据时，再加载到 物理内存里面去。</p>
+<h3 id="页式存储空间上的缺陷："><a href="#页式存储空间上的缺陷：" class="headerlink" title="页式存储空间上的缺陷："></a>页式存储空间上的缺陷：</h3><p>操作系统可以同时运行非常多的进程，意味着页表会非常的庞大。在 32 位的环境下，虚拟地址空间共有 4GB，一个页大小 4KB，就需要大约 100 万 （2^20） 个页，每个「页表项」需要 4 个字节大小来存储，整个 4GB 空间的映射就需要有 4MB 内存来存储页表。每个进程都是有自己的虚拟地址空间，如果有 100 个进程的话，就需要 400MB 内存来存储页表，这是非常大的内存，而 64 位环境则会更大。</p>
+<p><strong>多级页表  解决：</strong>多进程页表占用空间过大问题<br>使用 二级分页，一级页表 就可以覆盖整个 4GB 虚拟地址空间，但如果某个一级页表的页表项没有被用到，也就不需要创建这个页表项对应的二级页表，即可以在需要时才创建二级页表。例如：假设只有 20% 一级页表项被用到，那么页表占用内存空间就只有  4KB（一级页表）+  20% * 4 MB（二级页表）&#x3D; 0.804MB</p>
+<h3 id="局部性原理"><a href="#局部性原理" class="headerlink" title="局部性原理"></a>局部性原理</h3><p>​    每个进程有 4GB 虚拟地址空间，对于大多数程序来说，其使用的空间远未达到4GB，因为会有部分对应的页表项都是空的，没有分配，对于已分配的页表项，如果是最近一段时间未访问的页表，在物理内存紧张的情况下，操作系统会将页面换出到硬盘，不会占用物理内存。</p>
+<h4 id="程序的局部性"><a href="#程序的局部性" class="headerlink" title="程序的局部性"></a><strong>程序的局部性</strong></h4><p>​    把常访问的 几个页表项存储到访问速度更快的硬件，在 CPU 芯片中加入一个专门存放 程序最常访问的 页表项的 Cache，这个 Cache 就是 TLB（Translation Lookaside Buffer） ，通常称为：页表缓存、转址旁路缓存、快表等。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0ern33j60s00e53zb02.jpg" alt="F2665293-6C21-4F33-8C0D-16EA3F0A15E9" width="600" height="300" />
+
+<h4 id="地址转换："><a href="#地址转换：" class="headerlink" title="地址转换："></a>地址转换：</h4><p>在 CPU 芯片里封装了 内存管理单元（Memory Management Unit）芯片，它用来完成 地址转换和 TLB 的访问与交互。CPU 在寻址时，会先查 TLB，如果没找到，才继续查常规的页表。TLB 命中率其实是很高的，因为程序最常访问的页就那几个 。</p>
+<h4 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h4><p>内存分段和内存分页并不是对立的，它们可以组合起来在同一个系统中使用，组合后称为：段页式内存管理<br><strong>段页式内存管理：</strong><br>1.先将程序划分为 多个有逻辑意义的段<br>2.再把 每个段划分为 多个页，对分段划分出来的连续空间，再划分 固定大小的页<br>这样地址结构就由 段号、段内页号，页内位移 三部分组成。用于 段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址 是 页表的起始地址，而 页表中的地址是 某页的物理页号 </p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0blh3cj614c0jfac602.jpg" alt="431DF29B-F743-4129-B9C7-377E6C0D1DE8" width="600" height="300" />
+
+<h3 id="段页式地址–-gt-物理地址过程："><a href="#段页式地址–-gt-物理地址过程：" class="headerlink" title="段页式地址–&gt;物理地址过程："></a><strong>段页式地址–&gt;物理地址过程：</strong></h3><p>1.访问段表，得到页表起始地址<br>2.访问页表，得到物理页号<br>3.将物理页号 + 页内位移 组合，得到物理地址</p>
+<p>Linux 虚拟地址和物理地址映射方式：<br>Linux 系统中，每个段都是从 0 地址开始的整个 4GB 虚拟空间（32 位），所有段的起始地址都是一样的。Linux 系统中的代码，包括操作系统本身的代码和 应用程序代码，所面对的 地址空间都是线性地址空间（虚拟地址），相当于屏蔽处理器中的 逻辑地址概念，段只被用于 访问控制和内存保护。<br>Linux 本身采用的实际是段式和页式都有，但不叫段页式； linux的段和页式顺序的两个过程，只不过 段式相当于啥也不干，目的是为了保证兼容性，所以 Linux内存管理的方式实际上相当于 只有页式管理，但查询过程 经过一层段式查询。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p><strong>内存分段：</strong><br>根据程序逻辑角度，分成 栈段、堆段、数据段、代码段 等，分离出不同属性的段，同时是一块连续的空间。<br>每个段的 大小都不是统一的，这会导致 内存碎片，内存交换效率低 的问题。<br>于是出现：内存分页<br>把 虚拟空间和 物理空间分成 大小固定的页，在 Linux 系统中每一页大小为 4KB。<br>1.分页后就不会 产生细小的内存碎片。<br>2.在内存交换时，写入硬盘是 一个页或几个页，提高内存交换的效率。<br>多级页表：为解决 简单分页产生页表过大 问题，但会导致 CPU 在寻址过程中，需要 有很多层表参与，加大时间上的开销。<br>根据程序局部性原理，在 CPU 芯片中加入了 Cache 就是TLB（Translation Lookaside Buffer），负责 缓存最近常被访问的页表项，来提高 地址的转换速度。<br>Linux 系统主要采用 分页管理，但由于 Intel 处理器的发展史，Linux 系统无法避免 分段管理。于是 Linux 把所有 段的基地址设为 0，所有程序的地址空间都是 线性地址空间（虚拟地址），相当于屏蔽了 CPU 逻辑地址的概念，所以段只被用于访问控制和内存保护。<br>另外，Linxu 系统中 虚拟空间分布可分为用户态和内核态两部分，用户态：代码段、全局变量、BSS、函数栈、堆内存、映射区。</p>
+<p>参考：</p>
+<p>Linux 段页存储：  <a target="_blank" rel="noopener" href="https://blog.csdn.net/jinking01/article/details/107098437">https://blog.csdn.net/jinking01/article/details/107098437</a></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2>
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/" title="段/页式存储" target="_blank" rel="external">https://github.com/TurboCome/2022/02/27/操作系统/2.段页式存储/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/TurboCome/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" title="Mysql:索引-事务"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/TurboCome/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/" title="操作系统-基础"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

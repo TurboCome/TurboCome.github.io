@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>多线程-高级 | Hexo</title>
+  <meta name="description" content="多线程-高级多线程编程详解： https:&#x2F;&#x2F;blog.csdn.net&#x2F;mu_wind&#x2F;article&#x2F;details&#x2F;113806680 CAS（Compare And Swap 比较并且替换）是乐观锁的一种实现方式，线程在读取数据时不进行加锁，先保存原值，在实际修改数据的瞬间，比较此时的值，是否和原值相等。若相等则回写；若不相等，则重新执行读取流程。 CAS产生的问题：一、CAS可能有 AB">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多线程-高级">
+<meta property="og:url" content="https://github.com/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="多线程-高级多线程编程详解： https:&#x2F;&#x2F;blog.csdn.net&#x2F;mu_wind&#x2F;article&#x2F;details&#x2F;113806680 CAS（Compare And Swap 比较并且替换）是乐观锁的一种实现方式，线程在读取数据时不进行加锁，先保存原值，在实际修改数据的瞬间，比较此时的值，是否和原值相等。若相等则回写；若不相等，则重新执行读取流程。 CAS产生的问题：一、CAS可能有 AB">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurotiajlqj60mg0bc3yz02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurou020ddj611g0l6ac102.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guroufjdoej611a0diwfp02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurouysglyj61100fgwff02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurowjlkbcj610o0pctbc02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurovk1mmcj60sk0p4jsr02.jpg">
+<meta property="article:published_time" content="2022-06-06T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-19T06:43:37.988Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="多线程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurotiajlqj60mg0bc3yz02.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/07/">七月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/06/">六月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/02/">二月 2022</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-09T13:55:19.000Z" itemprop="datePublished">2022-07-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-08T13:55:19.000Z" itemprop="datePublished">2022-07-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-07T13:55:19.000Z" itemprop="datePublished">2022-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-06T13:55:19.000Z" itemprop="datePublished">2022-07-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/" class="title">多线程-AQS详解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-09T13:55:19.000Z" itemprop="datePublished">2022-06-09</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-多线程/2.多线程-高级" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      多线程-高级
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/" class="article-date">
+	  <time datetime="2022-06-06T13:55:19.000Z" itemprop="datePublished">2022-06-06</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="多线程-高级"><a href="#多线程-高级" class="headerlink" title="多线程-高级"></a>多线程-高级</h2><p>多线程编程详解： <a target="_blank" rel="noopener" href="https://blog.csdn.net/mu_wind/article/details/113806680">https://blog.csdn.net/mu_wind/article/details/113806680</a></p>
+<p><strong>CAS（Compare And Swap 比较并且替换）</strong>是乐观锁的一种实现方式，线程在读取数据时不进行加锁，<br>先保存原值，在实际修改数据的瞬间，比较此时的值，是否和原值相等。若相等则回写；若不相等，则重新执行读取流程。</p>
+<h4 id="CAS产生的问题："><a href="#CAS产生的问题：" class="headerlink" title="CAS产生的问题："></a>CAS产生的问题：</h4><p><strong>一、CAS可能有 ABA问题：</strong> （破坏了事务的原子性）</p>
+<ol>
+<li>线程1 读取数据A</li>
+<li>线程2 读取数据A，把数据A改成数据B</li>
+<li>线程3 读取数据B，把数据 B 又改回数据A</li>
+<li>线程1 通过CAS比较，发现数据还是 A没变，就写成了自己要改的值</li>
+</ol>
+<p>解决：加标志位（类似版本号），设置 自增字段，操作一次自增+1；或搞个时间戳，比较时间戳的值；<br>每次修改： 数据+版本号；版本号递增，校验时同时校验： 数据 + 版本号<br>例如：操作数据库，根据CAS原则本来只要查询原本的值，现在需要一同查出他的标志位版本字段 vision</p>
+<p><strong>二、长时间循环等待：</strong>CAS 长时间不成功的话，会导致一直自旋（死循环），CPU开销较大。<br><strong>三、只保证 一个共享变量的原子操作：</strong><br>CAS操作单个共享变量赋值时 可以保证原子操作，但多个变量就不行；</p>
+<h4 id="Atomic-相关类："><a href="#Atomic-相关类：" class="headerlink" title="Atomic 相关类："></a>Atomic 相关类：</h4><p>AtomicInteger，AtomicBoolean 等 java.util.concurrent包下面的类，只能并发修改一个属性<br>AtomicInteger 类利用 CAS + volatile 和 native 方法 来保证原子操作，避免 synchronized 的高开销，执行效率大为提升。<br>内部使用 UnSafe 类 objectFieldOffset() 一个本地方法，可以得到 “原来的值”的内存地址，返回值 valueOffset； value 是一个volatile变量，在内存中可见，JVM 可以保证 任何时刻，任何线程 总能拿到该变量的最新值。</p>
+<p>AtomicReference：<br>AtomicReference 可以保证 对象操作的原子性；不单单仅限于 Integer, Boolean, Long等类型<br>和 AtomicInteger 类似，AtomicInteger是 对整数的封装，而 AtomicReference 则是对普通对象的引用，它可以保证在修改对象引用时的线程安全性。 AtomicReference原子性的作用是对  ”对象”进行原子操作；提供一种 读 和 写都是原子性的对象引用变量。</p>
+<p>原理： 通过 “volatile” 和 “Unsafe 提供的 CAS函数实现”原子操作</p>
+<ol>
+<li>value是 volatile类型，保证当某个线程修改 value值时，其他线程看到的 value值都是最新的，即修改之后的volatile的值</li>
+<li>通过 CAS设置value，保证当某个线程池通过CAS函数(如compareAndSet)设置value时，操作是原子的，即线程在操作value时不会被中断<br>需要借用Unsafe类的原子操作<br>使用场景：当涉及到 比较，设置等，多于一个操作时，使用AtomicReference ；</li>
+</ol>
+<p>升级： AtomicStampedReference类通过引入 时间戳作为数据的版本号，来解决ABA 问题。</p>
+<p><strong>悲观锁：</strong>访问共享资源前，先要上锁，认为多线程同时修改共享资源的概率高，容易出现冲突<br><strong>互斥锁：</strong>一个线程获得锁，其他线程无法再次获得，挂起等待锁的释放；加锁失败时，会做「线程切换」，当加锁失败的线程再次加锁成功，这一过程会有两次线程上下文切换的成本，性能损耗大。<br><strong>自旋锁：</strong>加锁失败时不会主动产生线程切换，忙等待直到获得锁；如果被锁代码执行时间短，那忙等待的时间相对应也短。</p>
+<p><strong>读写锁：</strong><br>原理：当「写锁」没有被线程持有时，多个线程能够并发的持有读锁，提高共享资源访问效率；因为「读锁」是用于读取共享资源，多个线程同时持有读锁不会破坏共享资源。一旦「写锁」被线程持有，读线程获取读锁的操作会被阻塞，其他写线程获取写锁的操作也会被阻塞。写锁是独占锁，因为任何时刻只能有一个线程持有写锁，类似互斥锁和自旋锁；读锁是共享锁，因为读锁可以被多个线程同时持有。<br>应用场景：<strong>在读多写少</strong></p>
+<p>读写锁可以分为「读优先锁」和「写优先锁」<br><strong>读优先锁 ：</strong>期望读锁能被更多的线程持有，提高读线程的并发性。方式：当读线程A 持有读锁，写线程B 在获取写锁时会被阻塞，在阻塞过程中，后续来的读线程C 仍可以成功获取读锁，直到读线程A 和C 释放读锁后，写线程B 才可以成功获取读锁。<br><strong>写优先锁：</strong>优先服务写线程；方式：读线程A 先持有读锁，写线程B 在获取写锁时会被阻塞，阻塞过程中，后续读线程C 获取读锁时会失败，被阻塞在获取读锁的操作上，这样只要读线程A 释放读锁，写线程B 就可以成功获取读锁。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>读优先锁：对于读线程并发性更好，但可能出现 写线程「饥饿」的现象。<br>写优先锁：保证写线程不会饿死，但如果一直有写线程获取写锁，读线程也会被「饿死」。<br>解决：公平读写锁，用队列把获取锁的线程排队，读，写线程都按照先进先出原则加锁，这样就不会出现「饥饿」现象。</p>
+<h4 id="乐观锁："><a href="#乐观锁：" class="headerlink" title="乐观锁："></a>乐观锁：</h4><p>乐观锁：假定冲突的概率很低，先修改共享资源，再验证这段时间 内有没有发生冲突。没有其他线程修改，则操作成功；发现有其他线程修改，则放弃本次操作。<br>使用场景：<strong>在冲突概率低，加锁成本高</strong><br>冲突概率上升，不适合乐观锁，因为解决冲突的重试成本非常高。<br>注意：加锁代码的范围尽可能的小，加锁的粒度要小，这样执行速度会比较快。</p>
+<h4 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal :"></a>ThreadLocal :</h4><p>数据隔离，填充的数据只属于当前线程，变量数据对别的线程而言是相对隔离的，多线程环境下，防止自己的变量被其它线程修改。</p>
+<h4 id="存储结构："><a href="#存储结构：" class="headerlink" title="存储结构："></a>存储结构：</h4><p>​        value 实际上存储在ThreadLocalMap中，ThreadLocalMap 是ThreadLocal的一个 静态内部类，它的 key是 ThreadLocal实例对象，value是任意Object对象。每个线程实例都对应一个 TheadLocalMap实例，在同一个线程里实例化很多 ThreadLocal来存储很多种类型的值，这些ThreadLocal实例分别作为key，对应各自的value，存储在 Entry table 数组中。<br>set获取当前线程的ThreadLocalMap，然后往map里添加 KV，K是当前ThreadLocal实例，V是我们传入的value<br>get获取当前线程对应的私有变量，是之前set或通过 initialValue的值</p>
+<p>​        ThreadLocal 能做到线程间的数据隔离，别的线程使用get() 方法没办法拿到其他线程的值. 每个线程 Thread 都维护自己的threadLocals变量，在每个线程创建 ThreadLocal 时，实际上数据是存在 线程Thread的 threadLocals中的 ThreadLocalMap 里，别人没办法拿到，从而实现隔离。</p>
+<p><strong>ThreadLocal内存模型原理：</strong></p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurotiajlqj60mg0bc3yz02.jpg" alt="37DE7955-FB83-46CD-BC0C-8B432E31AA15" width="550" height="250"/>
+
+<p>线程的一些局部变量和引用：Stack（栈）区；  普通对象：Heap（堆）区<br>1.线程运行时，定义的 TheadLocal对象被初始化，存储在Heap，同时线程运行的栈区保存指向该实例的引用，也就是图中的ThreadLocalRef。<br>2.当 ThreadLocal的 set &#x2F; get 被调用时，虚拟机会根据当前线程引用，查看对应的TheadLocalMap实例是否被创建，如果没有则创建并初始化<br>3.虚线，表示 key对应的 ThreadLocal实例的引用是个弱引用。</p>
+<p>建议：<br>1.需要 存储 线程私有变量的时<br>2.需要实现 线程安全的变量时<br>3.需要 减少线程资源竞争的时</p>
+<h4 id="ThreadLocalMap底层使用数组，如何解决Hash冲突？"><a href="#ThreadLocalMap底层使用数组，如何解决Hash冲突？" class="headerlink" title="ThreadLocalMap底层使用数组，如何解决Hash冲突？"></a>ThreadLocalMap底层使用数组，如何解决Hash冲突？</h4><pre><code>     一个线程可以有多个 TreadLocal 来存放不同类型的对象，他们都放到当前线程的 ThreadLocalMap里，一个线程一个数组来存。ThreadLocalMap存储时，给每一个ThreadLocal对象一个 threadLocalHashCode，插入过程中根据 ThreadLocal对象的hash值，定位到 table中的位置id ，然后判断当前位置 是否为空，为空就初始化一个Entry对象放在位置id上；
+</code></pre>
+<p>如果位置id 不空，这个Entry对象的 key &#x3D; 计算出来的hash值，则更新 Entry中的value；<br>如果位置id 不空，且 Entry 对象的 key !&#x3D;计算出来的hash值， 则找下一个空位置。<br>set和get如果冲突严重的话，效率会降低。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurou020ddj611g0l6ac102.jpg" alt="440644C2-998F-49CA-80DA-BA894E6BD00D" width="650" height="300" />
+
+<p><strong>ThreadLocal 实例及其值存放在哪？</strong> ThreadLocal实例实际上被其创建的类持有，而ThreadLocal的值是被线程实例持有，位于堆上，只是通过一些技巧将 可见性修改成了线程可见。</p>
+<p>如何共享 一个线程的ThreadLocal数据？ 使用 Inheritable ThreadLocal可以实现多个线程访问ThreadLocal的值。例：在主线程中创建一个InheritableThreadLocal实例，在 子线程中得到这个Inheritable ThreadLocal实例设置的值。</p>
+<h4 id="ThreadLocal-内存泄漏："><a href="#ThreadLocal-内存泄漏：" class="headerlink" title="ThreadLocal 内存泄漏："></a>ThreadLocal 内存泄漏：</h4><p>ThreadLocalMap 使用的 key 为 ThreadLocal 的弱引用, 而 value 是强引用。如果ThreadLocal 没有被外部强引用，在垃圾回收时 key 会被清理掉，而 value 不会被清理掉。这样 ThreadLocalMap 中会出现 key为null的Entry。假如不做任何措施，value 永远无法被GC 回收，导致内存泄露。<br>解决：每次使用完 ThreadLocal，调用 remove()方法，清除数据。</p>
+<p>ThreadLocalMap的key 为什么设计成弱引用？</p>
+<p>如果 key不设置成 弱引用，会造成 entry中 value一样内存泄漏的场景。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guroufjdoej611a0diwfp02.jpg" alt="A3923F60-AE72-4D55-B680-B9BC54CEDD23" width="550" height="250" />
+
+
+
+<h4 id="CountDownLatch"><a href="#CountDownLatch" class="headerlink" title="CountDownLatch:"></a>CountDownLatch:</h4><p>允许一个或 多个线程一直等待，直到 count&#x3D;0，唤醒所有线程。<br>一个线程调用await() 时，阻塞当前线程。有线程调用一次 countDown() 时，计数 -1。当 count &#x3D; 0 时，被阻塞线程全部唤醒。</p>
+<h4 id="CyclicBarrier-barrier-障碍-cyclic-循环）"><a href="#CyclicBarrier-barrier-障碍-cyclic-循环）" class="headerlink" title="CyclicBarrier  (barrier 障碍, cyclic 循环）"></a>CyclicBarrier  (barrier 障碍, cyclic 循环）</h4><p>一组线程互相等待，直到所有线程都到达一个同步点。<br>例：一组运动员比赛 100米，当所有人都准备完成之后，才可以一起开跑。</p>
+<p><strong>CountDownLatch 和CyclicBarrier 区别：</strong></p>
+<p>1.CountDownLatch 是一个线程等待其他线程， CyclicBarrier 多个线程互相等待。<br>2.CountDownLatch  计数 -1 直到 0，CyclicBarrier 计算 +1，直到指定值。<br>3.CountDownLatch 是一次性的， CyclicBarrier  可以循环利用。</p>
+<h4 id="AbstractQueuedSynchronizer（AQS）"><a href="#AbstractQueuedSynchronizer（AQS）" class="headerlink" title="AbstractQueuedSynchronizer（AQS）"></a>AbstractQueuedSynchronizer（AQS）</h4><p>ReentrantLock、ReentrantReadWriteLock、CountDownLatch 都是基于AQS实现的</p>
+<p><strong>AQS实现原理：</strong>AQS中维护一个 volatile int state（共享资源）和 一个 FIFO线程等待队列（多线程争用资源被阻塞时会进入此队列）。<br>state 初始化 0，多线程条件下线程要执行 临界区的代码，首先获取 state。 某个线程获取成功后， state +1，其他线程再获取的话，由于共享资源已被占用，将阻塞线程放到 FIFO 等待队列 中，等占有 state 的线程执行完，释放资源( state -1)后，会唤醒 FIFO 中下一个等待线程去获取 state。</p>
+<p> state 由于是多线程共享变量，所以定义成 volatile，保证 state 可见性, 并通过 CAS 来保证其并发修改的安全性。FIFO 等待队列是一个双向链表，head 结点代表当前占用的线程，其他节点由于暂时获取不到锁，依次 排队等待锁的释放</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurouysglyj61100fgwff02.jpg" alt="5A584450-F81D-4DEC-8C2A-8BBEE7DD5371" width="650" height="300" />
+
+
+
+<p>AQS定义两种资源共享方式<br>1.Exclusive（独占）：只有一个线程执行； 如ReentrantLock，可分为公平锁和非公平锁：</p>
+<p>**公平锁：按照线程在队列中的排队顺序，先到者先得锁</p>
+<p>**非公平锁：获取锁时，无视队列顺序直接抢锁，谁抢到是谁的</p>
+<p>2.Share（共享）：多线程同时执行，如CountDownLatch</p>
+<p>​        获取独占式锁过程对做个总结: AQS的模板方法acquire通过调用子类自定义实现的tryAcquire获取同步状态失败后-&gt;将线程构造成Node节点(addWaiter)-&gt;将Node节点添加到同步队列对尾(addWaiter)-&gt;节点以自旋的方法获取同步状态(acquirQueued)。在节点自旋获取同步状态时，只有其前驱节点是头节点的时候才会尝试获取同步状态，如果该节点的前驱不是头节点或者该节点的前驱节点是头节点单获取同步状态失败，则判断当前线程需要阻塞，如果需要阻塞则需要被唤醒过后才返回。</p>
+<p>AQS 内部维护一个线程的队列。队列由内部的节点组成。<br>队列的节点为Node,节点分为SHARED和EXCLUSIVE分别时共享模式的节点和独占模式的节点。<br>节点的等待状态为waitStatus</p>
+<ul>
+<li><p>CANCELLED(1):取消状态，当线程不再希望获取锁时，设置为取消状态</p>
+</li>
+<li><p>SIGNAL(-1):当前节点的后继者处于等待状态，当前节点的线程如果释放或取消了同步状态，通知后继节点</p>
+</li>
+<li><p>CONDITION(-2):等待队列的等待状态，当调用signal()时，进入同步队列</p>
+</li>
+<li><p>PROPAGATE(-3): 共享模式，同步状态的获取的可传播状态</p>
+</li>
+<li><p>0：初始状态</p>
+<p>AQS共享模式和 独占模式的实现上最大的差别就在于共享模式获取锁后的传播。其他的区别主要还是表现在实现类实现的区别上。通过ReentrantLock和ReentrantReadWriteLock可以了解AQS的独占模式和共享模式，但是要注意将AQS和锁的实现剥离开，弄明白哪些逻辑是AQS实现的，哪些逻辑是锁实现的，同时也思考怎么使用AQS实现其他的特定的线程同步问题。</p>
+</li>
+</ul>
+<h4 id="公平锁和非公平锁："><a href="#公平锁和非公平锁：" class="headerlink" title="公平锁和非公平锁："></a>公平锁和非公平锁：</h4><p>非公平锁和公平锁的区别：非公平锁性能高于公平锁性能。非公平锁可以减少 CPU唤醒线程的开销，整体的吞吐效率会高点，CPU不必 唤醒所有线程，减少唤起线程的数量<br><strong>问题：</strong>非公平锁存在线程饥饿的情况，可能某个线程一直获取不到锁.</p>
+<h4 id="AQS-组件："><a href="#AQS-组件：" class="headerlink" title="AQS 组件："></a>AQS 组件：</h4><p>1.Semaphore(信号量)-允许多线程同时访问： synchronized 和 ReentrantLock 都是一次只允许一个线程访问某个资源<br>2.CountDownLatch ： 一个同步工具类，协调多线程之间的同步。用来控制线程等待，让某一个线程等待直到倒计时结束，再开始执行。<br>3.CyclicBarrier ： CyclicBarrier 和 CountDownLatch 类似，可以实现线程间的等待，但功能比 CountDownLatch 更复杂和强大。<br>主要应用场景和 CountDownLatch 类似，CyclicBarrier 可以让 一组线程到达一个屏障（同步点）时被阻塞，直到 最后一个线程到达屏障时，屏障才会打开，所有被屏障拦截的线程才会继续执行。<br>CyclicBarrier 默认的构造方法是 CyclicBarrier(int parties)，参数表示 屏障拦截的线程数量，每个线程调用await()方法告诉 CyclicBarrier 我已经到达了屏障，然后当前线程被阻塞。</p>
+<p>排他锁：只有一个线程可以访问共享变量；<br>共享锁：允许多个线程同时访问<br>重入锁是排他的；信号量是共享的</p>
+<p><strong>AQS内部结构：</strong>AQS中有一个同步等待队列，保存等待在这个锁上的线程。<br>为了维护等待在 条件变量上的等待线程，AQS维护一个条件变量等待队列，就是由 Condition.await() 引起阻塞的线程。一个重入锁可以生成 多个条件变量对象，因此一个重入锁 可能有多个条件变量等待队列。每个条件变量对象内部都维护一个等待列表。</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurowjlkbcj610o0pctbc02.jpg" alt="D087E893-6647-40B7-8FE2-31AC3634D7A5" width="350" height="250" />     <img src="https://tva1.sinaimg.cn/large/008i3skNly1gurovk1mmcj60sk0p4jsr02.jpg" alt="926080CA-1FDD-480D-9FF1-E91DE7EF8034" width="380" height="250" /></p>
+<p>同步等待队列，条件变量等待队列，都使用 同一个 Node类作为链表的节点<br>Node 中包括链表的上一个元素 prev，下一个元素next 和线程对象thread，对于条件变量等待队列，还使用nextWaiter表示下一个等待在条件变量队列中的节点。</p>
+<h4 id="Condition-："><a href="#Condition-：" class="headerlink" title="Condition ："></a>Condition ：</h4><p>Condition是用来替代Object的 wait()，notify() 方法的，使用Condition中await()，signal()可以更加安全，高效的实现线程间协作。</p>
+<h4 id="Condition-和-wait-x2F-notify-比较："><a href="#Condition-和-wait-x2F-notify-比较：" class="headerlink" title="Condition 和 wait&#x2F;notify 比较："></a>Condition 和 wait&#x2F;notify 比较：</h4><p>1.Condition 可以精准的 对多个不同条件进行控制，wait&#x2F;notify 只能和 synchronized关键字一起使用，只能唤醒一个或全部的等待队列；<br>2.Condition 使用 Lock进行控制，使用后要 unlock()，Condition 有类似于 await 的机制，不会因为加锁而产生死锁问题，底层实现park&#x2F; unpark 机制，不会产生死锁，但wait&#x2F;notify 可能会产生先唤醒再挂起的死锁。</p>
+<ol>
+<li>对系统资源占用不同：虽然都释放了CPU，但阻塞的进程仍处于内存中，而挂起的进程通过“对换”技术被换出到外存（磁盘）中。 </li>
+<li>发生时机不同：阻塞一般在进程等待资源（IO资源、信号量等）时发生；而挂起是由于用户和系统的需要，例如，终端用户需要暂停程序研究其执行情况或对其进行修改、OS为了提高内存利用率需要将暂时不能运行的进程（处于就绪或阻塞队列的进程）调出到磁盘 </li>
+<li>恢复时机不同：阻塞要在等待的资源得到满足（例如获得了锁）后，才会进入就绪状态，等待被调度而执行；被挂起的进程由将其挂起的对象（如用户、系统）在时机符合时（调试结束、被调度进程选中需要重新执行）将其主动激活</li>
+</ol>
+<p>一般线程中的阻塞：</p>
+<p>A、线程执行了Thread.sleep(int millsecond);方法，当前线程放弃CPU，睡眠一段时间，然后再恢复执行<br>B、线程执行一段同步代码，但是尚且无法获得相关的同步锁，只能进入阻塞状态，等到获取了同步锁，才能回复执行。<br>C、线程执行了一个对象的wait()方法，直接进入阻塞状态，等待其他线程执行notify()或者notifyAll()方法。<br>D、线程执行某些IO操作，因为等待相关的资源而进入了阻塞状态。比如说监听system.in，但是尚且没有收到键盘的输入，则进入阻塞状态。</p>
+<p><strong>非公平锁和公平锁的区别：</strong> 非公平锁性能高于公平锁性能。非公平锁可以减少CPU唤醒线程的开销，整体的吞吐效率会高点，CPU也不必取唤醒所有线程，会减少唤起线程的数量<br>非公平锁性能虽然优于公平锁，但是会存在导致线程饥饿的情况。在最坏的情况下，可能存在某个线程一直获取不到锁。不过相比性能而言，饥饿问题可以暂时忽略，这可能就是ReentrantLock默认创建非公平锁的原因之一了</p>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h2 id="多线程-高级"><a href="#多线程-高级" class="headerlink" title="多线程-高级"></a>多线程-高级</h2><p>多线程编程详解： <a target="_blank" rel="noopener" href="https://blog.csdn.net/mu_wind/article/details/113806680">https://blog.csdn.net/mu_wind/article/details/113806680</a></p>
+<p><strong>CAS（Compare And Swap 比较并且替换）</strong>是乐观锁的一种实现方式，线程在读取数据时不进行加锁，<br>先保存原值，在实际修改数据的瞬间，比较此时的值，是否和原值相等。若相等则回写；若不相等，则重新执行读取流程。</p>
+<h4 id="CAS产生的问题："><a href="#CAS产生的问题：" class="headerlink" title="CAS产生的问题："></a>CAS产生的问题：</h4><p><strong>一、CAS可能有 ABA问题：</strong> （破坏了事务的原子性）</p>
+<ol>
+<li>线程1 读取数据A</li>
+<li>线程2 读取数据A，把数据A改成数据B</li>
+<li>线程3 读取数据B，把数据 B 又改回数据A</li>
+<li>线程1 通过CAS比较，发现数据还是 A没变，就写成了自己要改的值</li>
+</ol>
+<p>解决：加标志位（类似版本号），设置 自增字段，操作一次自增+1；或搞个时间戳，比较时间戳的值；<br>每次修改： 数据+版本号；版本号递增，校验时同时校验： 数据 + 版本号<br>例如：操作数据库，根据CAS原则本来只要查询原本的值，现在需要一同查出他的标志位版本字段 vision</p>
+<p><strong>二、长时间循环等待：</strong>CAS 长时间不成功的话，会导致一直自旋（死循环），CPU开销较大。<br><strong>三、只保证 一个共享变量的原子操作：</strong><br>CAS操作单个共享变量赋值时 可以保证原子操作，但多个变量就不行；</p>
+<h4 id="Atomic-相关类："><a href="#Atomic-相关类：" class="headerlink" title="Atomic 相关类："></a>Atomic 相关类：</h4><p>AtomicInteger，AtomicBoolean 等 java.util.concurrent包下面的类，只能并发修改一个属性<br>AtomicInteger 类利用 CAS + volatile 和 native 方法 来保证原子操作，避免 synchronized 的高开销，执行效率大为提升。<br>内部使用 UnSafe 类 objectFieldOffset() 一个本地方法，可以得到 “原来的值”的内存地址，返回值 valueOffset； value 是一个volatile变量，在内存中可见，JVM 可以保证 任何时刻，任何线程 总能拿到该变量的最新值。</p>
+<p>AtomicReference：<br>AtomicReference 可以保证 对象操作的原子性；不单单仅限于 Integer, Boolean, Long等类型<br>和 AtomicInteger 类似，AtomicInteger是 对整数的封装，而 AtomicReference 则是对普通对象的引用，它可以保证在修改对象引用时的线程安全性。 AtomicReference原子性的作用是对  ”对象”进行原子操作；提供一种 读 和 写都是原子性的对象引用变量。</p>
+<p>原理： 通过 “volatile” 和 “Unsafe 提供的 CAS函数实现”原子操作</p>
+<ol>
+<li>value是 volatile类型，保证当某个线程修改 value值时，其他线程看到的 value值都是最新的，即修改之后的volatile的值</li>
+<li>通过 CAS设置value，保证当某个线程池通过CAS函数(如compareAndSet)设置value时，操作是原子的，即线程在操作value时不会被中断<br>需要借用Unsafe类的原子操作<br>使用场景：当涉及到 比较，设置等，多于一个操作时，使用AtomicReference ；</li>
+</ol>
+<p>升级： AtomicStampedReference类通过引入 时间戳作为数据的版本号，来解决ABA 问题。</p>
+<p><strong>悲观锁：</strong>访问共享资源前，先要上锁，认为多线程同时修改共享资源的概率高，容易出现冲突<br><strong>互斥锁：</strong>一个线程获得锁，其他线程无法再次获得，挂起等待锁的释放；加锁失败时，会做「线程切换」，当加锁失败的线程再次加锁成功，这一过程会有两次线程上下文切换的成本，性能损耗大。<br><strong>自旋锁：</strong>加锁失败时不会主动产生线程切换，忙等待直到获得锁；如果被锁代码执行时间短，那忙等待的时间相对应也短。</p>
+<p><strong>读写锁：</strong><br>原理：当「写锁」没有被线程持有时，多个线程能够并发的持有读锁，提高共享资源访问效率；因为「读锁」是用于读取共享资源，多个线程同时持有读锁不会破坏共享资源。一旦「写锁」被线程持有，读线程获取读锁的操作会被阻塞，其他写线程获取写锁的操作也会被阻塞。写锁是独占锁，因为任何时刻只能有一个线程持有写锁，类似互斥锁和自旋锁；读锁是共享锁，因为读锁可以被多个线程同时持有。<br>应用场景：<strong>在读多写少</strong></p>
+<p>读写锁可以分为「读优先锁」和「写优先锁」<br><strong>读优先锁 ：</strong>期望读锁能被更多的线程持有，提高读线程的并发性。方式：当读线程A 持有读锁，写线程B 在获取写锁时会被阻塞，在阻塞过程中，后续来的读线程C 仍可以成功获取读锁，直到读线程A 和C 释放读锁后，写线程B 才可以成功获取读锁。<br><strong>写优先锁：</strong>优先服务写线程；方式：读线程A 先持有读锁，写线程B 在获取写锁时会被阻塞，阻塞过程中，后续读线程C 获取读锁时会失败，被阻塞在获取读锁的操作上，这样只要读线程A 释放读锁，写线程B 就可以成功获取读锁。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>读优先锁：对于读线程并发性更好，但可能出现 写线程「饥饿」的现象。<br>写优先锁：保证写线程不会饿死，但如果一直有写线程获取写锁，读线程也会被「饿死」。<br>解决：公平读写锁，用队列把获取锁的线程排队，读，写线程都按照先进先出原则加锁，这样就不会出现「饥饿」现象。</p>
+<h4 id="乐观锁："><a href="#乐观锁：" class="headerlink" title="乐观锁："></a>乐观锁：</h4><p>乐观锁：假定冲突的概率很低，先修改共享资源，再验证这段时间 内有没有发生冲突。没有其他线程修改，则操作成功；发现有其他线程修改，则放弃本次操作。<br>使用场景：<strong>在冲突概率低，加锁成本高</strong><br>冲突概率上升，不适合乐观锁，因为解决冲突的重试成本非常高。<br>注意：加锁代码的范围尽可能的小，加锁的粒度要小，这样执行速度会比较快。</p>
+<h4 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal :"></a>ThreadLocal :</h4><p>数据隔离，填充的数据只属于当前线程，变量数据对别的线程而言是相对隔离的，多线程环境下，防止自己的变量被其它线程修改。</p>
+<h4 id="存储结构："><a href="#存储结构：" class="headerlink" title="存储结构："></a>存储结构：</h4><p>​        value 实际上存储在ThreadLocalMap中，ThreadLocalMap 是ThreadLocal的一个 静态内部类，它的 key是 ThreadLocal实例对象，value是任意Object对象。每个线程实例都对应一个 TheadLocalMap实例，在同一个线程里实例化很多 ThreadLocal来存储很多种类型的值，这些ThreadLocal实例分别作为key，对应各自的value，存储在 Entry table 数组中。<br>set获取当前线程的ThreadLocalMap，然后往map里添加 KV，K是当前ThreadLocal实例，V是我们传入的value<br>get获取当前线程对应的私有变量，是之前set或通过 initialValue的值</p>
+<p>​        ThreadLocal 能做到线程间的数据隔离，别的线程使用get() 方法没办法拿到其他线程的值. 每个线程 Thread 都维护自己的threadLocals变量，在每个线程创建 ThreadLocal 时，实际上数据是存在 线程Thread的 threadLocals中的 ThreadLocalMap 里，别人没办法拿到，从而实现隔离。</p>
+<p><strong>ThreadLocal内存模型原理：</strong></p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurotiajlqj60mg0bc3yz02.jpg" alt="37DE7955-FB83-46CD-BC0C-8B432E31AA15" width="550" height="250"/>
+
+<p>线程的一些局部变量和引用：Stack（栈）区；  普通对象：Heap（堆）区<br>1.线程运行时，定义的 TheadLocal对象被初始化，存储在Heap，同时线程运行的栈区保存指向该实例的引用，也就是图中的ThreadLocalRef。<br>2.当 ThreadLocal的 set &#x2F; get 被调用时，虚拟机会根据当前线程引用，查看对应的TheadLocalMap实例是否被创建，如果没有则创建并初始化<br>3.虚线，表示 key对应的 ThreadLocal实例的引用是个弱引用。</p>
+<p>建议：<br>1.需要 存储 线程私有变量的时<br>2.需要实现 线程安全的变量时<br>3.需要 减少线程资源竞争的时</p>
+<h4 id="ThreadLocalMap底层使用数组，如何解决Hash冲突？"><a href="#ThreadLocalMap底层使用数组，如何解决Hash冲突？" class="headerlink" title="ThreadLocalMap底层使用数组，如何解决Hash冲突？"></a>ThreadLocalMap底层使用数组，如何解决Hash冲突？</h4><pre><code>     一个线程可以有多个 TreadLocal 来存放不同类型的对象，他们都放到当前线程的 ThreadLocalMap里，一个线程一个数组来存。ThreadLocalMap存储时，给每一个ThreadLocal对象一个 threadLocalHashCode，插入过程中根据 ThreadLocal对象的hash值，定位到 table中的位置id ，然后判断当前位置 是否为空，为空就初始化一个Entry对象放在位置id上；
+</code></pre>
+<p>如果位置id 不空，这个Entry对象的 key &#x3D; 计算出来的hash值，则更新 Entry中的value；<br>如果位置id 不空，且 Entry 对象的 key !&#x3D;计算出来的hash值， 则找下一个空位置。<br>set和get如果冲突严重的话，效率会降低。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurou020ddj611g0l6ac102.jpg" alt="440644C2-998F-49CA-80DA-BA894E6BD00D" width="650" height="300" />
+
+<p><strong>ThreadLocal 实例及其值存放在哪？</strong> ThreadLocal实例实际上被其创建的类持有，而ThreadLocal的值是被线程实例持有，位于堆上，只是通过一些技巧将 可见性修改成了线程可见。</p>
+<p>如何共享 一个线程的ThreadLocal数据？ 使用 Inheritable ThreadLocal可以实现多个线程访问ThreadLocal的值。例：在主线程中创建一个InheritableThreadLocal实例，在 子线程中得到这个Inheritable ThreadLocal实例设置的值。</p>
+<h4 id="ThreadLocal-内存泄漏："><a href="#ThreadLocal-内存泄漏：" class="headerlink" title="ThreadLocal 内存泄漏："></a>ThreadLocal 内存泄漏：</h4><p>ThreadLocalMap 使用的 key 为 ThreadLocal 的弱引用, 而 value 是强引用。如果ThreadLocal 没有被外部强引用，在垃圾回收时 key 会被清理掉，而 value 不会被清理掉。这样 ThreadLocalMap 中会出现 key为null的Entry。假如不做任何措施，value 永远无法被GC 回收，导致内存泄露。<br>解决：每次使用完 ThreadLocal，调用 remove()方法，清除数据。</p>
+<p>ThreadLocalMap的key 为什么设计成弱引用？</p>
+<p>如果 key不设置成 弱引用，会造成 entry中 value一样内存泄漏的场景。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guroufjdoej611a0diwfp02.jpg" alt="A3923F60-AE72-4D55-B680-B9BC54CEDD23" width="550" height="250" />
+
+
+
+<h4 id="CountDownLatch"><a href="#CountDownLatch" class="headerlink" title="CountDownLatch:"></a>CountDownLatch:</h4><p>允许一个或 多个线程一直等待，直到 count&#x3D;0，唤醒所有线程。<br>一个线程调用await() 时，阻塞当前线程。有线程调用一次 countDown() 时，计数 -1。当 count &#x3D; 0 时，被阻塞线程全部唤醒。</p>
+<h4 id="CyclicBarrier-barrier-障碍-cyclic-循环）"><a href="#CyclicBarrier-barrier-障碍-cyclic-循环）" class="headerlink" title="CyclicBarrier  (barrier 障碍, cyclic 循环）"></a>CyclicBarrier  (barrier 障碍, cyclic 循环）</h4><p>一组线程互相等待，直到所有线程都到达一个同步点。<br>例：一组运动员比赛 100米，当所有人都准备完成之后，才可以一起开跑。</p>
+<p><strong>CountDownLatch 和CyclicBarrier 区别：</strong></p>
+<p>1.CountDownLatch 是一个线程等待其他线程， CyclicBarrier 多个线程互相等待。<br>2.CountDownLatch  计数 -1 直到 0，CyclicBarrier 计算 +1，直到指定值。<br>3.CountDownLatch 是一次性的， CyclicBarrier  可以循环利用。</p>
+<h4 id="AbstractQueuedSynchronizer（AQS）"><a href="#AbstractQueuedSynchronizer（AQS）" class="headerlink" title="AbstractQueuedSynchronizer（AQS）"></a>AbstractQueuedSynchronizer（AQS）</h4><p>ReentrantLock、ReentrantReadWriteLock、CountDownLatch 都是基于AQS实现的</p>
+<p><strong>AQS实现原理：</strong>AQS中维护一个 volatile int state（共享资源）和 一个 FIFO线程等待队列（多线程争用资源被阻塞时会进入此队列）。<br>state 初始化 0，多线程条件下线程要执行 临界区的代码，首先获取 state。 某个线程获取成功后， state +1，其他线程再获取的话，由于共享资源已被占用，将阻塞线程放到 FIFO 等待队列 中，等占有 state 的线程执行完，释放资源( state -1)后，会唤醒 FIFO 中下一个等待线程去获取 state。</p>
+<p> state 由于是多线程共享变量，所以定义成 volatile，保证 state 可见性, 并通过 CAS 来保证其并发修改的安全性。FIFO 等待队列是一个双向链表，head 结点代表当前占用的线程，其他节点由于暂时获取不到锁，依次 排队等待锁的释放</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurouysglyj61100fgwff02.jpg" alt="5A584450-F81D-4DEC-8C2A-8BBEE7DD5371" width="650" height="300" />
+
+
+
+<p>AQS定义两种资源共享方式<br>1.Exclusive（独占）：只有一个线程执行； 如ReentrantLock，可分为公平锁和非公平锁：</p>
+<p>**公平锁：按照线程在队列中的排队顺序，先到者先得锁</p>
+<p>**非公平锁：获取锁时，无视队列顺序直接抢锁，谁抢到是谁的</p>
+<p>2.Share（共享）：多线程同时执行，如CountDownLatch</p>
+<p>​        获取独占式锁过程对做个总结: AQS的模板方法acquire通过调用子类自定义实现的tryAcquire获取同步状态失败后-&gt;将线程构造成Node节点(addWaiter)-&gt;将Node节点添加到同步队列对尾(addWaiter)-&gt;节点以自旋的方法获取同步状态(acquirQueued)。在节点自旋获取同步状态时，只有其前驱节点是头节点的时候才会尝试获取同步状态，如果该节点的前驱不是头节点或者该节点的前驱节点是头节点单获取同步状态失败，则判断当前线程需要阻塞，如果需要阻塞则需要被唤醒过后才返回。</p>
+<p>AQS 内部维护一个线程的队列。队列由内部的节点组成。<br>队列的节点为Node,节点分为SHARED和EXCLUSIVE分别时共享模式的节点和独占模式的节点。<br>节点的等待状态为waitStatus</p>
+<ul>
+<li><p>CANCELLED(1):取消状态，当线程不再希望获取锁时，设置为取消状态</p>
+</li>
+<li><p>SIGNAL(-1):当前节点的后继者处于等待状态，当前节点的线程如果释放或取消了同步状态，通知后继节点</p>
+</li>
+<li><p>CONDITION(-2):等待队列的等待状态，当调用signal()时，进入同步队列</p>
+</li>
+<li><p>PROPAGATE(-3): 共享模式，同步状态的获取的可传播状态</p>
+</li>
+<li><p>0：初始状态</p>
+<p>AQS共享模式和 独占模式的实现上最大的差别就在于共享模式获取锁后的传播。其他的区别主要还是表现在实现类实现的区别上。通过ReentrantLock和ReentrantReadWriteLock可以了解AQS的独占模式和共享模式，但是要注意将AQS和锁的实现剥离开，弄明白哪些逻辑是AQS实现的，哪些逻辑是锁实现的，同时也思考怎么使用AQS实现其他的特定的线程同步问题。</p>
+</li>
+</ul>
+<h4 id="公平锁和非公平锁："><a href="#公平锁和非公平锁：" class="headerlink" title="公平锁和非公平锁："></a>公平锁和非公平锁：</h4><p>非公平锁和公平锁的区别：非公平锁性能高于公平锁性能。非公平锁可以减少 CPU唤醒线程的开销，整体的吞吐效率会高点，CPU不必 唤醒所有线程，减少唤起线程的数量<br><strong>问题：</strong>非公平锁存在线程饥饿的情况，可能某个线程一直获取不到锁.</p>
+<h4 id="AQS-组件："><a href="#AQS-组件：" class="headerlink" title="AQS 组件："></a>AQS 组件：</h4><p>1.Semaphore(信号量)-允许多线程同时访问： synchronized 和 ReentrantLock 都是一次只允许一个线程访问某个资源<br>2.CountDownLatch ： 一个同步工具类，协调多线程之间的同步。用来控制线程等待，让某一个线程等待直到倒计时结束，再开始执行。<br>3.CyclicBarrier ： CyclicBarrier 和 CountDownLatch 类似，可以实现线程间的等待，但功能比 CountDownLatch 更复杂和强大。<br>主要应用场景和 CountDownLatch 类似，CyclicBarrier 可以让 一组线程到达一个屏障（同步点）时被阻塞，直到 最后一个线程到达屏障时，屏障才会打开，所有被屏障拦截的线程才会继续执行。<br>CyclicBarrier 默认的构造方法是 CyclicBarrier(int parties)，参数表示 屏障拦截的线程数量，每个线程调用await()方法告诉 CyclicBarrier 我已经到达了屏障，然后当前线程被阻塞。</p>
+<p>排他锁：只有一个线程可以访问共享变量；<br>共享锁：允许多个线程同时访问<br>重入锁是排他的；信号量是共享的</p>
+<p><strong>AQS内部结构：</strong>AQS中有一个同步等待队列，保存等待在这个锁上的线程。<br>为了维护等待在 条件变量上的等待线程，AQS维护一个条件变量等待队列，就是由 Condition.await() 引起阻塞的线程。一个重入锁可以生成 多个条件变量对象，因此一个重入锁 可能有多个条件变量等待队列。每个条件变量对象内部都维护一个等待列表。</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurowjlkbcj610o0pctbc02.jpg" alt="D087E893-6647-40B7-8FE2-31AC3634D7A5" width="350" height="250" />     <img src="https://tva1.sinaimg.cn/large/008i3skNly1gurovk1mmcj60sk0p4jsr02.jpg" alt="926080CA-1FDD-480D-9FF1-E91DE7EF8034" width="380" height="250" /></p>
+<p>同步等待队列，条件变量等待队列，都使用 同一个 Node类作为链表的节点<br>Node 中包括链表的上一个元素 prev，下一个元素next 和线程对象thread，对于条件变量等待队列，还使用nextWaiter表示下一个等待在条件变量队列中的节点。</p>
+<h4 id="Condition-："><a href="#Condition-：" class="headerlink" title="Condition ："></a>Condition ：</h4><p>Condition是用来替代Object的 wait()，notify() 方法的，使用Condition中await()，signal()可以更加安全，高效的实现线程间协作。</p>
+<h4 id="Condition-和-wait-x2F-notify-比较："><a href="#Condition-和-wait-x2F-notify-比较：" class="headerlink" title="Condition 和 wait&#x2F;notify 比较："></a>Condition 和 wait&#x2F;notify 比较：</h4><p>1.Condition 可以精准的 对多个不同条件进行控制，wait&#x2F;notify 只能和 synchronized关键字一起使用，只能唤醒一个或全部的等待队列；<br>2.Condition 使用 Lock进行控制，使用后要 unlock()，Condition 有类似于 await 的机制，不会因为加锁而产生死锁问题，底层实现park&#x2F; unpark 机制，不会产生死锁，但wait&#x2F;notify 可能会产生先唤醒再挂起的死锁。</p>
+<ol>
+<li>对系统资源占用不同：虽然都释放了CPU，但阻塞的进程仍处于内存中，而挂起的进程通过“对换”技术被换出到外存（磁盘）中。 </li>
+<li>发生时机不同：阻塞一般在进程等待资源（IO资源、信号量等）时发生；而挂起是由于用户和系统的需要，例如，终端用户需要暂停程序研究其执行情况或对其进行修改、OS为了提高内存利用率需要将暂时不能运行的进程（处于就绪或阻塞队列的进程）调出到磁盘 </li>
+<li>恢复时机不同：阻塞要在等待的资源得到满足（例如获得了锁）后，才会进入就绪状态，等待被调度而执行；被挂起的进程由将其挂起的对象（如用户、系统）在时机符合时（调试结束、被调度进程选中需要重新执行）将其主动激活</li>
+</ol>
+<p>一般线程中的阻塞：</p>
+<p>A、线程执行了Thread.sleep(int millsecond);方法，当前线程放弃CPU，睡眠一段时间，然后再恢复执行<br>B、线程执行一段同步代码，但是尚且无法获得相关的同步锁，只能进入阻塞状态，等到获取了同步锁，才能回复执行。<br>C、线程执行了一个对象的wait()方法，直接进入阻塞状态，等待其他线程执行notify()或者notifyAll()方法。<br>D、线程执行某些IO操作，因为等待相关的资源而进入了阻塞状态。比如说监听system.in，但是尚且没有收到键盘的输入，则进入阻塞状态。</p>
+<p><strong>非公平锁和公平锁的区别：</strong> 非公平锁性能高于公平锁性能。非公平锁可以减少CPU唤醒线程的开销，整体的吞吐效率会高点，CPU也不必取唤醒所有线程，会减少唤起线程的数量<br>非公平锁性能虽然优于公平锁，但是会存在导致线程饥饿的情况。在最坏的情况下，可能存在某个线程一直获取不到锁。不过相比性能而言，饥饿问题可以暂时忽略，这可能就是ReentrantLock默认创建非公平锁的原因之一了</p>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/" title="多线程-高级" target="_blank" rel="external">https://github.com/TurboCome/2022/06/06/多线程/2.多线程-高级/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/" title="多线程-编程实战"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/" title="多线程-基础"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

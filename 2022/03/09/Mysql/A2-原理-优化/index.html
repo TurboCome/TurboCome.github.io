@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Mysql:原理-优化 | Hexo</title>
+  <meta name="description" content="Mysql 原理-优化mysql 执行过程：客户端 —&gt;连接器 —&gt;缓存—&gt;分析器 —&gt;优化器—&gt;执行器 —&gt;引擎 —&gt; 查询结果客户端 —&gt;连接器 —&gt;缓存—&gt; 查询结果   调优是在执行器执行之前的分析器，优化器阶段完成 主从复制同步原理：  1.从库启动复制时，首先创建  I&#x2F;O 线程连接主库，主库随后创建 Binlog">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mysql:原理-优化">
+<meta property="og:url" content="https://github.com/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="TurboCome">
+<meta property="og:description" content="Mysql 原理-优化mysql 执行过程：客户端 —&gt;连接器 —&gt;缓存—&gt;分析器 —&gt;优化器—&gt;执行器 —&gt;引擎 —&gt; 查询结果客户端 —&gt;连接器 —&gt;缓存—&gt; 查询结果   调优是在执行器执行之前的分析器，优化器阶段完成 主从复制同步原理：  1.从库启动复制时，首先创建  I&#x2F;O 线程连接主库，主库随后创建 Binlog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurwuc4hfij60h307zaab02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurwumox9hj60x20q4gne02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurwvhdqzkj60j20eq76s02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurwvnzevmj60ip0cuq4a02.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutxx7tvv9j60l80wsabd02.jpg">
+<meta property="article:published_time" content="2022-03-09T13:55:28.000Z">
+<meta property="article:modified_time" content="2022-04-19T06:44:35.556Z">
+<meta property="article:author" content="TurboCome">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gurwuc4hfij60h307zaab02.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://github.com/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/TurboCome/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/TurboCome" target="_blank">
+          <img class="img-circle img-rotate" src="/TurboCome/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">TurboCome</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> HangZhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/TurboCome/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/TurboCome/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/TurboCome/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/TurboCome/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/TurboCome/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/TurboCome/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>本站记录个人的成长经历，欢迎大家交流与分享!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="category-block">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul>
+  </div>
+
+
+
+<!-- 
+  <div class="widget tag">
+    <h3 class="title">categories</h3>
+       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><span class="category-list-count">25</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">3</span></li></ul></li></ul> 
+  </div>
+  -->
+    
+      <!-- 
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+ -->
+
+
+  <div class="tags-block">
+    <h3 class="asidetitle">tags</h3>
+       <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">3</span></li></ul>
+  </div>
+
+
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/TurboCome/tags/Mysql/" style="font-size: 14px;">Mysql</a> <a href="/TurboCome/tags/Redis/" style="font-size: 13.5px;">Redis</a> <a href="/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.75px;">多线程</a> <a href="/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">操作系统</a> <a href="/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 13.25px;">消息队列</a> <a href="/TurboCome/tags/%E7%BD%91%E7%BB%9C/" style="font-size: 13.25px;">网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/07/">七月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/06/">六月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/05/">五月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/04/">四月 2022</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/03/">三月 2022</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/TurboCome/archives/2022/02/">二月 2022</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/" class="title">集群一致性hash算法</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-09T13:55:19.000Z" itemprop="datePublished">2022-07-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/" class="title">Redis性能优化</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-08T13:55:19.000Z" itemprop="datePublished">2022-07-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/" class="title">持久化-哨兵/集群</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-07T13:55:19.000Z" itemprop="datePublished">2022-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/">Redis</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">Redis数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-07-06T13:55:19.000Z" itemprop="datePublished">2022-07-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a><i class="icon icon-angle-right"></i><a class="category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+              </p>
+              <p class="item-title">
+                <a href="/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/" class="title">多线程-AQS详解</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-06-09T13:55:19.000Z" itemprop="datePublished">2022-06-09</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Mysql/A2-原理-优化" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Mysql:原理-优化
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/" class="article-date">
+	  <time datetime="2022-03-09T13:55:28.000Z" itemprop="datePublished">2022-03-09</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/">后端</a>►<a class="article-category-link" href="/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/">Mysql</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/TurboCome/tags/Mysql/" rel="tag">Mysql</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Mysql-原理-优化"><a href="#Mysql-原理-优化" class="headerlink" title="Mysql 原理-优化"></a>Mysql 原理-优化</h2><h4 id="mysql-执行过程："><a href="#mysql-执行过程：" class="headerlink" title="mysql 执行过程："></a>mysql 执行过程：</h4><p>客户端 —&gt;连接器 —&gt;缓存—&gt;分析器 —&gt;优化器—&gt;执行器 —&gt;引擎 —&gt; 查询结果<br>客户端 —&gt;连接器 —&gt;缓存—&gt; 查询结果  </p>
+<p>调优是在执行器执行之前的分析器，优化器阶段完成</p>
+<h4 id="主从复制同步原理："><a href="#主从复制同步原理：" class="headerlink" title="主从复制同步原理："></a>主从复制同步原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwuc4hfij60h307zaab02.jpg" alt="216B1176-D897-40A4-BED9-E0784E96CFE8" width="650" height="250"   />
+
+<p>1.从库启动复制时，首先创建  I&#x2F;O 线程连接主库，主库随后创建 Binlog 线程将主库上的改变记录到二进制日志中<br>2.从库通过  I&#x2F;O 线程，将主库的 二进制日志文件 copy 到 从库的中继日志 Relay Log<br>3.从库上的 SQL线程 读取中继日志 Relay Log，重做 中继日志中的事件，将数据的改变更新到自己的数据库中</p>
+<ul>
+<li><p><strong>异步复制：</strong>主库执行完提交的事务后，会立即将结果返给给客户端，并不关心从库是否已经接收并处理，如果主 crash掉了，此时主上已经提交的事务可能并没有传到从上，如果此时，强行将从提升为主，可能导致新主上的数据不完整。</p>
+</li>
+<li><p><strong>全同步复制：</strong>指当主库执行 完一个事务，所有的从库都执行该事务后，主库才返回给客户端。需要等待所有从库执行完该事务才能返回，所以全同步复制的性能必然会收到严重的影响。</p>
+</li>
+<li><p><strong>半同步复制：</strong>主库执行完客户端提交的事务后 不是立刻返回给客户端，而是等待 至少一个从库接收到并写到 relay log中才返回给客户端。半同步复制提高了数据的安全性，同时它也造成了一定程度的延迟，这个延迟最少是一个TCP&#x2F;IP往返的时间。所以，半同步复制最好在低延时的网络中使用。</p>
+</li>
+</ul>
+<h4 id="MySQL-数据一致性："><a href="#MySQL-数据一致性：" class="headerlink" title="MySQL 数据一致性："></a>MySQL 数据一致性：</h4><p>1.半同步，从库 ack 确认机制<br>2.缓存， 先写缓存再入主库，读从时先读缓存</p>
+<p><strong>读写分离</strong></p>
+<p>主服务器：写 +  读 （实时性要求高）<br>从服务器：读 </p>
+<p><strong>读写 分离能提高性能的原因在于：</strong><br>1.主从服务器负责各自的 读和写，极大程度 缓解了锁的争用</p>
+<p>2.从服务器可以使用 MyISAM，提升 查询性能以及 节约系统开销</p>
+<p>3.增加 冗余，提高可用性</p>
+<p>读写分离常用代理方式来实现： 代理服务器 接收应用层传来的读写请求，然后决定转发到哪个服务器</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwumox9hj60x20q4gne02.jpg" alt="DD2CC108-950E-4E49-B982-E984E6AD8076" width="650" height="450"   />
+
+<h4 id="explain-分析-select-查询语句，参数："><a href="#explain-分析-select-查询语句，参数：" class="headerlink" title="explain 分析 select 查询语句，参数："></a>explain 分析 select 查询语句，参数：</h4><p>select_type：常用的有 SIMPLE 简单查询，UNION 联合查询，SUBQUERY子查询等<br>Table：要查询的表<br>possible_keys：可选择的索引</p>
+<p>key： 实际使用的索引<br>rows： 扫描的行数<br>type：索引查询类型，经常用到的索引查询类型：<br>    **const：使用 主键或 唯一索引 进行查询的时候只有一行匹配<br>    **ref： 使用 非唯一索引<br>    **range：使用 主键、单个字段的辅助索引、多个字段的辅助索引的最后一个字段进行范围查询<br>    **index： 和 all的区别是 只扫描索引树  1.查询字段是索引的一部分，覆盖索引;  2.使用主键进行排序<br>    **all：扫描全表<br>system：触发条件：表只有一行，这是一个 const type 的特殊情况</p>
+<h4 id="查询优化："><a href="#查询优化：" class="headerlink" title="查询优化："></a>查询优化：</h4><p>1.只返回 必要的列，行： 最好 不要使用 SELECT * 语句； 使用  LIMIT 语句来限制返回的数据；只有一条数据 limit 1</p>
+<p>2.多使用普通索引,  背景：写多读少，对唯一性要求不高，或业务代码来保证唯一性时<br>普通索引使用 change buffer ，可以把一些写操作缓存下来，在读取的时候进行，避免磁盘操作，提高效率</p>
+<p>3.注意：String 字段，但DB 中是int ,用到隐式转换 cast(str) 函数转换，导致不走索引<br>碰到不走索引情况，可以考虑使用 force index ,强制走索引；</p>
+<p>4.建立联合索引：出现频率较高，常在一起作为 where条件的字段，考虑建立联合索引，减少建立索引的数量；并借助索引下推减少回表；减少服务器端扫描的行数, 使用 索引来覆盖查询<br>对于业务中有一些不好的索引，考虑使用覆盖索引，最左匹配原则，来把设置错误的索引给覆盖掉</p>
+<p>5.开启 MRR（mult-range Read）：此操作可以在 回表之前，进行一个排序，把原来一个随机操作变成一个顺序操作<br>原理：根据辅助索引的叶子结点，找到主键值的集合并存储到read_rnd_buffer中，在该buffer中对主键值进行排序，最后利用已经排序好的主键值的集合，去访问表中的数据，这样就由原来的 随机&#x2F;O变成为 顺序I&#x2F;O，降低查询过程中的I&#x2F;O消耗。</p>
+<h5 id="6-分解大连接查询："><a href="#6-分解大连接查询：" class="headerlink" title="6.分解大连接查询："></a>6.分解大连接查询：</h5><p>将一个 大连接查询分解成 对每一个表进行一次单表查询，然后在 应用程序中进行关联，这样做的好处有：<br>1.让缓存更高效； 对于连接查询，如果一个表发生变化，那么整个查询缓存就无法使用。而分解后的多个查询，即使其中一个表发生变化，对其它表的查询缓存依然可以使用<br>2.分解成多个单表查询；这些单表查询的缓存结果 更可能被其它查询使用到，从而减少冗余记录的查询。<br>3.减少锁竞争；在应用层进行连接，更容易对数据库进行拆分，从而更容易做到高性能和可伸缩。查询本身效率也可能会有所提升。</p>
+<h5 id="7-分页查询优化："><a href="#7-分页查询优化：" class="headerlink" title="7.分页查询优化："></a>7.分页查询优化：</h5><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写，借助主键 id 的索引覆盖<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
+<h5 id="8-很长的字段如何设置索引："><a href="#8-很长的字段如何设置索引：" class="headerlink" title="8.很长的字段如何设置索引："></a>8.很长的字段如何设置索引：</h5><p>索引选取越长，占用磁盘空间就越大，相同的数据页能放下的索引值就越少，搜索的效率也就会越低。<br>1.短长度：把字段 hash为另外一个字段存起来，每次校验 hash就好了，hash的索引也不大，hash 后的数值要 区分度过高。<br>2.高区分：通过函数处理倒序，删减字符串减少字段长度，并增加区分度； 如：身份证区域开头，同区域人很多，REVERSE() 函数翻转一下，提高区分度。</p>
+<h4 id="MySQL-工作原理："><a href="#MySQL-工作原理：" class="headerlink" title="MySQL 工作原理："></a>MySQL 工作原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwvhdqzkj60j20eq76s02.jpg" alt="EE963375-2D0A-44B3-A209-211FEFFB0A07" width="650" height="450"   />
+
+<h4 id="Buffer-Pool"><a href="#Buffer-Pool" class="headerlink" title="Buffer Pool"></a>Buffer Pool</h4><p>MySQL 不会直接去修改磁盘的数据，因为这样做太慢了，MySQL 会先记录 redo log，再改内存 Buffer Pool ，等有空了再刷磁盘，如果内存 Buffer Pool里没有数据，就去磁盘 load ；Buffer Pool 是 一个以 页为元素的链表。<br>持久化： 宕机时，Buffer Pool 丢失数据，重做 redo log； 先 redo log, 再 buffer pool<br>Buffer Pool 链表结构：基于 LRU， 和缓存一样，需要淘汰算法来管理数据；</p>
+<p>​          <img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwvnzevmj60ip0cuq4a02.jpg" alt="4EC434C3-08BC-41E3-A059-E31B470752DB" width="650" height="450"  /></p>
+<h4 id="Change-buffer"><a href="#Change-buffer" class="headerlink" title="Change  buffer:"></a>Change  buffer:</h4><p>​    查询数据时，如果内存里没有对应页的数据，MySQL 会从磁盘里 load ，如果每次需要的 页 都不同（或不是相邻的页），那每次都要去 load，很慢。如果 MySQL 发现你要修改的页不在内存里，就把要对页的修改，先记到一个叫 Change Buffer 的地方，同时记录 redo log，然后再慢慢把数据 load 到内存，load 过来后再把 Change Buffer 里记录的修改，应用到内存 Buffer Pool中，此操作： merge； 把内存数据刷到磁盘操作： purge </p>
+<p>Change Buffer 只在操作「二级索引」时才使用，原因是「聚簇索引」必须是「唯一」的，也就意味着每次插入&#x2F;更新，都需要检查 是否已经有相同的字段存在，也就没有必要使用 Change Buffer ；另外「聚簇索引」操作的随机性比较小，通常在相邻的「页」进行操作，比如使用自增主键的「聚簇索引」，那么 insert 时就是递增有&#x2F;序的，不像「二级索引」，访问非常随机。</p>
+<p>​        MySQL 以16KB「页」 为 读取和写入单位，一个「页」里面有多行数据，写入数据时，MySQL 会先写 内存中的页，然后再刷新到磁盘中的页。假设在某一次从 内存刷新到磁盘的过程中，一个「页」刷了一半，突然操作系统或 MySQL 进程 崩了，此时内存里的 页数据被清除了，而磁盘里的页数据，刷了一半，处于一个中间状态，可以说是一个「不完整」，甚至是「坏掉的」的页。<br>redo log 在 磁盘中的页数据是正常、没有损坏情况下，才能把磁盘里页数据 load 到内存，如果磁盘中的页数据已经损坏，是无法应用 redo Log 的。</p>
+<h4 id="Doublewrite-Buffer："><a href="#Doublewrite-Buffer：" class="headerlink" title="Doublewrite Buffer："></a><strong>Doublewrite Buffer：</strong></h4><p>在 刷数据到 磁盘之前，先把数据写到另外一个地方 DoubleWrite Buffer， 写完后再开始写磁盘；Doublewrite Buffer 是一个备份，当发生 crash时，就可以利用 它来 修复磁盘里的数据</p>
+<p>1.刷数据之前宕机：内存—&gt; 磁盘，重做 redo log 日志<br>2.刷数据时宕机： 利用 Doublewrite Buffer 修复磁盘数据</p>
+<p>​        要更新一个数据页时，如果数据页在 内存中就直接更新；但如果这个数据页还没有在内存中，在不影响数据一致性的前提下，InooDB会将这些更新操作缓存在 change buffer中，这样就不需要 从磁盘中读入这个数据页。在下次查询需要访问这个数据页的时候，将数据页读入内存，然后执行change buffer中与这个页有关的操作，通过这种方式就能保证这个数据逻辑的正确性。<br>Change buffer 是可以持久化的数据，在内存中有拷贝，也会被写入到磁盘上，将change buffer中的操作应用到原数据页，得到最新结果的过程称为 merge。</p>
+<h4 id="Merge触发条件："><a href="#Merge触发条件：" class="headerlink" title="Merge触发条件："></a>Merge触发条件：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gutxx7tvv9j60l80wsabd02.jpg" alt="E84FCF6C-D50D-46D4-92A6-93B6B4CC1FD9" width="250" height="350"   />
+
+<p>1.访问这个数据页</p>
+<p>2.系统后台线程定期 merge</p>
+<p>3.在数据库正常关闭（shutdown）的过程中，也会执行merge        将 更新操作先记录在 change buffer，可以减少读磁盘，语句的执行速度会得到明显的提升, 数据读入 内存是需要占用 buffer pool的，所以这种方式还能够避免占用内存，提高内存利用率</p>
+<h4 id="使用-change-buffer-的条件？"><a href="#使用-change-buffer-的条件？" class="headerlink" title="使用 change buffer 的条件？"></a>使用 change buffer 的条件？</h4><p>普通索引可以使用 change buffer ,唯一索引（主键，聚簇索引）的更新就不能使用 change buffer<br>唯一索引更新操作都要先判断这个操作 是否违反唯一性约束, 要判断表中是否存在这个数据，就必须要将数据页读入内存才能判断，都已经读入到内存，那直接更新内存会更快，就没必要使用change buffer</p>
+<p>change buffer 是 buffer pool里的内存，不能无限增大；<br>change buffer大小可以通过参数 innodb_change_buffer_max_size来动态设置，设置为50 表示change buffer大小最多只能占用buffer pool的50%</p>
+<h4 id="change-buffer-使用场景："><a href="#change-buffer-使用场景：" class="headerlink" title="change buffer 使用场景："></a>change buffer 使用场景：</h4><p>适合：写多读少业务，页面在写完以后马上被访问到的概率比较小，此时change buffer的使用效果最好，业务模型常见：账单类,日志类的系统<br>不适合：读多写少（写入后马上会做查询 ）将更新先记录在change buffer，但由于马上要访问这个数据页，会立即触发merge过程，访问IO次数不会减少，反而增加 change buffer的维护代价</p>
+<p>数据库进行 Merge 时，是真正进行 数据更新的时刻，而 change buffer 主要目的就是将记录的变更动作缓存下来，所以在一个数据页做merge之前，change buffer 记录的变更越多（页面上要更新的数据越多），收益就越大</p>
+<p><strong>flush 操作：</strong> redo log 会找个时间去更新到磁盘，这个操作就是flush<br>脏页：在更新之前，当内存数据页跟磁盘数据页内容不一致的时候<br>干净页：内存数据写入到磁盘后，内存和磁盘上的数据页的内容就一致</p>
+<h4 id="flush-操作条件："><a href="#flush-操作条件：" class="headerlink" title="flush 操作条件："></a>flush 操作条件：</h4><ol>
+<li>InnoDB的 redo log写满了</li>
+<li>系统内存不足，需要淘汰一些数据页，空出内存给别的数据页使用。 如果淘汰“脏页”，就要先将脏页写到磁盘。</li>
+<li>MySQL认为系统 “空闲”的时候，只要有机会就刷一点 “脏页”</li>
+<li>MySQL正常关闭，会把内存的脏页都flush到磁盘上，这样下次启动的时候，就可以直接从磁盘上读数据，启动速度会很快。</li>
+</ol>
+<p>​            </p>
+<h4 id="MySQL-中数据的存储："><a href="#MySQL-中数据的存储：" class="headerlink" title="MySQL 中数据的存储："></a><strong>MySQL 中数据的存储：</strong></h4><p>各个 数据页 组成一个 双向链表；<br>每个 数据页中的记录又组成一个 单向链表<br>每个 数据页都会为存储的记录 生成页目录，一个数据页内： 主键查找，二分法快速定位 ； 其他非主键列查找，从最小记录开始一次遍历单链表</p>
+<h4 id="数据库连接池设置："><a href="#数据库连接池设置：" class="headerlink" title="数据库连接池设置："></a>数据库连接池设置：</h4><p>如果你有 10000个并发用户，设置一个10000的连接池基本等于失了智, 即是100也太多了。你需要一个10来个连接的小连接池，然后让剩下的业务线程都在队列里等待。连接池中的连接数量应该等于你的数据库能够有效同时进行的查询任务数（通常不会高于2*CPU核心数）。</p>
+
+      
+      
+
+      <!-- 修改 -->
+      <!-- 
+          
+            <h2 id="Mysql-原理-优化"><a href="#Mysql-原理-优化" class="headerlink" title="Mysql 原理-优化"></a>Mysql 原理-优化</h2><h4 id="mysql-执行过程："><a href="#mysql-执行过程：" class="headerlink" title="mysql 执行过程："></a>mysql 执行过程：</h4><p>客户端 —&gt;连接器 —&gt;缓存—&gt;分析器 —&gt;优化器—&gt;执行器 —&gt;引擎 —&gt; 查询结果<br>客户端 —&gt;连接器 —&gt;缓存—&gt; 查询结果  </p>
+<p>调优是在执行器执行之前的分析器，优化器阶段完成</p>
+<h4 id="主从复制同步原理："><a href="#主从复制同步原理：" class="headerlink" title="主从复制同步原理："></a>主从复制同步原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwuc4hfij60h307zaab02.jpg" alt="216B1176-D897-40A4-BED9-E0784E96CFE8" width="650" height="250"   />
+
+<p>1.从库启动复制时，首先创建  I&#x2F;O 线程连接主库，主库随后创建 Binlog 线程将主库上的改变记录到二进制日志中<br>2.从库通过  I&#x2F;O 线程，将主库的 二进制日志文件 copy 到 从库的中继日志 Relay Log<br>3.从库上的 SQL线程 读取中继日志 Relay Log，重做 中继日志中的事件，将数据的改变更新到自己的数据库中</p>
+<ul>
+<li><p><strong>异步复制：</strong>主库执行完提交的事务后，会立即将结果返给给客户端，并不关心从库是否已经接收并处理，如果主 crash掉了，此时主上已经提交的事务可能并没有传到从上，如果此时，强行将从提升为主，可能导致新主上的数据不完整。</p>
+</li>
+<li><p><strong>全同步复制：</strong>指当主库执行 完一个事务，所有的从库都执行该事务后，主库才返回给客户端。需要等待所有从库执行完该事务才能返回，所以全同步复制的性能必然会收到严重的影响。</p>
+</li>
+<li><p><strong>半同步复制：</strong>主库执行完客户端提交的事务后 不是立刻返回给客户端，而是等待 至少一个从库接收到并写到 relay log中才返回给客户端。半同步复制提高了数据的安全性，同时它也造成了一定程度的延迟，这个延迟最少是一个TCP&#x2F;IP往返的时间。所以，半同步复制最好在低延时的网络中使用。</p>
+</li>
+</ul>
+<h4 id="MySQL-数据一致性："><a href="#MySQL-数据一致性：" class="headerlink" title="MySQL 数据一致性："></a>MySQL 数据一致性：</h4><p>1.半同步，从库 ack 确认机制<br>2.缓存， 先写缓存再入主库，读从时先读缓存</p>
+<p><strong>读写分离</strong></p>
+<p>主服务器：写 +  读 （实时性要求高）<br>从服务器：读 </p>
+<p><strong>读写 分离能提高性能的原因在于：</strong><br>1.主从服务器负责各自的 读和写，极大程度 缓解了锁的争用</p>
+<p>2.从服务器可以使用 MyISAM，提升 查询性能以及 节约系统开销</p>
+<p>3.增加 冗余，提高可用性</p>
+<p>读写分离常用代理方式来实现： 代理服务器 接收应用层传来的读写请求，然后决定转发到哪个服务器</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwumox9hj60x20q4gne02.jpg" alt="DD2CC108-950E-4E49-B982-E984E6AD8076" width="650" height="450"   />
+
+<h4 id="explain-分析-select-查询语句，参数："><a href="#explain-分析-select-查询语句，参数：" class="headerlink" title="explain 分析 select 查询语句，参数："></a>explain 分析 select 查询语句，参数：</h4><p>select_type：常用的有 SIMPLE 简单查询，UNION 联合查询，SUBQUERY子查询等<br>Table：要查询的表<br>possible_keys：可选择的索引</p>
+<p>key： 实际使用的索引<br>rows： 扫描的行数<br>type：索引查询类型，经常用到的索引查询类型：<br>    **const：使用 主键或 唯一索引 进行查询的时候只有一行匹配<br>    **ref： 使用 非唯一索引<br>    **range：使用 主键、单个字段的辅助索引、多个字段的辅助索引的最后一个字段进行范围查询<br>    **index： 和 all的区别是 只扫描索引树  1.查询字段是索引的一部分，覆盖索引;  2.使用主键进行排序<br>    **all：扫描全表<br>system：触发条件：表只有一行，这是一个 const type 的特殊情况</p>
+<h4 id="查询优化："><a href="#查询优化：" class="headerlink" title="查询优化："></a>查询优化：</h4><p>1.只返回 必要的列，行： 最好 不要使用 SELECT * 语句； 使用  LIMIT 语句来限制返回的数据；只有一条数据 limit 1</p>
+<p>2.多使用普通索引,  背景：写多读少，对唯一性要求不高，或业务代码来保证唯一性时<br>普通索引使用 change buffer ，可以把一些写操作缓存下来，在读取的时候进行，避免磁盘操作，提高效率</p>
+<p>3.注意：String 字段，但DB 中是int ,用到隐式转换 cast(str) 函数转换，导致不走索引<br>碰到不走索引情况，可以考虑使用 force index ,强制走索引；</p>
+<p>4.建立联合索引：出现频率较高，常在一起作为 where条件的字段，考虑建立联合索引，减少建立索引的数量；并借助索引下推减少回表；减少服务器端扫描的行数, 使用 索引来覆盖查询<br>对于业务中有一些不好的索引，考虑使用覆盖索引，最左匹配原则，来把设置错误的索引给覆盖掉</p>
+<p>5.开启 MRR（mult-range Read）：此操作可以在 回表之前，进行一个排序，把原来一个随机操作变成一个顺序操作<br>原理：根据辅助索引的叶子结点，找到主键值的集合并存储到read_rnd_buffer中，在该buffer中对主键值进行排序，最后利用已经排序好的主键值的集合，去访问表中的数据，这样就由原来的 随机&#x2F;O变成为 顺序I&#x2F;O，降低查询过程中的I&#x2F;O消耗。</p>
+<h5 id="6-分解大连接查询："><a href="#6-分解大连接查询：" class="headerlink" title="6.分解大连接查询："></a>6.分解大连接查询：</h5><p>将一个 大连接查询分解成 对每一个表进行一次单表查询，然后在 应用程序中进行关联，这样做的好处有：<br>1.让缓存更高效； 对于连接查询，如果一个表发生变化，那么整个查询缓存就无法使用。而分解后的多个查询，即使其中一个表发生变化，对其它表的查询缓存依然可以使用<br>2.分解成多个单表查询；这些单表查询的缓存结果 更可能被其它查询使用到，从而减少冗余记录的查询。<br>3.减少锁竞争；在应用层进行连接，更容易对数据库进行拆分，从而更容易做到高性能和可伸缩。查询本身效率也可能会有所提升。</p>
+<h5 id="7-分页查询优化："><a href="#7-分页查询优化：" class="headerlink" title="7.分页查询优化："></a>7.分页查询优化：</h5><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写，借助主键 id 的索引覆盖<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
+<h5 id="8-很长的字段如何设置索引："><a href="#8-很长的字段如何设置索引：" class="headerlink" title="8.很长的字段如何设置索引："></a>8.很长的字段如何设置索引：</h5><p>索引选取越长，占用磁盘空间就越大，相同的数据页能放下的索引值就越少，搜索的效率也就会越低。<br>1.短长度：把字段 hash为另外一个字段存起来，每次校验 hash就好了，hash的索引也不大，hash 后的数值要 区分度过高。<br>2.高区分：通过函数处理倒序，删减字符串减少字段长度，并增加区分度； 如：身份证区域开头，同区域人很多，REVERSE() 函数翻转一下，提高区分度。</p>
+<h4 id="MySQL-工作原理："><a href="#MySQL-工作原理：" class="headerlink" title="MySQL 工作原理："></a>MySQL 工作原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwvhdqzkj60j20eq76s02.jpg" alt="EE963375-2D0A-44B3-A209-211FEFFB0A07" width="650" height="450"   />
+
+<h4 id="Buffer-Pool"><a href="#Buffer-Pool" class="headerlink" title="Buffer Pool"></a>Buffer Pool</h4><p>MySQL 不会直接去修改磁盘的数据，因为这样做太慢了，MySQL 会先记录 redo log，再改内存 Buffer Pool ，等有空了再刷磁盘，如果内存 Buffer Pool里没有数据，就去磁盘 load ；Buffer Pool 是 一个以 页为元素的链表。<br>持久化： 宕机时，Buffer Pool 丢失数据，重做 redo log； 先 redo log, 再 buffer pool<br>Buffer Pool 链表结构：基于 LRU， 和缓存一样，需要淘汰算法来管理数据；</p>
+<p>​          <img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwvnzevmj60ip0cuq4a02.jpg" alt="4EC434C3-08BC-41E3-A059-E31B470752DB" width="650" height="450"  /></p>
+<h4 id="Change-buffer"><a href="#Change-buffer" class="headerlink" title="Change  buffer:"></a>Change  buffer:</h4><p>​    查询数据时，如果内存里没有对应页的数据，MySQL 会从磁盘里 load ，如果每次需要的 页 都不同（或不是相邻的页），那每次都要去 load，很慢。如果 MySQL 发现你要修改的页不在内存里，就把要对页的修改，先记到一个叫 Change Buffer 的地方，同时记录 redo log，然后再慢慢把数据 load 到内存，load 过来后再把 Change Buffer 里记录的修改，应用到内存 Buffer Pool中，此操作： merge； 把内存数据刷到磁盘操作： purge </p>
+<p>Change Buffer 只在操作「二级索引」时才使用，原因是「聚簇索引」必须是「唯一」的，也就意味着每次插入&#x2F;更新，都需要检查 是否已经有相同的字段存在，也就没有必要使用 Change Buffer ；另外「聚簇索引」操作的随机性比较小，通常在相邻的「页」进行操作，比如使用自增主键的「聚簇索引」，那么 insert 时就是递增有&#x2F;序的，不像「二级索引」，访问非常随机。</p>
+<p>​        MySQL 以16KB「页」 为 读取和写入单位，一个「页」里面有多行数据，写入数据时，MySQL 会先写 内存中的页，然后再刷新到磁盘中的页。假设在某一次从 内存刷新到磁盘的过程中，一个「页」刷了一半，突然操作系统或 MySQL 进程 崩了，此时内存里的 页数据被清除了，而磁盘里的页数据，刷了一半，处于一个中间状态，可以说是一个「不完整」，甚至是「坏掉的」的页。<br>redo log 在 磁盘中的页数据是正常、没有损坏情况下，才能把磁盘里页数据 load 到内存，如果磁盘中的页数据已经损坏，是无法应用 redo Log 的。</p>
+<h4 id="Doublewrite-Buffer："><a href="#Doublewrite-Buffer：" class="headerlink" title="Doublewrite Buffer："></a><strong>Doublewrite Buffer：</strong></h4><p>在 刷数据到 磁盘之前，先把数据写到另外一个地方 DoubleWrite Buffer， 写完后再开始写磁盘；Doublewrite Buffer 是一个备份，当发生 crash时，就可以利用 它来 修复磁盘里的数据</p>
+<p>1.刷数据之前宕机：内存—&gt; 磁盘，重做 redo log 日志<br>2.刷数据时宕机： 利用 Doublewrite Buffer 修复磁盘数据</p>
+<p>​        要更新一个数据页时，如果数据页在 内存中就直接更新；但如果这个数据页还没有在内存中，在不影响数据一致性的前提下，InooDB会将这些更新操作缓存在 change buffer中，这样就不需要 从磁盘中读入这个数据页。在下次查询需要访问这个数据页的时候，将数据页读入内存，然后执行change buffer中与这个页有关的操作，通过这种方式就能保证这个数据逻辑的正确性。<br>Change buffer 是可以持久化的数据，在内存中有拷贝，也会被写入到磁盘上，将change buffer中的操作应用到原数据页，得到最新结果的过程称为 merge。</p>
+<h4 id="Merge触发条件："><a href="#Merge触发条件：" class="headerlink" title="Merge触发条件："></a>Merge触发条件：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gutxx7tvv9j60l80wsabd02.jpg" alt="E84FCF6C-D50D-46D4-92A6-93B6B4CC1FD9" width="250" height="350"   />
+
+<p>1.访问这个数据页</p>
+<p>2.系统后台线程定期 merge</p>
+<p>3.在数据库正常关闭（shutdown）的过程中，也会执行merge        将 更新操作先记录在 change buffer，可以减少读磁盘，语句的执行速度会得到明显的提升, 数据读入 内存是需要占用 buffer pool的，所以这种方式还能够避免占用内存，提高内存利用率</p>
+<h4 id="使用-change-buffer-的条件？"><a href="#使用-change-buffer-的条件？" class="headerlink" title="使用 change buffer 的条件？"></a>使用 change buffer 的条件？</h4><p>普通索引可以使用 change buffer ,唯一索引（主键，聚簇索引）的更新就不能使用 change buffer<br>唯一索引更新操作都要先判断这个操作 是否违反唯一性约束, 要判断表中是否存在这个数据，就必须要将数据页读入内存才能判断，都已经读入到内存，那直接更新内存会更快，就没必要使用change buffer</p>
+<p>change buffer 是 buffer pool里的内存，不能无限增大；<br>change buffer大小可以通过参数 innodb_change_buffer_max_size来动态设置，设置为50 表示change buffer大小最多只能占用buffer pool的50%</p>
+<h4 id="change-buffer-使用场景："><a href="#change-buffer-使用场景：" class="headerlink" title="change buffer 使用场景："></a>change buffer 使用场景：</h4><p>适合：写多读少业务，页面在写完以后马上被访问到的概率比较小，此时change buffer的使用效果最好，业务模型常见：账单类,日志类的系统<br>不适合：读多写少（写入后马上会做查询 ）将更新先记录在change buffer，但由于马上要访问这个数据页，会立即触发merge过程，访问IO次数不会减少，反而增加 change buffer的维护代价</p>
+<p>数据库进行 Merge 时，是真正进行 数据更新的时刻，而 change buffer 主要目的就是将记录的变更动作缓存下来，所以在一个数据页做merge之前，change buffer 记录的变更越多（页面上要更新的数据越多），收益就越大</p>
+<p><strong>flush 操作：</strong> redo log 会找个时间去更新到磁盘，这个操作就是flush<br>脏页：在更新之前，当内存数据页跟磁盘数据页内容不一致的时候<br>干净页：内存数据写入到磁盘后，内存和磁盘上的数据页的内容就一致</p>
+<h4 id="flush-操作条件："><a href="#flush-操作条件：" class="headerlink" title="flush 操作条件："></a>flush 操作条件：</h4><ol>
+<li>InnoDB的 redo log写满了</li>
+<li>系统内存不足，需要淘汰一些数据页，空出内存给别的数据页使用。 如果淘汰“脏页”，就要先将脏页写到磁盘。</li>
+<li>MySQL认为系统 “空闲”的时候，只要有机会就刷一点 “脏页”</li>
+<li>MySQL正常关闭，会把内存的脏页都flush到磁盘上，这样下次启动的时候，就可以直接从磁盘上读数据，启动速度会很快。</li>
+</ol>
+<p>​            </p>
+<h4 id="MySQL-中数据的存储："><a href="#MySQL-中数据的存储：" class="headerlink" title="MySQL 中数据的存储："></a><strong>MySQL 中数据的存储：</strong></h4><p>各个 数据页 组成一个 双向链表；<br>每个 数据页中的记录又组成一个 单向链表<br>每个 数据页都会为存储的记录 生成页目录，一个数据页内： 主键查找，二分法快速定位 ； 其他非主键列查找，从最小记录开始一次遍历单链表</p>
+<h4 id="数据库连接池设置："><a href="#数据库连接池设置：" class="headerlink" title="数据库连接池设置："></a>数据库连接池设置：</h4><p>如果你有 10000个并发用户，设置一个10000的连接池基本等于失了智, 即是100也太多了。你需要一个10来个连接的小连接池，然后让剩下的业务线程都在队列里等待。连接池中的连接数量应该等于你的数据库能够有效同时进行的查询任务数（通常不会高于2*CPU核心数）。</p>
+
+          
+        
+    </div> -->
+
+
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://github.com/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/" title="Mysql:原理-优化" target="_blank" rel="external">https://github.com/TurboCome/2022/03/09/Mysql/A2-原理-优化/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/TurboCome" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/TurboCome/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/TurboCome" target="_blank"><span class="text-dark">TurboCome</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>淡泊明志，宁静致远</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/TurboCome/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/" title="联合索引"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/TurboCome/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/" title="Mysql:索引-事务"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat" data-mobile-sites="weibo,qq"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/TurboCome/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/TurboCome" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/TurboCome/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/TurboCome/js/plugin.min.js"></script>
+
+
+<script src="/TurboCome/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/TurboCome/',
+        CONTENT_URL: '/TurboCome/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/TurboCome/js/insight.js"></script>
+
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'iEz3LpIr83IGbatT8Skpc3sK-gzGzoHsz',
+    appKey: 'XAyI3Mw6qExOyYHOS5oywncJ',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
