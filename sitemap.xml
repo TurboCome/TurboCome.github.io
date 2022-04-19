@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/</loc>
+    <loc>http://example.com/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/</loc>
+    <loc>http://example.com/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -20,7 +20,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</loc>
+    <loc>http://example.com/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -29,7 +29,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</loc>
+    <loc>http://example.com/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -38,7 +38,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</loc>
+    <loc>http://example.com/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -47,7 +47,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/</loc>
+    <loc>http://example.com/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -56,7 +56,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/</loc>
+    <loc>http://example.com/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -65,7 +65,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/</loc>
+    <loc>http://example.com/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -74,7 +74,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</loc>
+    <loc>http://example.com/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -83,7 +83,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</loc>
+    <loc>http://example.com/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -92,7 +92,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</loc>
+    <loc>http://example.com/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -101,7 +101,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
+    <loc>http://example.com/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -110,7 +110,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</loc>
+    <loc>http://example.com/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -119,7 +119,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/</loc>
+    <loc>http://example.com/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -128,7 +128,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/</loc>
+    <loc>http://example.com/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -137,7 +137,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/</loc>
+    <loc>http://example.com/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -146,7 +146,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</loc>
+    <loc>http://example.com/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -155,7 +155,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/</loc>
+    <loc>http://example.com/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -164,7 +164,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</loc>
+    <loc>http://example.com/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -173,7 +173,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</loc>
+    <loc>http://example.com/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -182,7 +182,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/</loc>
+    <loc>http://example.com/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -191,7 +191,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</loc>
+    <loc>http://example.com/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -200,7 +200,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</loc>
+    <loc>http://example.com/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -209,7 +209,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/</loc>
+    <loc>http://example.com/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -218,7 +218,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/</loc>
+    <loc>http://example.com/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -227,7 +227,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/about/index.html</loc>
+    <loc>http://example.com/about/index.html</loc>
     
     <lastmod>2022-04-05</lastmod>
     
@@ -236,7 +236,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/repository/index.html</loc>
+    <loc>http://example.com/repository/index.html</loc>
     
     <lastmod>2022-04-05</lastmod>
     
@@ -245,7 +245,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/index.html</loc>
+    <loc>http://example.com/tags/index.html</loc>
     
     <lastmod>2022-04-04</lastmod>
     
@@ -254,7 +254,7 @@
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/index.html</loc>
+    <loc>http://example.com/categories/index.html</loc>
     
     <lastmod>2022-03-30</lastmod>
     
@@ -264,7 +264,7 @@
   
 
   <url>
-    <loc>https://turbocome.github.io/TurboCome</loc>
+    <loc>http://example.com/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -272,42 +272,42 @@
 
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/Mysql/</loc>
+    <loc>http://example.com/tags/Mysql/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/Redis/</loc>
+    <loc>http://example.com/tags/Redis/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
+    <loc>http://example.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
+    <loc>http://example.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
+    <loc>http://example.com/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/tags/%E7%BD%91%E7%BB%9C/</loc>
+    <loc>http://example.com/tags/%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -316,49 +316,49 @@
 
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/Mysql/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/Redis/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/</loc>
+    <loc>http://example.com/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2022-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

@@ -2,7 +2,7 @@
 <search>
   <entry>
     <title>Mysql:索引-事务</title>
-    <url>/TurboCome/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/</url>
+    <url>/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/</url>
     <content><![CDATA[<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h3 id="搜索引擎："><a href="#搜索引擎：" class="headerlink" title="搜索引擎："></a>搜索引擎：</h3><p><strong>InnoDB :</strong>   支持事务，外键，行锁（用MVCC支持高并发）；聚簇索引，叶子节点data域存行记录；跨平台copy 容易复制；Delete 表时一行一行删除<br><strong>MyIsAM:</strong>  不支持 事务，外键，行锁；   非聚簇索引，叶子节点data域中存引用地址；   跨平台难 copy 不易复制； Delete表时先Drop 再Create； </p>
 <h4 id="InooDB"><a href="#InooDB" class="headerlink" title="InooDB:"></a>InooDB:</h4><p>InnoDB 采用 MVCC 来支持高并发，并且实现了四个标准隔离级别(未提交读、提交读、可重复读、可串行化)。<br>默认级别时可重复读（REPEATABLE READ），在可串行化级别下，通过 MVCC + Next-Key Lock防止幻读。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwcf2dv8j60zk0hgmz202.jpg" alt="CB82D46E-3719-4F4B-BCC8-515631B077E7" width="650" height="300"  />
@@ -125,51 +125,8 @@
       </tags>
   </entry>
   <entry>
-    <title>联合索引</title>
-    <url>/TurboCome/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/</url>
-    <content><![CDATA[<h2 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h2><p>联合索引使用：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b=1 and c =1;     #利用到定义的索引（a,b,c）,用上a,b,c</span><br><span class="line">select * from t where a=1 and b=1;              #利用到定义的索引（a,b,c）,用上a,b</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and a=1;   -- 利用到定义的索引（a,b,c）,用上a,b（mysql有查询优化器）</span><br><span class="line">select * from t where a=1;           -- 可以利用到定义的索引（a,b,c）,用上a</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and c=1;    -- 不可以利用到定义的索引（a,b,c）； 最左 a 不匹配</span><br><span class="line">select * from t where a=1 and c=1;    -- 利用到定义的索引（a,b,c），但只用上a索引，b,c索引用不到</span><br></pre></td></tr></table></figure>
-
-<p>通过最左匹配原则你可以定义一个联合索引，但是使得多中查询条件都可以用到该索引。<br>值得注意的是，当遇到范围查询( &gt;、&lt;、between、like )就会停止匹配</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b&gt;1 and c =1;  -- 这样a,b可以用到（a,b,c），c索引用不到 </span><br></pre></td></tr></table></figure>
-
-<p>但是如果是建立 (a,c,b)联合索引，则 a,b,c都可以使用索引，因为优化器会自动改写为最优查询语句</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b &gt;1 and c=1; -- 如果是建立(a,c,b)联合索引，则a,b,c都可以使用索引</span><br></pre></td></tr></table></figure>
-
-<p>#优化器改写为</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and c=1 and b &gt;1;  </span><br></pre></td></tr></table></figure>
-
-<p>最左匹配原则，索引index1:(a,b,c)，只会走a、a,b、a,b,c 三种类型的查询； 注意：a,c也走，但是只走a字段索引，不会走c字段。<br>特殊情况说明： </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from table where a = &#x27;1&#x27; and b &gt; ‘2’ and c=&#x27;3&#x27;; -- 这种类型只会有 a与b走索引，c不会走</span><br></pre></td></tr></table></figure>
-
-
-
-<p>以index （a,b,c）为例建立这样的索引相当于建立了索引a、ab、abc三个索引。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg" alt="236D41B5-19F2-4ADE-B133-7CCA5383265C" width="650" height="450" />
-
-<p>​        该图就是一个形如 (a,b,c) 联合索引的 b+ 树，其中的非叶子节点存储的是第一个关键字的索引 a，而叶子节点存储的是三个关键字的数据。这里可以看出 a 是有序的，而 b，c 都是无序的。但是当在 a 相同的时候，b 是有序的，b 相同的时候，c 又是有序的。最左匹配原则中如果遇到范围查询就会停止, </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=5 and b&gt;0 and c =1;   -- 这样a,b可以用到（a,b,c），c不可以</span><br></pre></td></tr></table></figure>
-
-<p>例子: 当查询到 b 的值以后（这是一个范围值），c 是无序的, 所以就不能根据联合索引来确定应该取哪一行。</p>
-<p>在 InnoDB 中联合索引只有先确定前一个（左侧的值）后，才能确定下一个值。如果有范围查询的话，那么联合索引中使用范围查询的字段后的索引在该条 SQL 中都不会起作用。</p>
-<p>值得注意的是，in 和 &#x3D;  都可以乱序，比如有索引（a,b,c），语句:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where c =1 and a=1 and b=1，</span><br><span class="line">这样的语句也可以用到最左匹配，因为 MySQL 中有一个优化器，他会分析 SQL 语句，将其优化成索引可以匹配的形式，即：</span><br><span class="line">select * from t where a =1 and a=1 and c=1 </span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="为什么要使用联合索引"><a href="#为什么要使用联合索引" class="headerlink" title="为什么要使用联合索引:"></a>为什么要使用联合索引:</h4><p><strong>1.减少开销：</strong> 建一个联合索引(col1,col2,col3)，实际相当于建 (col1),(col1,col2),(col1,col2,col3)三个索引,每多一个索引，都会增加写操作的开销和磁盘空间的开销。对于大量数据的表，使用联合索引会大大的减少开销！<br><strong>2.覆盖索引：</strong> 对联合索引(col1,col2,col3)，如果有如下的sql: select col1,col2,col3 from test where col1&#x3D;1 and col2&#x3D;2。那么MySQL可以直接通过遍历索引取得数据，而无需回表，这减少了很多的随机io操作，覆盖索引是主要的提升性能的优化手段之一。<br><strong>3.效率高：</strong> 索引列越多，通过索引筛选出的数据越少。有1000W条数据的表，有如下sql:select from table where col1&#x3D;1 and col2&#x3D;2 and col3&#x3D;3, 假设每个条件可以筛选出10%的数据，如果只有单值索引，那么通过该索引能筛选出1000W10%&#x3D;100w条数据，然后再回表从 100w条数据中找到符合col2&#x3D;2 and col3&#x3D; 3的数据，然后再排序，再分页；如果是联合索引，通过索引筛选出1000w10% 10% *10%&#x3D;1w，效率明显提升.</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mysql:原理-优化</title>
-    <url>/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/</url>
+    <url>/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/</url>
     <content><![CDATA[<h2 id="Mysql-原理-优化"><a href="#Mysql-原理-优化" class="headerlink" title="Mysql 原理-优化"></a>Mysql 原理-优化</h2><h4 id="mysql-执行过程："><a href="#mysql-执行过程：" class="headerlink" title="mysql 执行过程："></a>mysql 执行过程：</h4><p>客户端 —&gt;连接器 —&gt;缓存—&gt;分析器 —&gt;优化器—&gt;执行器 —&gt;引擎 —&gt; 查询结果<br>客户端 —&gt;连接器 —&gt;缓存—&gt; 查询结果  </p>
 <p>调优是在执行器执行之前的分析器，优化器阶段完成</p>
 <h4 id="主从复制同步原理："><a href="#主从复制同步原理：" class="headerlink" title="主从复制同步原理："></a>主从复制同步原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gurwuc4hfij60h307zaab02.jpg" alt="216B1176-D897-40A4-BED9-E0784E96CFE8" width="650" height="250"   />
@@ -241,28 +198,8 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL扩展</title>
-    <url>/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</url>
-    <content><![CDATA[<h2 id="MySQL扩展"><a href="#MySQL扩展" class="headerlink" title="MySQL扩展"></a>MySQL扩展</h2><h4 id="Mysql-数据库连接池-参数："><a href="#Mysql-数据库连接池-参数：" class="headerlink" title="Mysql 数据库连接池 参数："></a>Mysql 数据库连接池 参数：</h4><p>user<br>password<br>characterEncoding  编码方式<br>autoReconnect：    当数据库连接异常中断时，是否自动重新连接？<br>maxReconnects：   autoReconnect设置为true时，重试连接的次数<br>connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时<br>allowMultiQueries： mysql驱动开启批量执行sql的开关</p>
-<h4 id="Mysql-的参数："><a href="#Mysql-的参数：" class="headerlink" title="Mysql 的参数："></a>Mysql 的参数：</h4><p>max_connections&#x3D;3000:  MySql的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量<br>default-storage-engine:   MySQL的 默认存储引擎 </p>
-<p>innodb_buffer_pool_size:  (默认128M) 存储页面缓存数据<br>innodb_change_buffer_max_size： changeBuffer缓存区,修改记录的<br>read_rnd_buffer_size : 随机读缓冲区大小  MRR 做随机IO时使用，这里会对主键进行排序<br>read_buffer_size : 读入缓冲区大小。对表进行 顺序扫描的请求将分配一个读入缓冲区<br>innodb_log_buffer_size :  事务日志所使用的缓冲区； redo_log日志需要先缓存，再刷盘</p>
-<p>wait_timeout&#x3D;1800:  MySQL连接闲置 超过一定时间后将会被强行关闭<br>back_log&#x3D;500  : 连接数据达到 max_connections时，新来请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即back_log<br>max_user_connections ： 同一个账号能够同时连接到mysql服务的最大连接数。设置为0表示不限制</p>
-<h4 id="MySQL-主机宕机后，如何恢复？"><a href="#MySQL-主机宕机后，如何恢复？" class="headerlink" title="MySQL 主机宕机后，如何恢复？"></a>MySQL 主机宕机后，如何恢复？</h4><p>主库宕机：<br>1.确保所有从节点 relay log 全部更新完毕； 在每个从库上执行 show processlist 查看<br>2.登录所有 从节点，查看 master.info文件， 找 最大的  pos 节点作为新主库，数据最全<br>3.登录 pos 最大从节点，执行 stop slave;   删 relay-log.info 等从相关文件； 开启 bin-log 来记录sql 日志； 执行 reset master<br>4.创建用于 同步的用户并授权slave<br>5.登录其他从节点 ，执行 stop slave停止同步，再 执行 start slave ；<br>6.测试 新master 和 slave 数据是 否同步</p>
-<h4 id="从库宕机："><a href="#从库宕机：" class="headerlink" title="从库宕机："></a>从库宕机：</h4><p>1)查看 从库上 mysql 的错误日志，里面有记录 主从挂掉时的binlog信息<br>2)有了 binlog和postion信息后，只需要 重新在 从库上进行change master to配置； 配置后开启slave 状态，没有报错<br>3)查看 slave状态，发现slave已经正常了，开始进行 延时数据恢复 </p>
-<h4 id="MHA-多节点集群："><a href="#MHA-多节点集群：" class="headerlink" title="MHA+多节点集群："></a>MHA+多节点集群：</h4><p>MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master，整个故障转移过程对应用程序完全透明。<br>1）service mysql stop (关闭主库)<br>2）备库自动提升为主，IP地址同时漂移至备机<br>3）从库自动同步备库<br>修复原主库，将角色变为备，连接至现主库，三台主从又恢复了正常，重新建立MHA</p>
-<h4 id="redo-log-与-binlog-区别："><a href="#redo-log-与-binlog-区别：" class="headerlink" title="redo log 与 binlog 区别："></a>redo log 与 binlog 区别：</h4><p>1）作用不同：<br>redo log是用于保证MySQL宕机也不会影响持久性；<br>binlog是用于 保证服务器可以 基于时间点恢复数据，此外 binlog还用于主从复制。<br>2）层次不同：<br>redo log是 InnoDB存储引擎实现的；<br>binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎。<br>3）内容不同：<br>redo log 是物理日志，内容基于磁盘的Page；<br>binlog 内容是二进制的，根据binlog_format参数的不同，可能基于 sql语句，基于数据本身或者二者的混合。<br>4）写入时机不同：<br>binlog在事务提交时写入；<br>redo log 写入时机相对多元：<br>** 当事务提交时会调用 fsync对redo log进行刷盘；这是默认情况下的策略，修改innodb_flush_log_at_trx_commit参数可以改变该策略，但事务的持久性将无法保证。<br>** 除事务提交时，还有其他刷盘时机：如master thread每秒刷盘一次redo log等，这样好处是不一定要等到commit时刷盘，commit速度加快。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数据库隔离级别</title>
-    <url>/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</url>
+    <url>/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</url>
     <content><![CDATA[<h2 id="数据库隔离级别"><a href="#数据库隔离级别" class="headerlink" title="数据库隔离级别"></a>数据库隔离级别</h2><p>参考：   <a href="https://www.cnblogs.com/kismetv/p/10331633.html">https://www.cnblogs.com/kismetv/p/10331633.html</a></p>
 <h4 id="MVCC：MVCC（Multi-Version-Concurrency-Control）多版本的并发控制协议"><a href="#MVCC：MVCC（Multi-Version-Concurrency-Control）多版本的并发控制协议" class="headerlink" title="MVCC：MVCC（Multi-Version Concurrency Control）多版本的并发控制协议"></a>MVCC：MVCC（Multi-Version Concurrency Control）多版本的并发控制协议</h4><p>1.同一时刻，不同的事务读取到的数据可能是不同的 (即多版本)——在T5时刻，事务A和事务C可以读取到不同版本的数据。</p>
 <p>​                            <img src="https://tva1.sinaimg.cn/large/008i3skNly1gurx63fribj60vs0nwgo602.jpg" alt="620165EF-CFEB-4480-AA0F-49D6F836E3B2" width="450" height="350"/>       </p>
@@ -302,8 +239,135 @@
       </tags>
   </entry>
   <entry>
+    <title>联合索引</title>
+    <url>/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/</url>
+    <content><![CDATA[<h2 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h2><p>联合索引使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b=1 and c =1;     #利用到定义的索引（a,b,c）,用上a,b,c</span><br><span class="line">select * from t where a=1 and b=1;              #利用到定义的索引（a,b,c）,用上a,b</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and a=1;   -- 利用到定义的索引（a,b,c）,用上a,b（mysql有查询优化器）</span><br><span class="line">select * from t where a=1;           -- 可以利用到定义的索引（a,b,c）,用上a</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and c=1;    -- 不可以利用到定义的索引（a,b,c）； 最左 a 不匹配</span><br><span class="line">select * from t where a=1 and c=1;    -- 利用到定义的索引（a,b,c），但只用上a索引，b,c索引用不到</span><br></pre></td></tr></table></figure>
+
+<p>通过最左匹配原则你可以定义一个联合索引，但是使得多中查询条件都可以用到该索引。<br>值得注意的是，当遇到范围查询( &gt;、&lt;、between、like )就会停止匹配</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b&gt;1 and c =1;  -- 这样a,b可以用到（a,b,c），c索引用不到 </span><br></pre></td></tr></table></figure>
+
+<p>但是如果是建立 (a,c,b)联合索引，则 a,b,c都可以使用索引，因为优化器会自动改写为最优查询语句</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b &gt;1 and c=1; -- 如果是建立(a,c,b)联合索引，则a,b,c都可以使用索引</span><br></pre></td></tr></table></figure>
+
+<p>#优化器改写为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and c=1 and b &gt;1;  </span><br></pre></td></tr></table></figure>
+
+<p>最左匹配原则，索引index1:(a,b,c)，只会走a、a,b、a,b,c 三种类型的查询； 注意：a,c也走，但是只走a字段索引，不会走c字段。<br>特殊情况说明： </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from table where a = &#x27;1&#x27; and b &gt; ‘2’ and c=&#x27;3&#x27;; -- 这种类型只会有 a与b走索引，c不会走</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以index （a,b,c）为例建立这样的索引相当于建立了索引a、ab、abc三个索引。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg" alt="236D41B5-19F2-4ADE-B133-7CCA5383265C" width="650" height="450" />
+
+<p>​        该图就是一个形如 (a,b,c) 联合索引的 b+ 树，其中的非叶子节点存储的是第一个关键字的索引 a，而叶子节点存储的是三个关键字的数据。这里可以看出 a 是有序的，而 b，c 都是无序的。但是当在 a 相同的时候，b 是有序的，b 相同的时候，c 又是有序的。最左匹配原则中如果遇到范围查询就会停止, </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=5 and b&gt;0 and c =1;   -- 这样a,b可以用到（a,b,c），c不可以</span><br></pre></td></tr></table></figure>
+
+<p>例子: 当查询到 b 的值以后（这是一个范围值），c 是无序的, 所以就不能根据联合索引来确定应该取哪一行。</p>
+<p>在 InnoDB 中联合索引只有先确定前一个（左侧的值）后，才能确定下一个值。如果有范围查询的话，那么联合索引中使用范围查询的字段后的索引在该条 SQL 中都不会起作用。</p>
+<p>值得注意的是，in 和 &#x3D;  都可以乱序，比如有索引（a,b,c），语句:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where c =1 and a=1 and b=1，</span><br><span class="line">这样的语句也可以用到最左匹配，因为 MySQL 中有一个优化器，他会分析 SQL 语句，将其优化成索引可以匹配的形式，即：</span><br><span class="line">select * from t where a =1 and a=1 and c=1 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="为什么要使用联合索引"><a href="#为什么要使用联合索引" class="headerlink" title="为什么要使用联合索引:"></a>为什么要使用联合索引:</h4><p><strong>1.减少开销：</strong> 建一个联合索引(col1,col2,col3)，实际相当于建 (col1),(col1,col2),(col1,col2,col3)三个索引,每多一个索引，都会增加写操作的开销和磁盘空间的开销。对于大量数据的表，使用联合索引会大大的减少开销！<br><strong>2.覆盖索引：</strong> 对联合索引(col1,col2,col3)，如果有如下的sql: select col1,col2,col3 from test where col1&#x3D;1 and col2&#x3D;2。那么MySQL可以直接通过遍历索引取得数据，而无需回表，这减少了很多的随机io操作，覆盖索引是主要的提升性能的优化手段之一。<br><strong>3.效率高：</strong> 索引列越多，通过索引筛选出的数据越少。有1000W条数据的表，有如下sql:select from table where col1&#x3D;1 and col2&#x3D;2 and col3&#x3D;3, 假设每个条件可以筛选出10%的数据，如果只有单值索引，那么通过该索引能筛选出1000W10%&#x3D;100w条数据，然后再回表从 100w条数据中找到符合col2&#x3D;2 and col3&#x3D; 3的数据，然后再排序，再分页；如果是联合索引，通过索引筛选出1000w10% 10% *10%&#x3D;1w，效率明显提升.</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL扩展</title>
+    <url>/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</url>
+    <content><![CDATA[<h2 id="MySQL扩展"><a href="#MySQL扩展" class="headerlink" title="MySQL扩展"></a>MySQL扩展</h2><h4 id="Mysql-数据库连接池-参数："><a href="#Mysql-数据库连接池-参数：" class="headerlink" title="Mysql 数据库连接池 参数："></a>Mysql 数据库连接池 参数：</h4><p>user<br>password<br>characterEncoding  编码方式<br>autoReconnect：    当数据库连接异常中断时，是否自动重新连接？<br>maxReconnects：   autoReconnect设置为true时，重试连接的次数<br>connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时<br>allowMultiQueries： mysql驱动开启批量执行sql的开关</p>
+<h4 id="Mysql-的参数："><a href="#Mysql-的参数：" class="headerlink" title="Mysql 的参数："></a>Mysql 的参数：</h4><p>max_connections&#x3D;3000:  MySql的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量<br>default-storage-engine:   MySQL的 默认存储引擎 </p>
+<p>innodb_buffer_pool_size:  (默认128M) 存储页面缓存数据<br>innodb_change_buffer_max_size： changeBuffer缓存区,修改记录的<br>read_rnd_buffer_size : 随机读缓冲区大小  MRR 做随机IO时使用，这里会对主键进行排序<br>read_buffer_size : 读入缓冲区大小。对表进行 顺序扫描的请求将分配一个读入缓冲区<br>innodb_log_buffer_size :  事务日志所使用的缓冲区； redo_log日志需要先缓存，再刷盘</p>
+<p>wait_timeout&#x3D;1800:  MySQL连接闲置 超过一定时间后将会被强行关闭<br>back_log&#x3D;500  : 连接数据达到 max_connections时，新来请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即back_log<br>max_user_connections ： 同一个账号能够同时连接到mysql服务的最大连接数。设置为0表示不限制</p>
+<h4 id="MySQL-主机宕机后，如何恢复？"><a href="#MySQL-主机宕机后，如何恢复？" class="headerlink" title="MySQL 主机宕机后，如何恢复？"></a>MySQL 主机宕机后，如何恢复？</h4><p>主库宕机：<br>1.确保所有从节点 relay log 全部更新完毕； 在每个从库上执行 show processlist 查看<br>2.登录所有 从节点，查看 master.info文件， 找 最大的  pos 节点作为新主库，数据最全<br>3.登录 pos 最大从节点，执行 stop slave;   删 relay-log.info 等从相关文件； 开启 bin-log 来记录sql 日志； 执行 reset master<br>4.创建用于 同步的用户并授权slave<br>5.登录其他从节点 ，执行 stop slave停止同步，再 执行 start slave ；<br>6.测试 新master 和 slave 数据是 否同步</p>
+<h4 id="从库宕机："><a href="#从库宕机：" class="headerlink" title="从库宕机："></a>从库宕机：</h4><p>1)查看 从库上 mysql 的错误日志，里面有记录 主从挂掉时的binlog信息<br>2)有了 binlog和postion信息后，只需要 重新在 从库上进行change master to配置； 配置后开启slave 状态，没有报错<br>3)查看 slave状态，发现slave已经正常了，开始进行 延时数据恢复 </p>
+<h4 id="MHA-多节点集群："><a href="#MHA-多节点集群：" class="headerlink" title="MHA+多节点集群："></a>MHA+多节点集群：</h4><p>MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master，整个故障转移过程对应用程序完全透明。<br>1）service mysql stop (关闭主库)<br>2）备库自动提升为主，IP地址同时漂移至备机<br>3）从库自动同步备库<br>修复原主库，将角色变为备，连接至现主库，三台主从又恢复了正常，重新建立MHA</p>
+<h4 id="redo-log-与-binlog-区别："><a href="#redo-log-与-binlog-区别：" class="headerlink" title="redo log 与 binlog 区别："></a>redo log 与 binlog 区别：</h4><p>1）作用不同：<br>redo log是用于保证MySQL宕机也不会影响持久性；<br>binlog是用于 保证服务器可以 基于时间点恢复数据，此外 binlog还用于主从复制。<br>2）层次不同：<br>redo log是 InnoDB存储引擎实现的；<br>binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎。<br>3）内容不同：<br>redo log 是物理日志，内容基于磁盘的Page；<br>binlog 内容是二进制的，根据binlog_format参数的不同，可能基于 sql语句，基于数据本身或者二者的混合。<br>4）写入时机不同：<br>binlog在事务提交时写入；<br>redo log 写入时机相对多元：<br>** 当事务提交时会调用 fsync对redo log进行刷盘；这是默认情况下的策略，修改innodb_flush_log_at_trx_commit参数可以改变该策略，但事务的持久性将无法保证。<br>** 除事务提交时，还有其他刷盘时机：如master thread每秒刷盘一次redo log等，这样好处是不一定要等到commit时刷盘，commit速度加快。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL优化实践</title>
+    <url>/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<h2 id="MySQL优化实践"><a href="#MySQL优化实践" class="headerlink" title="MySQL优化实践"></a>MySQL优化实践</h2><h4 id="1-大数据量拆分："><a href="#1-大数据量拆分：" class="headerlink" title="1.大数据量拆分："></a>1.大数据量拆分：</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update coupons </span><br><span class="line">set status = 1 </span><br><span class="line">where status= 0 and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>问题： 一个 SQL只能使用一个 cpu core去处理，如果 SQL很复杂或执行很慢，就会 阻塞后面的 SQL请求，造成活动连接数暴增，MySQL CPU 100%，相应的 接口Timeout，同时对于 主从复制架构，做了业务读写分离，更新500w数据需要5分钟，Master上执行了5分钟，binlog传到了slave也需要执行5分钟，那就是Slave延迟5分钟，在这期间会造成 业务脏数据，比如重复下单等。</p>
+<p>1.先获取 where 条件中的 最小id  ，最大id，<br>2.然后 分批次去更新，每个批次 1000条，这样既能快速完成更新，又能保证 主从复制不会出现延迟</p>
+<p>先获取要更新的 数据范围内的 最小id和最大id（表没有物理delete，所以id是连续的）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select min(id) min_id, max(id) max_id from coupons </span><br><span class="line">where status=0 </span><br><span class="line">and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’; </span><br><span class="line"></span><br><span class="line">current_id = min_id;</span><br><span class="line">for current_id &lt; max_id do</span><br><span class="line">    update coupons set status=1 </span><br><span class="line">    where id&gt;= current_id and id&lt;= current_id + 1000;    //通过主键id更新1000条很快</span><br><span class="line">commit;</span><br><span class="line">current_id += 1000;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>充分利用 辅助索引包含主键id的特性，先通过索引获取主键 id走覆盖索引扫描，不需要回表，然后再通过id去关联操作是高效的，同时根据 MySQL的特性 使用分而治之的思想既能高效完成操作，又能避免主从复制延迟产生的业务数据混乱。</p>
+<h4 id="2-分解多表连接："><a href="#2-分解多表连接：" class="headerlink" title="2.分解多表连接："></a>2.分解多表连接：</h4><p>例如，使用 IN() 代替连接查询（in 等价于等值查询）可排序，让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM tag</span><br><span class="line">    JOIN tag_post ON tag_post.tag_id= tag.id</span><br><span class="line">    JOIN post ON tag_post.post_id= post.id</span><br><span class="line">    WHERE tag.tag=&#x27;mysql’;</span><br><span class="line"></span><br><span class="line">SELECT * FROM tag WHERE tag=&#x27;mysql&#x27;;           --&gt; tag_id = 1234</span><br><span class="line">SELECT * FROM tag_post WHERE tag_id=1234;      —&gt; (123,456,567,9098,8904)</span><br><span class="line">SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-MRR优化："><a href="#3-MRR优化：" class="headerlink" title="3.MRR优化："></a>3.MRR优化：</h4><p><strong>应用实例一：</strong>（mysql优化器改变where 条件顺序—&gt;匹配联合索引） </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM t WHERE key_part1&gt;=1000 and key_part1&lt;2000 AND key_part2=1000;</span><br></pre></td></tr></table></figure>
+
+<p>表 t 有 ( key_part1,  key_part2 ) 的联合索引 ，因此索引根据 key_part1,  key_part2 的位置关系进行排序。<br>没有MRR：SQL优化器会先将 key_part1&gt;1000 and key_part2&lt;2000 的数据查询出来，待取出的数据后，再根据key_part2的条件进行过滤。这会导致无用的数据被取出，如果有大量的数据是 key_part2 !&#x3D;1000，则启用MRR优化会使性能有巨大的提升.<br>启用MRR优化：优化器会先 将查询条件进行拆分，然后在进行数据查询。优化器会将查询条件拆分为(1000,1000),(1001,1000),(1002,1000),…,(1999,1000)，然后在根据这些拆分出的条件，使用索引下推进行数据查询，避免回表。</p>
+<p><strong>应用实例二：</strong><br> 在没有MRR之前,或没有开启 MRR特性时，MySQL 针对基于辅助索引的查询策略是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column </span><br><span class="line">from tb where key_column=x;</span><br></pre></td></tr></table></figure>
+
+<p>MySQL 执行查询的伪代码<br>第一步 先根据 where 条件中的 辅助索引，获取辅助索引与主键的集合，结果集为 rest</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb </span><br><span class="line">where key_column=x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 通过第一步获取的主键来获取 对应的值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for each pk_column value in rest do:</span><br><span class="line">select non_key_column from tb where pk_column=val</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg" alt="71AD8A06-C4D7-4035-A63F-E0978354FC50" width="450" height="350"/>
+
+<p>由于MySQL存储数据的方式： 辅助索引的存储顺序并非与主键的顺序一致，从图中可以看出,根据辅助索引获取的主键来访问表中的数据会导致随机的IO . 不同主键不在同一个page 里面时必然导致多次IO 和随机读。<br>  在使用 MRR优化特性的情况下，MySQL 针对基于辅助索引的查询策略是这样的：<br>第一步 先根据 where条件中的辅助索引获取辅助索引与主键的集合，结果集为rest</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb where key_column = x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 将结果集rest 放在buffer里面(read_rnd_buffer_size 大小直到buffer满了)，然后对结果集 rest按照pk_column排序，得到结果集是rest_sort<br>第三步 利用已经排序过的结果集，访问表中的数据，此时是顺序IO.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column fromtb where pk_column in ( rest_sort )</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg" alt="863DB3B3-6049-45F0-B0DC-16D319E21722" width="650" height="350"/>
+
+<p>​        从图示MRR原理，MySQL 将根据 辅助索引获取的结果集根据主键进行排序，将乱序化为有序，可以用-主键顺序访问基表，将随机读转化为顺序读，多页数据记录可一次性读入或 根据此次的主键范围分次读入，以减少IO操作，提高查询效率。<br>MRR的使用与否，是由 MySQL中的开关控制，只要设置开启，它会自动在 read_rnd_buffer_size 缓冲区 内，对primaryKey进行排序。但这个开关并不是一直开着，因为对于 大多数的单条查询，重新在中间添加一步排序，是对性能的损失，没有必要。所以Mysql 中还有一个 mrr_cost_based 开关，如果设置关闭，则完全按照 mrr 开关来执行了；如果设为开启，MySQL的优化器会通过 CBO算法确定是否开启MRR特性（进行对 primaryKey的排序）<br>mrr&#x3D;{on|off}<br>mrr_cost_based&#x3D;{on|off}</p>
+<h4 id="4-大数据量下分页查询-limit-offset-batchSize"><a href="#4-大数据量下分页查询-limit-offset-batchSize" class="headerlink" title="4.大数据量下分页查询 limit offset, batchSize :"></a>4.大数据量下分页查询 limit offset, batchSize :</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select  * from trade_info </span><br><span class="line">where status = 0 and </span><br><span class="line">create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’ </span><br><span class="line">order by id desc </span><br><span class="line">limit 102120, 20;</span><br></pre></td></tr></table></figure>
+
+<p>表 trade_info 上有索引 idx_status_create_time(status, create_time); 等价于索引（status, create_time,id)<br>对于典型的 分页 limit m, n来说，越往后翻页越慢( m越大会越慢);  因为要 定位 m位置需要扫描的数据越来越多，导致IO开销比较大。这里可以利用 辅助索引的覆盖扫描来进行优化，先获取id，这一步就是 索引覆盖扫描，不需要回表，然后通过 id 跟原表 trade_info进行关联<br>&#x2F;&#x2F; 改写后的SQL如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * </span><br><span class="line">from trade_info a , </span><br><span class="line">   (select id from trade_info </span><br><span class="line">    where status = 0 </span><br><span class="line">    and create_time &gt;=&#x27;2020-10-01 00:00:00&#x27; and create_time &lt;=&#x27;2020-10-07 23:59:59’ </span><br><span class="line">    order by id desc limit 102120, 20)  as b    -- 这一步走的是索引覆盖扫描，不需要回表</span><br><span class="line"> where a.id = b.id;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题：</strong> 分页查询时，MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，而且在取offset+N 行数据时，因为是select * … 的操作，所以是需要回表的，查询到索引叶子节点数据，根据叶子节点上的主键值去聚簇索引上查询需要的全部字段值。<br>那当 offset 特别大的时候，此时使用 limit m,n 效率就非常的低下，因为回表了 M 行无用的数据，并且占用了大量的 buffer pool 缓存。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h4><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
+<h4 id="常见慢查询问题："><a href="#常见慢查询问题：" class="headerlink" title="常见慢查询问题："></a>常见慢查询问题：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg" alt="14B56083-7EBD-4768-AD40-E3C00DFA418D" width="850" height="500" />
+
+
+
+<p>1.确定主键，索引字段，将它们作为查询条件<br>2.数据量过大，使用 limit 做分页处理，  limit  起始id, 条数count<br>3.当 limit 起始行数很大时， 查询效率会降低， 可以考虑使用自增 id </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Select *. From table limit  150000 , 5000</span><br><span class="line"></span><br><span class="line">优化： Select * from table where id&gt;150000 and id&lt;200000;  -- 速度会有提升</span><br></pre></td></tr></table></figure>
+
+<p>4.数据导入，可尝试批量导入数据 ；   性能：    Load  &gt; insert.<br> load 只操作一次，之后数据 批量插入<br> insert 每个数据操作一次，’就要遍历 一次字段索引</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>SQL语法</title>
-    <url>/TurboCome/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/</url>
+    <url>/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/</url>
     <content><![CDATA[<h2 id="SQL语法"><a href="#SQL语法" class="headerlink" title="SQL语法"></a>SQL语法</h2><p>本地启动： sudo  &#x2F;usr&#x2F;local&#x2F;mysql&#x2F;support-files&#x2F;mysql.server start –skip-grant-tables</p>
 <p>关闭： sudo pkill -9 mysql</p>
 <p>登陆 docker 中的 mysql:  mysql -h  10.85.172.27 -P  4058  -u  rootName -p  passWord  cashier </p>
@@ -471,7 +535,7 @@
   </entry>
   <entry>
     <title>SQL实践案例</title>
-    <url>/TurboCome/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/</url>
+    <url>/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/</url>
     <content><![CDATA[<h2 id="SQL实践案例"><a href="#SQL实践案例" class="headerlink" title="SQL实践案例"></a>SQL实践案例</h2><p>查寻每个省份中，金额排 前三的数据</p>
 <p><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryq33sqkj60q00g0mys02.jpg" alt="779BB0D3-D123-45C3-9705-FBE5B65973CA" width="350" height="200" />          <img src="https://tva1.sinaimg.cn/large/008i3skNly1guryq7vz98j60pe08swfa02.jpg" alt="A8F514AE-FB66-4027-B813-4FA44385AE55" width="350" height="150" /></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># a.province = b.province 表示分组，里外统一省份</span><br><span class="line"># b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数</span><br><span class="line"># 先确定 外部金额，在从内部金额中找到满足条件的数量</span><br><span class="line"></span><br><span class="line">select * </span><br><span class="line">from city_order as a </span><br><span class="line">where 3 &gt; ( select count(*) from city_order as b </span><br><span class="line">            where a.province=b.province and a.amount&lt; b.amount );</span><br><span class="line">ORDER BY amount desc;</span><br></pre></td></tr></table></figure>
@@ -502,72 +566,8 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL优化实践</title>
-    <url>/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<h2 id="MySQL优化实践"><a href="#MySQL优化实践" class="headerlink" title="MySQL优化实践"></a>MySQL优化实践</h2><h4 id="1-大数据量拆分："><a href="#1-大数据量拆分：" class="headerlink" title="1.大数据量拆分："></a>1.大数据量拆分：</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update coupons </span><br><span class="line">set status = 1 </span><br><span class="line">where status= 0 and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59&#x27;;</span><br></pre></td></tr></table></figure>
-
-<p>问题： 一个 SQL只能使用一个 cpu core去处理，如果 SQL很复杂或执行很慢，就会 阻塞后面的 SQL请求，造成活动连接数暴增，MySQL CPU 100%，相应的 接口Timeout，同时对于 主从复制架构，做了业务读写分离，更新500w数据需要5分钟，Master上执行了5分钟，binlog传到了slave也需要执行5分钟，那就是Slave延迟5分钟，在这期间会造成 业务脏数据，比如重复下单等。</p>
-<p>1.先获取 where 条件中的 最小id  ，最大id，<br>2.然后 分批次去更新，每个批次 1000条，这样既能快速完成更新，又能保证 主从复制不会出现延迟</p>
-<p>先获取要更新的 数据范围内的 最小id和最大id（表没有物理delete，所以id是连续的）</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select min(id) min_id, max(id) max_id from coupons </span><br><span class="line">where status=0 </span><br><span class="line">and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’; </span><br><span class="line"></span><br><span class="line">current_id = min_id;</span><br><span class="line">for current_id &lt; max_id do</span><br><span class="line">    update coupons set status=1 </span><br><span class="line">    where id&gt;= current_id and id&lt;= current_id + 1000;    //通过主键id更新1000条很快</span><br><span class="line">commit;</span><br><span class="line">current_id += 1000;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-<p>充分利用 辅助索引包含主键id的特性，先通过索引获取主键 id走覆盖索引扫描，不需要回表，然后再通过id去关联操作是高效的，同时根据 MySQL的特性 使用分而治之的思想既能高效完成操作，又能避免主从复制延迟产生的业务数据混乱。</p>
-<h4 id="2-分解多表连接："><a href="#2-分解多表连接：" class="headerlink" title="2.分解多表连接："></a>2.分解多表连接：</h4><p>例如，使用 IN() 代替连接查询（in 等价于等值查询）可排序，让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM tag</span><br><span class="line">    JOIN tag_post ON tag_post.tag_id= tag.id</span><br><span class="line">    JOIN post ON tag_post.post_id= post.id</span><br><span class="line">    WHERE tag.tag=&#x27;mysql’;</span><br><span class="line"></span><br><span class="line">SELECT * FROM tag WHERE tag=&#x27;mysql&#x27;;           --&gt; tag_id = 1234</span><br><span class="line">SELECT * FROM tag_post WHERE tag_id=1234;      —&gt; (123,456,567,9098,8904)</span><br><span class="line">SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="3-MRR优化："><a href="#3-MRR优化：" class="headerlink" title="3.MRR优化："></a>3.MRR优化：</h4><p><strong>应用实例一：</strong>（mysql优化器改变where 条件顺序—&gt;匹配联合索引） </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM t WHERE key_part1&gt;=1000 and key_part1&lt;2000 AND key_part2=1000;</span><br></pre></td></tr></table></figure>
-
-<p>表 t 有 ( key_part1,  key_part2 ) 的联合索引 ，因此索引根据 key_part1,  key_part2 的位置关系进行排序。<br>没有MRR：SQL优化器会先将 key_part1&gt;1000 and key_part2&lt;2000 的数据查询出来，待取出的数据后，再根据key_part2的条件进行过滤。这会导致无用的数据被取出，如果有大量的数据是 key_part2 !&#x3D;1000，则启用MRR优化会使性能有巨大的提升.<br>启用MRR优化：优化器会先 将查询条件进行拆分，然后在进行数据查询。优化器会将查询条件拆分为(1000,1000),(1001,1000),(1002,1000),…,(1999,1000)，然后在根据这些拆分出的条件，使用索引下推进行数据查询，避免回表。</p>
-<p><strong>应用实例二：</strong><br> 在没有MRR之前,或没有开启 MRR特性时，MySQL 针对基于辅助索引的查询策略是这样的：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column </span><br><span class="line">from tb where key_column=x;</span><br></pre></td></tr></table></figure>
-
-<p>MySQL 执行查询的伪代码<br>第一步 先根据 where 条件中的 辅助索引，获取辅助索引与主键的集合，结果集为 rest</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb </span><br><span class="line">where key_column=x order by key_column </span><br></pre></td></tr></table></figure>
-
-<p>第二步 通过第一步获取的主键来获取 对应的值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for each pk_column value in rest do:</span><br><span class="line">select non_key_column from tb where pk_column=val</span><br></pre></td></tr></table></figure>
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg" alt="71AD8A06-C4D7-4035-A63F-E0978354FC50" width="450" height="350"/>
-
-<p>由于MySQL存储数据的方式： 辅助索引的存储顺序并非与主键的顺序一致，从图中可以看出,根据辅助索引获取的主键来访问表中的数据会导致随机的IO . 不同主键不在同一个page 里面时必然导致多次IO 和随机读。<br>  在使用 MRR优化特性的情况下，MySQL 针对基于辅助索引的查询策略是这样的：<br>第一步 先根据 where条件中的辅助索引获取辅助索引与主键的集合，结果集为rest</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb where key_column = x order by key_column </span><br></pre></td></tr></table></figure>
-
-<p>第二步 将结果集rest 放在buffer里面(read_rnd_buffer_size 大小直到buffer满了)，然后对结果集 rest按照pk_column排序，得到结果集是rest_sort<br>第三步 利用已经排序过的结果集，访问表中的数据，此时是顺序IO.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column fromtb where pk_column in ( rest_sort )</span><br></pre></td></tr></table></figure>
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg" alt="863DB3B3-6049-45F0-B0DC-16D319E21722" width="650" height="350"/>
-
-<p>​        从图示MRR原理，MySQL 将根据 辅助索引获取的结果集根据主键进行排序，将乱序化为有序，可以用-主键顺序访问基表，将随机读转化为顺序读，多页数据记录可一次性读入或 根据此次的主键范围分次读入，以减少IO操作，提高查询效率。<br>MRR的使用与否，是由 MySQL中的开关控制，只要设置开启，它会自动在 read_rnd_buffer_size 缓冲区 内，对primaryKey进行排序。但这个开关并不是一直开着，因为对于 大多数的单条查询，重新在中间添加一步排序，是对性能的损失，没有必要。所以Mysql 中还有一个 mrr_cost_based 开关，如果设置关闭，则完全按照 mrr 开关来执行了；如果设为开启，MySQL的优化器会通过 CBO算法确定是否开启MRR特性（进行对 primaryKey的排序）<br>mrr&#x3D;{on|off}<br>mrr_cost_based&#x3D;{on|off}</p>
-<h4 id="4-大数据量下分页查询-limit-offset-batchSize"><a href="#4-大数据量下分页查询-limit-offset-batchSize" class="headerlink" title="4.大数据量下分页查询 limit offset, batchSize :"></a>4.大数据量下分页查询 limit offset, batchSize :</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select  * from trade_info </span><br><span class="line">where status = 0 and </span><br><span class="line">create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’ </span><br><span class="line">order by id desc </span><br><span class="line">limit 102120, 20;</span><br></pre></td></tr></table></figure>
-
-<p>表 trade_info 上有索引 idx_status_create_time(status, create_time); 等价于索引（status, create_time,id)<br>对于典型的 分页 limit m, n来说，越往后翻页越慢( m越大会越慢);  因为要 定位 m位置需要扫描的数据越来越多，导致IO开销比较大。这里可以利用 辅助索引的覆盖扫描来进行优化，先获取id，这一步就是 索引覆盖扫描，不需要回表，然后通过 id 跟原表 trade_info进行关联<br>&#x2F;&#x2F; 改写后的SQL如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * </span><br><span class="line">from trade_info a , </span><br><span class="line">   (select id from trade_info </span><br><span class="line">    where status = 0 </span><br><span class="line">    and create_time &gt;=&#x27;2020-10-01 00:00:00&#x27; and create_time &lt;=&#x27;2020-10-07 23:59:59’ </span><br><span class="line">    order by id desc limit 102120, 20)  as b    -- 这一步走的是索引覆盖扫描，不需要回表</span><br><span class="line"> where a.id = b.id;</span><br></pre></td></tr></table></figure>
-
-<p><strong>问题：</strong> 分页查询时，MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，而且在取offset+N 行数据时，因为是select * … 的操作，所以是需要回表的，查询到索引叶子节点数据，根据叶子节点上的主键值去聚簇索引上查询需要的全部字段值。<br>那当 offset 特别大的时候，此时使用 limit m,n 效率就非常的低下，因为回表了 M 行无用的数据，并且占用了大量的 buffer pool 缓存。</p>
-<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h4><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
-<h4 id="常见慢查询问题："><a href="#常见慢查询问题：" class="headerlink" title="常见慢查询问题："></a>常见慢查询问题：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg" alt="14B56083-7EBD-4768-AD40-E3C00DFA418D" width="850" height="500" />
-
-
-
-<p>1.确定主键，索引字段，将它们作为查询条件<br>2.数据量过大，使用 limit 做分页处理，  limit  起始id, 条数count<br>3.当 limit 起始行数很大时， 查询效率会降低， 可以考虑使用自增 id </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Select *. From table limit  150000 , 5000</span><br><span class="line"></span><br><span class="line">优化： Select * from table where id&gt;150000 and id&lt;200000;  -- 速度会有提升</span><br></pre></td></tr></table></figure>
-
-<p>4.数据导入，可尝试批量导入数据 ；   性能：    Load  &gt; insert.<br> load 只操作一次，之后数据 批量插入<br> insert 每个数据操作一次，’就要遍历 一次字段索引</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Redis数据结构</title>
-    <url>/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</url>
+    <url>/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</url>
     <content><![CDATA[<h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
 <h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
@@ -658,7 +658,7 @@
   </entry>
   <entry>
     <title>持久化-哨兵/集群</title>
-    <url>/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</url>
+    <url>/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</url>
     <content><![CDATA[<h2 id="A2-Redis-持久化-哨兵-x2F-集群"><a href="#A2-Redis-持久化-哨兵-x2F-集群" class="headerlink" title="A2-Redis-持久化-哨兵&#x2F;集群"></a>A2-Redis-持久化-哨兵&#x2F;集群</h2><h4 id="Redis-简介："><a href="#Redis-简介：" class="headerlink" title="Redis 简介："></a>Redis 简介：</h4><p>1.非常快<br>2.支持丰富的数据类型<br>3.操作具有 原子性，单线程</p>
 <h4 id="为什么快？"><a href="#为什么快？" class="headerlink" title="为什么快？"></a>为什么快？</h4><p>1.数据结构简单，操作的时间复杂度低<br>2.单线程，没有多线程相互切换的开销，避免不必要的上下文切换和锁竞争条件<br>3.所有操作都是基于内存的<br>4.多路I&#x2F;O复用模型，非阻塞IO </p>
 <h4 id="RDB：快照持久化-，根据-指定时间内改变的key-数量来做持久化-（冷备）"><a href="#RDB：快照持久化-，根据-指定时间内改变的key-数量来做持久化-（冷备）" class="headerlink" title="RDB：快照持久化 ，根据 指定时间内改变的key 数量来做持久化  （冷备）"></a>RDB：快照持久化 ，根据 指定时间内改变的key 数量来做持久化  （冷备）</h4><p>快照持久化 完全交给 子进程处理，父进程 继续 处理客户端请求。<br>父进程调用 fork函数产生一个子进程 做数据持久化，不会修改现有的内存数据结构，只是对数据结构进行遍历读取，然后序列化写到磁盘中。但父进程继续响应客户端请求，然后对内存数据结构进行不间断的修改。<br>这个时候就会使用 操作系统的 COW 机制来进行 数据段页面 的分离。父进程对其中一个页面的数据进行修改时，将被共享的页面复制一份，并分离出来，然后对这个复制的页面进行修改。这时 子进程 相应的页面是 没有变化的，是一个快照的数据，然后子进程就可以遍历数据进行序列化写磁盘了。 </p>
@@ -703,7 +703,7 @@
   </entry>
   <entry>
     <title>集群一致性hash算法</title>
-    <url>/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</url>
+    <url>/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<h2 id="A4-Redis集群一致性Hash算法"><a href="#A4-Redis集群一致性Hash算法" class="headerlink" title="A4-Redis集群一致性Hash算法"></a>A4-Redis集群一致性Hash算法</h2><p>​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkyjmsc7j60cq0dxq3z02.jpg" alt="24B62610-55A7-4EE4-8004-C29EA286ABB3" width="450" height="400" />
 
@@ -742,7 +742,7 @@
   </entry>
   <entry>
     <title>Redis性能优化</title>
-    <url>/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</url>
+    <url>/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</url>
     <content><![CDATA[<h2 id="A3-Redis-优化"><a href="#A3-Redis-优化" class="headerlink" title="A3-Redis 优化"></a>A3-Redis 优化</h2><h4 id="布隆过滤器：-应用场景：缓存穿透，海量数据去重"><a href="#布隆过滤器：-应用场景：缓存穿透，海量数据去重" class="headerlink" title="布隆过滤器： 应用场景：缓存穿透，海量数据去重"></a>布隆过滤器： 应用场景：缓存穿透，海量数据去重</h4><p>​        K 个哈希函数，每个 字符串跟 k 个 bit对应，降低冲突概率<br>当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在<br><strong>Bloom Filter 和单哈希函数 Bit-Map不同：</strong>Bloom Filter使用了 k个哈希函数，每个 字符串跟 k个bit对应。降低冲突概率</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg" alt="DB32F606-7EE5-46FC-9E99-3B5438DC21F1" width="650" height="300"/>
 
@@ -773,7 +773,7 @@
   </entry>
   <entry>
     <title>操作系统-基础</title>
-    <url>/TurboCome/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/</url>
+    <url>/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h1 id="操作系统基本知识点"><a href="#操作系统基本知识点" class="headerlink" title="操作系统基本知识点"></a>操作系统基本知识点</h1><h3 id="进程的五大状态："><a href="#进程的五大状态：" class="headerlink" title="进程的五大状态："></a><strong>进程的五大状态：</strong></h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg" alt="C4503148-288A-4F82-8FC9-348D8A500B94" width="650" height="300" />
 
 
@@ -861,7 +861,7 @@
   </entry>
   <entry>
     <title>段/页式存储</title>
-    <url>/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/</url>
+    <url>/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/</url>
     <content><![CDATA[<h1 id="段-x2F-页式存储"><a href="#段-x2F-页式存储" class="headerlink" title="段&#x2F;页式存储"></a>段&#x2F;页式存储</h1><h3 id="背景："><a href="#背景：" class="headerlink" title="背景："></a>背景：</h3><p>​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。</p>
 <p>​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使用的内存暂时存放到硬盘 （换出），在需要时再装载回物理内存（换入）。</p>
 <p>​    有了虚拟地址空间，必然要把 虚拟地址「映射」到 物理地址，这个事情通常由操作系统来维护，对于虚拟地址与物理地址的映射关系，可以有 分段，分页，段页的方式。访问虚拟地址时，由操作系统转换成不同的 物理地址，这样不同进程运行的时候，写入不同的物理地址，就不会冲突。</p>
@@ -914,7 +914,7 @@
   </entry>
   <entry>
     <title>多线程-基础</title>
-    <url>/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</url>
+    <url>/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h2 id="多线程编程-基础"><a href="#多线程编程-基础" class="headerlink" title="多线程编程-基础"></a>多线程编程-基础</h2><h4 id="Java-中创建线程方式主要有三种："><a href="#Java-中创建线程方式主要有三种：" class="headerlink" title="Java 中创建线程方式主要有三种："></a>Java 中创建线程方式主要有三种：</h4><p>1.继承 Thread 类，重写run() 方法，在run() 方法里实现内部逻辑<br>2.实现 Runnable 接口， 重写 Runnable 接口中的 run 方法，在 thread 类中传入 Runnable对象<br>3.实现 Callable 接口，重写 call() 方法，和 Future 来创建线程</p>
 <h4 id="Callable-和-Runnable-接口区别："><a href="#Callable-和-Runnable-接口区别：" class="headerlink" title="Callable 和 Runnable 接口区别："></a>Callable 和 Runnable 接口区别：</h4><p>1.Runnable 不会产生任何返回值, Callable 有返回值<br>2.Callable重写 call 方法，而 Runnable 重写 run 方法。<br>3.使用 Callable 中的 call方法可以抛出异常，而 Runnable 方法不能抛出异常</p>
 <p><strong>使用：</strong><br>执行 Callable方式，需要 FutureTask 实现类的支持，用于接收运算结果</p>
@@ -995,7 +995,7 @@
   </entry>
   <entry>
     <title>多线程-高级</title>
-    <url>/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/</url>
+    <url>/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/</url>
     <content><![CDATA[<h2 id="多线程-高级"><a href="#多线程-高级" class="headerlink" title="多线程-高级"></a>多线程-高级</h2><p>多线程编程详解： <a href="https://blog.csdn.net/mu_wind/article/details/113806680">https://blog.csdn.net/mu_wind/article/details/113806680</a></p>
 <p><strong>CAS（Compare And Swap 比较并且替换）</strong>是乐观锁的一种实现方式，线程在读取数据时不进行加锁，<br>先保存原值，在实际修改数据的瞬间，比较此时的值，是否和原值相等。若相等则回写；若不相等，则重新执行读取流程。</p>
 <h4 id="CAS产生的问题："><a href="#CAS产生的问题：" class="headerlink" title="CAS产生的问题："></a>CAS产生的问题：</h4><p><strong>一、CAS可能有 ABA问题：</strong> （破坏了事务的原子性）</p>
@@ -1099,7 +1099,7 @@
   </entry>
   <entry>
     <title>多线程-编程实战</title>
-    <url>/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/</url>
+    <url>/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/</url>
     <content><![CDATA[<h2 id="多线程-编程实战"><a href="#多线程-编程实战" class="headerlink" title="多线程-编程实战"></a>多线程-编程实战</h2><h4 id="奇偶数循环打印，交替执行。"><a href="#奇偶数循环打印，交替执行。" class="headerlink" title="奇偶数循环打印，交替执行。"></a>奇偶数循环打印，交替执行。</h4><p>ReantrantLock() 使用：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">state</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">Lock</span> <span class="variable">mylock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">RunnableA</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; )&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123; </span><br><span class="line">                mylock.lock();</span><br><span class="line">                <span class="keyword">if</span>(state % <span class="number">2</span>==<span class="number">0</span>)&#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;Thread A: &quot;</span> + String.valueOf(i));</span><br><span class="line">                    state++;</span><br><span class="line">                    i++;</span><br><span class="line">                &#125;  </span><br><span class="line">            &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">                mylock.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">RunnableB</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; )&#123;</span><br><span class="line">            <span class="keyword">try</span>&#123; </span><br><span class="line">                mylock.lock();</span><br><span class="line">                <span class="keyword">if</span>(state % <span class="number">2</span>==<span class="number">1</span>)&#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;Thread B: &quot;</span> + String.valueOf(i));</span><br><span class="line">                    state++;</span><br><span class="line">                    i++;</span><br><span class="line">                &#125; </span><br><span class="line">            &#125;<span class="keyword">finally</span>&#123;</span><br><span class="line">                mylock.unlock();;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
@@ -1121,7 +1121,7 @@
   </entry>
   <entry>
     <title>多线程-详解知识点</title>
-    <url>/TurboCome/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/</url>
+    <url>/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/</url>
     <content><![CDATA[<h2 id="多线程-详解知识点"><a href="#多线程-详解知识点" class="headerlink" title="多线程-详解知识点"></a>多线程-详解知识点</h2><h4 id="1-线程"><a href="#1-线程" class="headerlink" title="1. 线程:"></a><strong>1. 线程:</strong></h4><p>是 CPU 进行 运算调度的最⼩基本单位，包含在进程之中，没有 独立的资源，共享其进程中的资源，每个线程都有 自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小，系统不会为线程分配内存.</p>
 <h4 id="2-线程安全和线程不安全？"><a href="#2-线程安全和线程不安全？" class="headerlink" title="2.  线程安全和线程不安全？"></a><strong>2.  线程安全和线程不安全？</strong></h4><p><strong>线程安全:</strong> 多线程访问时，采用加锁机制，当一个线程访问 该类的某个数据时，进行保护，其他线程不能进⾏访问，直到该线程读取完，其他线程才可使用, 不会出现数据不一致问题。</p>
 <p><strong>线程不安全：</strong>不提供数据访问保护，有可能出现 <strong>多个线程先后更改数据</strong> 造成所得到的数据是脏数据； </p>
@@ -1360,7 +1360,7 @@
   </entry>
   <entry>
     <title>多线程-AQS详解</title>
-    <url>/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</url>
+    <url>/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</url>
     <content><![CDATA[<h2 id="AQS-详解"><a href="#AQS-详解" class="headerlink" title="AQS 详解"></a>AQS 详解</h2><p>参考：<a href="https://mp.weixin.qq.com/s/trsjgUFRrz40Simq2VKxTA">https://mp.weixin.qq.com/s/trsjgUFRrz40Simq2VKxTA</a> ； <a href="https://mp.weixin.qq.com/s/iNz6sTen2CSOdLE0j7qu9A">https://mp.weixin.qq.com/s/iNz6sTen2CSOdLE0j7qu9A</a></p>
 <h4 id="三个线程-线程1，2，3-同时来加锁-x2F-释放锁："><a href="#三个线程-线程1，2，3-同时来加锁-x2F-释放锁：" class="headerlink" title="三个线程(线程1，2，3)同时来加锁&#x2F;释放锁："></a>三个线程(线程1，2，3)同时来加锁&#x2F;释放锁：</h4><h4 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h4><p>1.线程一加锁成功时 AQS内部实现<br>2.线程二&#x2F;三加锁失败时 AQS中等待队列的数据模型<br>3.线程一释放锁，及线程二获取锁实现原理<br>4.通过线程场景来讲解Condition中await()和signal()实现原理</p>
 <h4 id="1-线程一加锁成功："><a href="#1-线程一加锁成功：" class="headerlink" title="1.线程一加锁成功："></a>1.线程一加锁成功：</h4><p>如果同时有三个线程并发抢占锁，此时线程一抢占锁成功，线程二和线程三抢占锁失败，具体执行流程如下：</p>
@@ -1410,7 +1410,7 @@
   </entry>
   <entry>
     <title>消息队列-基础</title>
-    <url>/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</url>
+    <url>/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</url>
     <content><![CDATA[<h2 id="1-消息队列（MQ）简介"><a href="#1-消息队列（MQ）简介" class="headerlink" title="1.消息队列（MQ）简介"></a>1.消息队列（MQ）简介</h2><p>生产者不断向消息队列中生产消息，消费者不断的从队列中获取消息；因为消息的生产，消费都是异步的，只关心消息的发送和接收，没有业务逻辑的侵入，这样就实现了生产者和消费者的解耦。</p>
 <h4 id="主要作用："><a href="#主要作用：" class="headerlink" title="主要作用："></a>主要作用：</h4><p><strong>作用：</strong> 异步，解耦，削峰<br><strong>缺点：</strong> 可用性降低，增加系统复杂性（重复消费，消息丢失，消息的顺序消费），数据一致性问题<br><strong>1.系统可用性降低：</strong>  加个 MQ 进来，万一 MQ 挂了，整套系统崩溃<br><strong>2.系统复杂度提高：</strong>  怎么保证消息没有重复消费？怎么 处理消息丢失的情况？怎么保证消息传递的顺序性？<br><strong>3.数据一致性问题：</strong>   A 系统处理完直接返回成功，别人以为你这个请求就成功了；但问题是，如果有ABC 三个系统，AB两个系统写库成功，结果 C 系统写库失败，会导致数据不一致。</p>
 <p><strong>异步：</strong></p>
@@ -1460,7 +1460,7 @@
   </entry>
   <entry>
     <title>Kafka-高级</title>
-    <url>/TurboCome/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/</url>
+    <url>/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/</url>
     <content><![CDATA[<h2 id="3-Kafka-性能优化-高级"><a href="#3-Kafka-性能优化-高级" class="headerlink" title="3.Kafka 性能优化-高级"></a>3.Kafka 性能优化-高级</h2><img src="https://tva1.sinaimg.cn/large/008i3skNly1gututqcz69j60xu0lk75o02.jpg" alt="00C8D2A8-4503-4ADE-9201-F21D54EB4961" width="650" height="450" />
 
 <p>性能问题主要是三个方面：<strong>网络、磁盘、复杂度</strong>；对于 Kafka 分布式队列，网络、磁盘 是优化的重点<br><strong>解决方案：</strong>并发、压缩、批量、缓存  </p>
@@ -1573,7 +1573,7 @@
   </entry>
   <entry>
     <title>Kafka-基础</title>
-    <url>/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</url>
+    <url>/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h2 id="2-Kafka-消息队列-基础"><a href="#2-Kafka-消息队列-基础" class="headerlink" title="2.Kafka 消息队列-基础"></a>2.Kafka 消息队列-基础</h2><p>参考：Kafka总结–<a href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg" alt="64632972-37CD-4F85-BB74-47C31F5ECF35" width="550" height="350"  />
 
@@ -1647,7 +1647,7 @@
   </entry>
   <entry>
     <title>计算机网络概述</title>
-    <url>/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</url>
+    <url>/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</url>
     <content><![CDATA[<h2 id="计算机网络概述："><a href="#计算机网络概述：" class="headerlink" title="计算机网络概述："></a>计算机网络概述：</h2><p>网络是把主机连接起来，互连网（internet）是把多种不同的网络连接起来。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvo14kvhj60pe0gkjsy02.jpg" width="350" height="200"  />
 
@@ -1710,7 +1710,7 @@
   </entry>
   <entry>
     <title>请求代理服务器--加密</title>
-    <url>/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</url>
+    <url>/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</url>
     <content><![CDATA[<h2 id="请求代理服务器–加密"><a href="#请求代理服务器–加密" class="headerlink" title="请求代理服务器–加密"></a>请求代理服务器–加密</h2><p><strong>代理服务器：</strong> 提供代理服务的电脑系统或其它类型的网络终端,代替网络用户去取得网络信息。</p>
 <p>使用代理的<strong>主要目的：</strong></p>
 <ul>
@@ -1785,7 +1785,7 @@
   </entry>
   <entry>
     <title>TCP/UDP/Http</title>
-    <url>/TurboCome/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/</url>
+    <url>/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/</url>
     <content><![CDATA[<h2 id="TCP-x2F-UDP-x2F-Http"><a href="#TCP-x2F-UDP-x2F-Http" class="headerlink" title="TCP&#x2F;UDP&#x2F;Http"></a>TCP&#x2F;UDP&#x2F;Http</h2><h4 id="http-中的长，短链接："><a href="#http-中的长，短链接：" class="headerlink" title="http 中的长，短链接："></a>http 中的长，短链接：</h4><p>​        在 HTTP&#x2F;1.0中 默认短连接，客户端和 服务器每进行一次 HTTP 操作，就建立一次连接，任务结束就 中断连接。当客户端浏览器访问某个Web页中包含有其他的 Web资源（如JavaScript文件、图像文件、CSS文件等），每遇到这样一个Web资源，浏览器就会重新建立一个HTTP会话。</p>
 <p>​        从HTTP&#x2F;1.1起，默认长连接，用以 保持连接特性。使用长连接的 HTTP协议，会在 响应头加入这行代码：Connection:keep-alive；<br>使用长连接的情况下，当一个网页打开完成后，客户端和服务器之间 用于传输 HTTP数据的 TCP连接不会关闭，客户端再次访问这个服务器时，会继续使用这一条已经建立的连接。Keep-Alive 不会永久保持连接，有一个保持时间，可以设定这个时间。实现长连接需要客户端和服务端都支持长连接。</p>
 <p>HTTP 协议的长，短连接，实质上是 TCP协议的长，短连接。<br><strong>http 长连接：</strong>设置 connection 为 keep-alive ；在 header 中有个超时时间，超过此时间就断开长连接<br>长连接： 多个 http 请求复用同一个 TCP ； 频繁通信<br>短链接： 一个 http 用一个 TCP；  长时间不通信，创建，关闭都会浪费时间</p>
