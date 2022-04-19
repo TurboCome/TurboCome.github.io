@@ -18,12 +18,12 @@
   
   
   <title>集群一致性hash算法 | Hexo</title>
-  <meta name="description" content="A4-Redis集群一致性Hash算法​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。">
+  <meta name="description" content="Redis集群一致性Hash算法​    类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。   ​">
 <meta property="og:type" content="article">
 <meta property="og:title" content="集群一致性hash算法">
 <meta property="og:url" content="http://example.com/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/index.html">
 <meta property="og:site_name" content="TurboCome">
-<meta property="og:description" content="A4-Redis集群一致性Hash算法​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。">
+<meta property="og:description" content="Redis集群一致性Hash算法​    类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。   ​">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwkyjmsc7j60cq0dxq3z02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg">
@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg">
 <meta property="article:published_time" content="2022-07-09T13:55:19.000Z">
-<meta property="article:modified_time" content="2022-04-19T06:44:26.980Z">
+<meta property="article:modified_time" content="2022-04-19T12:18:13.454Z">
 <meta property="article:author" content="TurboCome">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -400,33 +400,33 @@
 
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="A4-Redis集群一致性Hash算法"><a href="#A4-Redis集群一致性Hash算法" class="headerlink" title="A4-Redis集群一致性Hash算法"></a>A4-Redis集群一致性Hash算法</h2><p>​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
+        <h1 id="Redis集群一致性Hash算法"><a href="#Redis集群一致性Hash算法" class="headerlink" title="Redis集群一致性Hash算法"></a>Redis集群一致性Hash算法</h1><p>​    类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkyjmsc7j60cq0dxq3z02.jpg" alt="24B62610-55A7-4EE4-8004-C29EA286ABB3" width="450" height="400" />
 
-<p>​        使用上述 Hash算法进行缓存时，会出现一些缺陷，在服务器数量变动时，所有缓存的位置都要发生改变！那原本  hash(a.png) % 4 &#x3D; 2 的公式就变成了 hash(a.png) % 5 &#x3D; ？ ， 这个结果不是2的，此时所有 缓存位置都要发生改变！也就是当服务器数量发生改变时，所有缓存在一定时间内是失效的。<br>​        假设 4台缓存中突然有一台缓存服务器出现故障，需要将故障机器移除，但如果移除一台缓存服务器，缓存服务器数量从 4台变为 3台，也会出现上述问题！</p>
-<h4 id="一致性Hash算法就是解决这个问题的"><a href="#一致性Hash算法就是解决这个问题的" class="headerlink" title="一致性Hash算法就是解决这个问题的 !"></a>一致性Hash算法就是解决这个问题的 !</h4><p>​        刚才描述的取模法是对服务器的数量进行取模，而 一致性Hash算法是对 2^32 取模，简单来说，一致性Hash算法将整个哈希值空间组织成一个虚拟的圆环，假设某哈希函数H 的值空间为： 0 ~ 2^14<br>​        0 点右侧的第一个点代表1，以此类推，2,3,4,5,6……直到 2^14，也就是说 0点左侧的第一个点代表 2^14， 0和2^14 在零点中方向重合，我们把这个由2^14 个点组成的圆环称为 Hash环。下一步将各个服务器使用Hash进行一个哈希，具体可以选择服务器的IP或主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置，这里假设将上文中四台服务器使用IP地址哈希后在环空间的位置如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg" alt="901FC87C-32CA-4E10-8943-08F53DD41989" width="450" height="450" />
+<p>​    使用上述 Hash算法进行缓存时，会出现一些缺陷，在服务器数量变动时，所有缓存的位置都要发生改变！那原本 hash(a.png) % 4 &#x3D; 2 的公式就变成了 hash(a.png) % 5 &#x3D; ？， 这个结果不是2的，此时所有缓存位置都要发生改变！也就是当服务器数量发生改变时，所有缓存在一定时间内是失效的。<br>​    假设 4 台缓存中突然有一台缓存服务器出现故障，需要将故障机器移除，但如果移除一台缓存服务器，缓存服务器数量从4台变为3台，也会出现上述问题！</p>
+<h4 id="一致性Hash算法就是解决这个问题"><a href="#一致性Hash算法就是解决这个问题" class="headerlink" title="一致性Hash算法就是解决这个问题!"></a>一致性Hash算法就是解决这个问题!</h4><p>​    刚才描述的取模法是对服务器的数量进行取模，而 一致性Hash算法是对 2^32 取模，简单来说，一致性Hash算法将整个哈希值空间组织成一个虚拟的圆环，假设某哈希函数H 的值空间为： 0 ~ 2^14<br>​    0点右侧的第一个点代表1，以此类推，2,3,4,5,6……直到 2^14，也就是说 0点左侧的第一个点代表 2^14， 0和2^14 在零点中方向重合，我们把这个由2^14 个点组成的圆环称为 Hash环。下一步将各个服务器使用Hash进行一个哈希，具体可以选择服务器的IP或主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置，这里假设将上文中四台服务器使用IP地址哈希后在环空间的位置如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg" alt="901FC87C-32CA-4E10-8943-08F53DD41989" width="350" height="350" />
 
 
-<p>接下来使用如下算法定位数据访问到相应服务器：将数据 key使用相同的函数 Hash计算出哈希值，并确定此数据在环上的位置，从此位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器！</p>
+<p>​    接下来使用如下算法定位数据访问到相应服务器：将数据 key使用相同的函数 Hash计算出哈希值，并确定此数据在环上的位置，从此位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器！</p>
 <p><strong>例如:</strong> 有 Object A,Object B,Object C,Object D四个数据对象，经过哈希计算后，在环空间上的位置如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl006m9dj60iy0joq3x02.jpg" alt="A1D101C3-6A2A-4CFE-BF40-CC1E4E055A93" width="450" height="450"/>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl006m9dj60iy0joq3x02.jpg" alt="A1D101C3-6A2A-4CFE-BF40-CC1E4E055A93" width="350" height="350"/>
 
 
-<p>根据 一致性 Hash算法，数据A会被定为到Node A 上，B被定为到Node B上，C被定为到Node C上，D被定为到Node D上。 </p>
-<h4 id="一致性Hash算法-容错性和可扩展性"><a href="#一致性Hash算法-容错性和可扩展性" class="headerlink" title="一致性Hash算法 容错性和可扩展性:"></a>一致性Hash算法 容错性和可扩展性:</h4><p>​        现假设Node C 不幸宕机，可以看到此时对象A、B、D不会受到影响，只有C对象被重定位到Node D。在一致性Hash算法中，如果一台服务器不可用，则受影响的数据仅仅是此服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它不会受到影响，如果在系统中增加一台服务器Node X，如下图所示：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl0l7ymmj60it0jqwfl02.jpg" alt="506CDC9D-B69A-4C3B-BC31-2323D07AFEDA" width="450" height="450" />
+<p>​    根据一致性 Hash算法，数据A会被定为到Node A 上，B被定为到Node B上，C被定为到Node C上，D被定为到Node D上。 </p>
+<h3 id="一致性Hash算法-容错性和可扩展性"><a href="#一致性Hash算法-容错性和可扩展性" class="headerlink" title="一致性Hash算法 容错性和可扩展性:"></a>一致性Hash算法 容错性和可扩展性:</h3><p>​    现假设Node C 不幸宕机，可以看到此时对象A、B、D不会受到影响，只有C对象被重定位到Node D。在一致性Hash算法中，如果一台服务器不可用，则受影响的数据仅仅是此服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它不会受到影响，如果在系统中增加一台服务器Node X，如下图所示：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl0l7ymmj60it0jqwfl02.jpg" alt="506CDC9D-B69A-4C3B-BC31-2323D07AFEDA" width="350" height="350" />
 
 
-<p>​        此时对象Object A，B，D不受影响，只有对象C需要重定位到新的Node X ！一般的，在一致性Hash算法中，如果增加一台服务器，则受影响的数据仅仅是新服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它数据也不会受到影响。一致性Hash算法对于节点的增减都只需重定位环空间中的一小部分数据，具有较好的容错性和可扩展性。</p>
-<h4 id="Hash环的数据倾斜问题："><a href="#Hash环的数据倾斜问题：" class="headerlink" title="Hash环的数据倾斜问题："></a>Hash环的数据倾斜问题：</h4><p>​        一致性Hash算法在服务节点太少时，容易因为节点分部不均匀而造成数据倾斜（被缓存的对象大部分集中缓存在某一台服务器上）问题，例如系统中只有两台服务器，其环分布如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg" alt="398CEE1E-B2F5-4272-B255-27F09C2248B2" width="450" height="450" />
+<p>​    此时对象Object A，B，D不受影响，只有对象C需要重定位到新的Node X ！一般的，在一致性Hash算法中，如果增加一台服务器，则受影响的数据仅仅是新服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它数据也不会受到影响。一致性Hash算法对于节点的增减都只需重定位环空间中的一小部分数据，具有较好的容错性和可扩展性。</p>
+<h3 id="Hash环的数据倾斜问题："><a href="#Hash环的数据倾斜问题：" class="headerlink" title="Hash环的数据倾斜问题："></a>Hash环的数据倾斜问题：</h3><p>​    一致性Hash算法在服务节点太少时，容易因为节点分部不均匀而造成数据倾斜（被缓存的对象大部分集中缓存在某一台服务器上）问题，例如系统中只有两台服务器，其环分布如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg" alt="398CEE1E-B2F5-4272-B255-27F09C2248B2" width="350" height="350" />
 
-<p>​        此时必然造成大量数据集中到Node A上，而只有极少量会定位到Node B上。为了解决这种数据倾斜问题，一致性Hash算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以在服务器IP或主机名的后面增加编号来实现。</p>
-<p>​        例如:上面的情况，可以为每台服务器计算 三个虚拟节点，于是可以分别计算 “Node A#1”，“Node A#2”，“Node A#3”，“Node B#1”，“Node B#2”，“Node B#3”  哈希值，于是形成六个虚拟节点：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg" alt="C98156D9-C596-492C-A992-01E1A3C3266E" width="450" height="450" />
+<p>​    此时必然造成大量数据集中到Node A上，而只有极少量会定位到Node B上。为了解决这种数据倾斜问题，一致性Hash算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以在服务器IP或主机名的后面增加编号来实现。</p>
+<p>​    例如:上面的情况，可以为每台服务器计算 三个虚拟节点，于是可以分别计算 “Node A#1”，“Node A#2”，“Node A#3”，“Node B#1”，“Node B#2”，“Node B#3”  哈希值，于是形成六个虚拟节点：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg" alt="C98156D9-C596-492C-A992-01E1A3C3266E" width="350" height="350" />
 
-<p>​        通过虚拟节点做为中间变量，再从虚拟节点—&gt;实际节点，实现数据映射。同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”，“Node A#2”，“Node A#3”  三个虚拟节点的数据均定位到Node A上。 这样就解决了服务节点少时数据倾斜的问题，在实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
+<p>​    通过虚拟节点做为中间变量，再从虚拟节点—&gt;实际节点，实现数据映射。同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”，“Node A#2”，“Node A#3”  三个虚拟节点的数据均定位到Node A上。 这样就解决了服务节点少时数据倾斜的问题，在实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
 
       
       
@@ -434,33 +434,33 @@
       <!-- 修改 -->
       <!-- 
           
-            <h2 id="A4-Redis集群一致性Hash算法"><a href="#A4-Redis集群一致性Hash算法" class="headerlink" title="A4-Redis集群一致性Hash算法"></a>A4-Redis集群一致性Hash算法</h2><p>​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
+            <h1 id="Redis集群一致性Hash算法"><a href="#Redis集群一致性Hash算法" class="headerlink" title="Redis集群一致性Hash算法"></a>Redis集群一致性Hash算法</h1><p>​    类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkyjmsc7j60cq0dxq3z02.jpg" alt="24B62610-55A7-4EE4-8004-C29EA286ABB3" width="450" height="400" />
 
-<p>​        使用上述 Hash算法进行缓存时，会出现一些缺陷，在服务器数量变动时，所有缓存的位置都要发生改变！那原本  hash(a.png) % 4 &#x3D; 2 的公式就变成了 hash(a.png) % 5 &#x3D; ？ ， 这个结果不是2的，此时所有 缓存位置都要发生改变！也就是当服务器数量发生改变时，所有缓存在一定时间内是失效的。<br>​        假设 4台缓存中突然有一台缓存服务器出现故障，需要将故障机器移除，但如果移除一台缓存服务器，缓存服务器数量从 4台变为 3台，也会出现上述问题！</p>
-<h4 id="一致性Hash算法就是解决这个问题的"><a href="#一致性Hash算法就是解决这个问题的" class="headerlink" title="一致性Hash算法就是解决这个问题的 !"></a>一致性Hash算法就是解决这个问题的 !</h4><p>​        刚才描述的取模法是对服务器的数量进行取模，而 一致性Hash算法是对 2^32 取模，简单来说，一致性Hash算法将整个哈希值空间组织成一个虚拟的圆环，假设某哈希函数H 的值空间为： 0 ~ 2^14<br>​        0 点右侧的第一个点代表1，以此类推，2,3,4,5,6……直到 2^14，也就是说 0点左侧的第一个点代表 2^14， 0和2^14 在零点中方向重合，我们把这个由2^14 个点组成的圆环称为 Hash环。下一步将各个服务器使用Hash进行一个哈希，具体可以选择服务器的IP或主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置，这里假设将上文中四台服务器使用IP地址哈希后在环空间的位置如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg" alt="901FC87C-32CA-4E10-8943-08F53DD41989" width="450" height="450" />
+<p>​    使用上述 Hash算法进行缓存时，会出现一些缺陷，在服务器数量变动时，所有缓存的位置都要发生改变！那原本 hash(a.png) % 4 &#x3D; 2 的公式就变成了 hash(a.png) % 5 &#x3D; ？， 这个结果不是2的，此时所有缓存位置都要发生改变！也就是当服务器数量发生改变时，所有缓存在一定时间内是失效的。<br>​    假设 4 台缓存中突然有一台缓存服务器出现故障，需要将故障机器移除，但如果移除一台缓存服务器，缓存服务器数量从4台变为3台，也会出现上述问题！</p>
+<h4 id="一致性Hash算法就是解决这个问题"><a href="#一致性Hash算法就是解决这个问题" class="headerlink" title="一致性Hash算法就是解决这个问题!"></a>一致性Hash算法就是解决这个问题!</h4><p>​    刚才描述的取模法是对服务器的数量进行取模，而 一致性Hash算法是对 2^32 取模，简单来说，一致性Hash算法将整个哈希值空间组织成一个虚拟的圆环，假设某哈希函数H 的值空间为： 0 ~ 2^14<br>​    0点右侧的第一个点代表1，以此类推，2,3,4,5,6……直到 2^14，也就是说 0点左侧的第一个点代表 2^14， 0和2^14 在零点中方向重合，我们把这个由2^14 个点组成的圆环称为 Hash环。下一步将各个服务器使用Hash进行一个哈希，具体可以选择服务器的IP或主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置，这里假设将上文中四台服务器使用IP地址哈希后在环空间的位置如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg" alt="901FC87C-32CA-4E10-8943-08F53DD41989" width="350" height="350" />
 
 
-<p>接下来使用如下算法定位数据访问到相应服务器：将数据 key使用相同的函数 Hash计算出哈希值，并确定此数据在环上的位置，从此位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器！</p>
+<p>​    接下来使用如下算法定位数据访问到相应服务器：将数据 key使用相同的函数 Hash计算出哈希值，并确定此数据在环上的位置，从此位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器！</p>
 <p><strong>例如:</strong> 有 Object A,Object B,Object C,Object D四个数据对象，经过哈希计算后，在环空间上的位置如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl006m9dj60iy0joq3x02.jpg" alt="A1D101C3-6A2A-4CFE-BF40-CC1E4E055A93" width="450" height="450"/>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl006m9dj60iy0joq3x02.jpg" alt="A1D101C3-6A2A-4CFE-BF40-CC1E4E055A93" width="350" height="350"/>
 
 
-<p>根据 一致性 Hash算法，数据A会被定为到Node A 上，B被定为到Node B上，C被定为到Node C上，D被定为到Node D上。 </p>
-<h4 id="一致性Hash算法-容错性和可扩展性"><a href="#一致性Hash算法-容错性和可扩展性" class="headerlink" title="一致性Hash算法 容错性和可扩展性:"></a>一致性Hash算法 容错性和可扩展性:</h4><p>​        现假设Node C 不幸宕机，可以看到此时对象A、B、D不会受到影响，只有C对象被重定位到Node D。在一致性Hash算法中，如果一台服务器不可用，则受影响的数据仅仅是此服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它不会受到影响，如果在系统中增加一台服务器Node X，如下图所示：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl0l7ymmj60it0jqwfl02.jpg" alt="506CDC9D-B69A-4C3B-BC31-2323D07AFEDA" width="450" height="450" />
+<p>​    根据一致性 Hash算法，数据A会被定为到Node A 上，B被定为到Node B上，C被定为到Node C上，D被定为到Node D上。 </p>
+<h3 id="一致性Hash算法-容错性和可扩展性"><a href="#一致性Hash算法-容错性和可扩展性" class="headerlink" title="一致性Hash算法 容错性和可扩展性:"></a>一致性Hash算法 容错性和可扩展性:</h3><p>​    现假设Node C 不幸宕机，可以看到此时对象A、B、D不会受到影响，只有C对象被重定位到Node D。在一致性Hash算法中，如果一台服务器不可用，则受影响的数据仅仅是此服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它不会受到影响，如果在系统中增加一台服务器Node X，如下图所示：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl0l7ymmj60it0jqwfl02.jpg" alt="506CDC9D-B69A-4C3B-BC31-2323D07AFEDA" width="350" height="350" />
 
 
-<p>​        此时对象Object A，B，D不受影响，只有对象C需要重定位到新的Node X ！一般的，在一致性Hash算法中，如果增加一台服务器，则受影响的数据仅仅是新服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它数据也不会受到影响。一致性Hash算法对于节点的增减都只需重定位环空间中的一小部分数据，具有较好的容错性和可扩展性。</p>
-<h4 id="Hash环的数据倾斜问题："><a href="#Hash环的数据倾斜问题：" class="headerlink" title="Hash环的数据倾斜问题："></a>Hash环的数据倾斜问题：</h4><p>​        一致性Hash算法在服务节点太少时，容易因为节点分部不均匀而造成数据倾斜（被缓存的对象大部分集中缓存在某一台服务器上）问题，例如系统中只有两台服务器，其环分布如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg" alt="398CEE1E-B2F5-4272-B255-27F09C2248B2" width="450" height="450" />
+<p>​    此时对象Object A，B，D不受影响，只有对象C需要重定位到新的Node X ！一般的，在一致性Hash算法中，如果增加一台服务器，则受影响的数据仅仅是新服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它数据也不会受到影响。一致性Hash算法对于节点的增减都只需重定位环空间中的一小部分数据，具有较好的容错性和可扩展性。</p>
+<h3 id="Hash环的数据倾斜问题："><a href="#Hash环的数据倾斜问题：" class="headerlink" title="Hash环的数据倾斜问题："></a>Hash环的数据倾斜问题：</h3><p>​    一致性Hash算法在服务节点太少时，容易因为节点分部不均匀而造成数据倾斜（被缓存的对象大部分集中缓存在某一台服务器上）问题，例如系统中只有两台服务器，其环分布如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg" alt="398CEE1E-B2F5-4272-B255-27F09C2248B2" width="350" height="350" />
 
-<p>​        此时必然造成大量数据集中到Node A上，而只有极少量会定位到Node B上。为了解决这种数据倾斜问题，一致性Hash算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以在服务器IP或主机名的后面增加编号来实现。</p>
-<p>​        例如:上面的情况，可以为每台服务器计算 三个虚拟节点，于是可以分别计算 “Node A#1”，“Node A#2”，“Node A#3”，“Node B#1”，“Node B#2”，“Node B#3”  哈希值，于是形成六个虚拟节点：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg" alt="C98156D9-C596-492C-A992-01E1A3C3266E" width="450" height="450" />
+<p>​    此时必然造成大量数据集中到Node A上，而只有极少量会定位到Node B上。为了解决这种数据倾斜问题，一致性Hash算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以在服务器IP或主机名的后面增加编号来实现。</p>
+<p>​    例如:上面的情况，可以为每台服务器计算 三个虚拟节点，于是可以分别计算 “Node A#1”，“Node A#2”，“Node A#3”，“Node B#1”，“Node B#2”，“Node B#3”  哈希值，于是形成六个虚拟节点：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg" alt="C98156D9-C596-492C-A992-01E1A3C3266E" width="350" height="350" />
 
-<p>​        通过虚拟节点做为中间变量，再从虚拟节点—&gt;实际节点，实现数据映射。同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”，“Node A#2”，“Node A#3”  三个虚拟节点的数据均定位到Node A上。 这样就解决了服务节点少时数据倾斜的问题，在实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
+<p>​    通过虚拟节点做为中间变量，再从虚拟节点—&gt;实际节点，实现数据映射。同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”，“Node A#2”，“Node A#3”  三个虚拟节点的数据均定位到Node A上。 这样就解决了服务节点少时数据倾斜的问题，在实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
 
           
         

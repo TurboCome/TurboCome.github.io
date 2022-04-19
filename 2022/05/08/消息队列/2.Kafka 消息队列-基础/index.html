@@ -18,14 +18,13 @@
   
   
   <title>Kafka-基础 | Hexo</title>
-  <meta name="description" content="2.Kafka 消息队列-基础参考：Kafka总结–https:&#x2F;&#x2F;my.oschina.net&#x2F;u&#x2F;4377703&#x2F;blog&#x2F;4325442     在Kafka 消息队列中，队列的名字叫 topic;  多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布">
+  <meta name="description" content="Kafka消息队列-基础Kafka消息队列中，队列的名字叫 topic; 多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。   每个 topic下，可能有多个 pa">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kafka-基础">
 <meta property="og:url" content="http://example.com/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="TurboCome">
-<meta property="og:description" content="2.Kafka 消息队列-基础参考：Kafka总结–https:&#x2F;&#x2F;my.oschina.net&#x2F;u&#x2F;4377703&#x2F;blog&#x2F;4325442     在Kafka 消息队列中，队列的名字叫 topic;  多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布">
+<meta property="og:description" content="Kafka消息队列-基础Kafka消息队列中，队列的名字叫 topic; 多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。   每个 topic下，可能有多个 pa">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutubka7shj60y60c8tal02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutuc5g0cjj619c0oydjc02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutud52gfgj60iu09waac02.jpg">
@@ -35,11 +34,11 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg">
 <meta property="article:published_time" content="2022-05-08T13:55:19.000Z">
-<meta property="article:modified_time" content="2022-04-19T06:43:05.340Z">
+<meta property="article:modified_time" content="2022-04-19T09:09:49.902Z">
 <meta property="article:author" content="TurboCome">
 <meta property="article:tag" content="消息队列">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gutubka7shj60y60c8tal02.jpg">
   <!-- Canonical links -->
   <link rel="canonical" href="http://example.com/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/index.html">
   
@@ -403,12 +402,7 @@
 
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="2-Kafka-消息队列-基础"><a href="#2-Kafka-消息队列-基础" class="headerlink" title="2.Kafka 消息队列-基础"></a>2.Kafka 消息队列-基础</h2><p>参考：Kafka总结–<a target="_blank" rel="noopener" href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg" alt="64632972-37CD-4F85-BB74-47C31F5ECF35" width="550" height="350"  />
-
-
-
-<p>在Kafka 消息队列中，队列的名字叫 topic;  多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。  </p>
+        <h1 id="Kafka消息队列-基础"><a href="#Kafka消息队列-基础" class="headerlink" title="Kafka消息队列-基础"></a>Kafka消息队列-基础</h1><p>Kafka消息队列中，队列的名字叫 topic; 多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。  </p>
 <p>每个 topic下，可能有多个 partition分区:</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutubka7shj60y60c8tal02.jpg" alt="BCA7225F-6CD7-4997-B720-8C0E97C18FF6" width="650" height="300"  />
 
@@ -418,22 +412,23 @@
 <li>没有指定partition，但设置了数据key，则会根据key的值 hash出一个partition</li>
 <li>没有指定 partition ，也没有指定 key ， 会随机选择一个分区，并尽可能一直使用该分区，待该分区的 batch已满或过了间隔时间，再随机一个分区进行使用</li>
 </ol>
-<p>一台 Kafka服务器叫做 Broker，集群就是多台 Kafka服务器；一个 topic会分为多个partition，实际上 partition 会分布在不同的broker中，实现多机均匀负载。<br>例子：<br>往 topic里边存数据，这些数据会分到不同 partition上，这些 partition存在不同的broker上。<br>如果其中一台 broker挂了，会丢失其中 partition上的数据；但 kafka把这些 partition都做了备份。<br>如：现有三个partition，分别存在三台broker上，每个partition都会备份，这些备份散落在不同的broker上</p>
+<p>一台 Kafka服务器叫做 Broker，集群就是多台 Kafka服务器；一个 topic会分为多个partition，实际上 partition 会分布在不同的broker中，实现多机均匀负载。<br><strong>例子：</strong><br>往 topic里边存数据，这些数据会分到不同 partition上，这些 partition存在不同的broker上。<br>如果其中一台 broker挂了，会丢失其中 partition上的数据；但 kafka把这些 partition都做了备份。<br>如：现有三个partition，分别存在三台broker上，每个partition都会备份，这些备份散落在不同的broker上</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuc5g0cjj619c0oydjc02.jpg" alt="BE9B9937-1DC3-4DE6-ABFA-662EFD27312E" width="650" height="300"  />
 
 <p><strong>红色块的 partition代表的是主分区，紫色的 partition块代表的是备份分区</strong>。<br>生产者，消费者都是与主分区交互；<br>备份分区仅用作于备份不做读写，如果某个Broker挂了，就会选举出其他 Broker的 partition来作为主分区，实现高可用每一个 Partition 其实都是一个文件，收到消息后 Kafka会把数据插入到文件末尾（虚框部分）<br><strong>缺点：</strong>没办法删除数据，所以 Kafka 是不会删除数据的，它会把所有的数据都保留下来，每个消费者对每个 Topic都有一个 offset 用来表示读取到了第几条数据， offset 是由对应的消费者维护，会保存到 Zookeeper 里面。</p>
-<p>为避免磁盘被撑满，Kakfa 提供两种策略来删除数据：<br><strong>1.「基于时间」 （默认七天）；        2.「基于 Partition 文件大小」</strong></p>
+<p>为避免磁盘被撑满，Kakfa 提供两种策略来删除数据：<br>**1.「基于时间」 （默认七天）；        **</p>
+<p><strong>2.「基于 Partition 文件大小」</strong></p>
 <p>​                                       <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutud52gfgj60iu09waac02.jpg" alt="4235AE89-DA4A-43E7-8143-536C5A97C641" width="450" height="300" /></p>
-<p>消息发往一个主题下的某个分区中，例如：某个主题下有 5 个队列，那么这个主题并发度就提高为 5 ，同时可以有 5 个消费者并行消费该主题的消息。<br>消费者都是属于某个消费组的，一条消息会发往多个订阅这个主题的消费组<br>如：两个消费组分别是Group 1 和 Group 2，它们都订阅 Topic-a，此时有一条消息发往 Topic-a，那么这两个消费组都能接收到这条消息。</p>
-<p>这条消息实际是 写入Topic中的某个分区，消费组中的某个消费者对应消费一个 Topic 的某个分区。每个消费组会有自己的 offset（消费点位）来标识消费到的位置， 在消费点位之前表明已经消费过。 这个offset是 分区级别的，每个消费组都会维护订阅的 Topic下的每个分区的offset。<br><strong>kafka并发的粒度是 partition</strong>， 每个 partition对应一个消费者，多个消费者同时进行消费，以此来提高并发量。</p>
-<p><strong>消息轮询：</strong> 消费者 通过轮询 API(poll) 向 服务器定时请求数据，一旦消费者订阅了主题，轮询就会处理群组协调、分区再均衡、发送心跳和获取数据，使得开发者只需要关注从分区返回的数据，然后进行业务处理。</p>
+<p>消息发往一个主题下的某个分区中，例如：某个主题下有 5 个队列，那么这个主题并发度就提高为 5 ，同时可以有 5 个消费者并行消费该主题的消息。<br>消费者都是属于某个消费组的，一条消息会发往多个订阅这个主题的消费组<br>如：两个消费组分别是Group 1 和 Group 2，它们都订阅 Topic-a，此时有一条消息发往 Topic-a，那么这两个消费组都能接收到这条消息。这条消息实际是 写入Topic中的某个分区，消费组中的某个消费者对应消费一个 Topic 的某个分区。每个消费组会有自己的 offset（消费点位）来标识消费到的位置， 在消费点位之前表明已经消费过。 这个offset是 分区级别的，每个消费组都会维护订阅的 Topic下的每个分区的offset。</p>
+<p><strong>kafka并发的粒度是 partition</strong>， 每个 partition对应一个消费者，多个消费者同时进行消费，以此来提高并发量。</p>
+<h3 id="消息轮询："><a href="#消息轮询：" class="headerlink" title="消息轮询："></a><strong>消息轮询：</strong></h3><p>消费者 通过轮询 API(poll) 向 服务器定时请求数据，一旦消费者订阅了主题，轮询就会处理群组协调、分区再均衡、发送心跳和获取数据，使得开发者只需要关注从分区返回的数据，然后进行业务处理。</p>
 <p>Kafka的 Consumer Group 是采用Pull 方式来消费消息，每个Consumer 该消费哪个 Partition 的消息需要一套严格的机制来保证。Partition 可以水平无限扩展，随着 Partition 的扩展 Consumer消费的 Partition也会重新分配，这里涉及到 kafka消息消费分配策略，在 Kafka内部存在两种默认的分区分配策略：Range 和RoundRobin，当以下事件发生时，<strong>Kafka将会进行一次分区分配：</strong><br>1.同一个 Consumer Group内新增消费者<br>2.订阅的主题新增Partition<br>3.消费者离开当前所属的 Group，包括Shuts Down或Crashes</p>
 <p>**副本（Replica）： **为更好的做 负载均衡，Kafka 尽量将所有的 Partition均匀分配到整个集群上。<br><strong>部署方式：</strong>一个 Topic 的Partition数量大于Broker的数量，为提高Kafka的容错能力，需要将同一个 Partition的 Replica尽量分散到不同的机器。实际上，如果所有的 Replica 都在同一个Broker上，那一旦该 Broker宕机，该 Partition的所有 Replica都无法工作，也就达不到 备份的效果。<br>同时，如果某个Broker宕机，需要保证它上面的负载可以被 均匀的分配到其它幸存的所有Broker上。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutudyfq29j60zi0pwgpd02.jpg" alt="8A414154-00B7-4EAB-8025-D0CFAEC15B43" width="650" height="350" />
 
 
 
-<h4 id="持久化："><a href="#持久化：" class="headerlink" title="持久化："></a>持久化：</h4><p>Kafka是将 partition数据写在 磁盘(记录消息日志)，是 <strong>追加写入，避免随机 I&#x2F;O 操作，寻址磁盘效率低</strong>。<br>持久化时，partition会先缓存一部分, 放在page cache中，等到 足够多数据量&#x2F;等待一定的时间 再批量写入(flush)。<br>消费者实际上也是从partition中取数据。</p>
+<h3 id="持久化："><a href="#持久化：" class="headerlink" title="持久化："></a>持久化：</h3><p>Kafka是将 partition数据写在 磁盘(记录消息日志)，是 <strong>追加写入，避免随机 I&#x2F;O 操作，寻址磁盘效率低</strong>。<br>持久化时，partition会先缓存一部分, 放在page cache中，等到 足够多数据量&#x2F;等待一定的时间 再批量写入(flush)。<br>消费者实际上也是从partition中取数据。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuedmg33j61a80nctcs02.jpg" alt="D6797C5D-56AF-4A43-8706-004AEBEE0D7F" width="750" height="400"  />
 
 
@@ -441,30 +436,27 @@
 <p>生产者,消费者 都是可以有多个的，多个消费者可以组成一个消费者组，如果一个消费者消费三个分区，有消费者组就可以 每个消费者去消费一个分区，消费者组中各个消费者并发消费，以此来提高吞吐量。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuepadv8j618a0isdis02.jpg" alt="899EF880-3E09-42EF-9A2A-7599E1DB5DB9" width="750" height="350"  />
 
-<p>​        如果消费者组中的某个消费者挂了，那么其中有一个消费者就要消费两个 partition；如果只有三个partition，而消费者组有4个消费者，那么一个消费者会空闲。消费者组之间从逻辑上是独立的，如果多加入一个消费者组，无论是新增的消费者组还是原本的消费者组，都能消费topic的全部数据；<br>​        生产者往 topic里丢数据是存在partition上，而 partition持久化到磁盘是 IO顺序访问，并且是先写缓存，隔一段时间或者数据量足够大的时候才批量写入磁盘的。正常的读磁盘数据是需要将 内核态数据拷贝到用户态的，Kafka通过零拷贝方式，直接从内核空间（DMA）到内核空间-Socket buffer，少做了一半拷贝操作。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg" alt="E20EAB06-EA82-4014-AA89-8ECFADAE9169" width="750" height="350"  />
+<p>​    如果消费者组中的某个消费者挂了，那么其中有一个消费者就要消费两个 partition；如果只有三个partition，而消费者组有4个消费者，那么一个消费者会空闲。消费者组之间从逻辑上是独立的，如果多加入一个消费者组，无论是新增的消费者组还是原本的消费者组，都能消费topic的全部数据；<br>​    生产者往 topic里丢数据是存在partition上，而 partition持久化到磁盘是 IO顺序访问，并且是先写缓存，隔一段时间或者数据量足够大的时候才批量写入磁盘的。正常的读磁盘数据是需要将 内核态数据拷贝到用户态的，Kafka通过零拷贝方式，直接从内核空间（DMA）到内核空间-Socket buffer，少做了一半拷贝操作。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg" alt="E20EAB06-EA82-4014-AA89-8ECFADAE9169" width="650" height="320"  />
 
-<p>​        offset 表示消费者的消费进度，每个消费者都有自己的 offset; 每次消费者消费的时候，都会提交这个offset<br>一个消费者组中的某个消费者挂了，但其所在分区可能有存活的消费者，存活的消费者继续去消费，但需要知道挂掉的消费者具体消费到了哪里，这里就需要offset</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg" alt="3489FA28-B499-43B6-B4E8-D3C1CD8216FB" width="750" height="400"  />
+<p>​    offset 表示消费者的消费进度，每个消费者都有自己的 offset; 每次消费者消费的时候，都会提交这个offset。<br>一个消费者组中的某个消费者挂了，但其所在分区可能有存活的消费者，存活的消费者继续去消费，但需要知道挂掉的消费者具体消费到了哪里，这里就需要offset。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg" alt="3489FA28-B499-43B6-B4E8-D3C1CD8216FB" width="650" height="380"  />
 
 <p><strong>Kafka 利用二分法来查找对应 offset 的消息位置：</strong></p>
 <ol>
-<li><p>按照二分法找到小于 offset的 segment 的.log 和.index</p>
-</li>
-<li><p>用目标 offset 减去文件名中的 offset得到消息在这个 segment 中的偏移量</p>
-</li>
-<li><p>再次用二分法在 index 文件中找到对应的索引</p>
-</li>
-<li><p>到 log 文件中，顺序查找，直到找到 offset 对应的消息</p>
-</li>
+<li>按照二分法找到小于 offset的 segment 的.log 和.index</li>
+<li>用目标 offset 减去文件名中的 offset得到消息在这个 segment 中的偏移量</li>
+<li>再次用二分法在 index 文件中找到对应的索引</li>
+<li>到 log 文件中，顺序查找，直到找到 offset 对应的消息</li>
 </ol>
 <p><strong>Kafka是分布式：</strong>往一个 topic丢数据实际上就是 往多个 broker的 partition存储数据，将 partition以消息日志的方式存储起来，通过 顺序访问IO和缓存(等到一定的量或时间) 才真正把数据写到磁盘上，以此来做持久化。<br>单个 partition写入是有顺序的，要保证全局有序 只能写入一个partition； 要消费有序则消费者也只能有一个<br>分布式无法避免 网络抖动&#x2F;机器宕机 等问题的发生，很有可能 消费者A读取数据，还没来得及消费就挂了。<br>Zookeeper 发现消费者A挂了，让消费者B 去消费原本A的分区，等消费者A重连的时候，发现已经重复消费同一条数据了(或消费者超时等等都有可能…)<br>如果 业务上 不允许重复消费，最好 消费者那端做业务上的校验（如果已经消费过就不消费了）</p>
-<h4 id="Kafka-和-其他消息队列的区别？"><a href="#Kafka-和-其他消息队列的区别？" class="headerlink" title="Kafka 和 其他消息队列的区别？"></a>Kafka 和 其他消息队列的区别？</h4><p>  Kafka设计目标：高吞吐量</p>
+<h3 id="Kafka-和-其他消息队列的区别？"><a href="#Kafka-和-其他消息队列的区别？" class="headerlink" title="Kafka 和 其他消息队列的区别？"></a>Kafka 和 其他消息队列的区别？</h3><p>  Kafka设计目标：高吞吐量</p>
 <p>1、Kafka操作 序列文件 I &#x2F; O（序列文件 按顺序写，按顺序读），为保证顺序，强制点对点的按顺序传递消息，一个 consumer在分区 中只有一个位置。<br>2、Kafka 不保存消息状态（消息是否被“消费”）一般消息系统需保存消息的状态，并且还需要以随机访问的形式更新消息的状态。<br>而Kafka 保存Consumer在 Topic分区中的位置 offset，offset之前的消息是已“消费”的， offset之后为“未消费”的，offset 可以任意移动，以此消除随机IO。<br>3、Kafka支持 点对点的 批量消息传递<br>4、Kafka 消息存储在 page cache（大小为一页4K ）用于缓存文件的逻辑内容，从而加快对磁盘上映像和数据的访问</p>
-<h4 id="如何保证不丢失消息？"><a href="#如何保证不丢失消息？" class="headerlink" title="如何保证不丢失消息？"></a>如何保证不丢失消息？</h4><p><strong>生产者 ACK机制：</strong><br>Kafka 采用至少一次保证消息不会丢，但可能会重复传输；acks 的默认值即为1，代表消息被 leader 接收之后才算成功发送，可以配置 acks &#x3D; all 代表所有副本都接收到该消息之后，才算真正成功发送。</p>
+<h3 id="如何保证不丢失消息？"><a href="#如何保证不丢失消息？" class="headerlink" title="如何保证不丢失消息？"></a>如何保证不丢失消息？</h3><p><strong>生产者 ACK机制：</strong><br>Kafka 采用至少一次保证消息不会丢，但可能会重复传输；acks 的默认值即为1，代表消息被 leader 接收之后才算成功发送，可以配置 acks &#x3D; all 代表所有副本都接收到该消息之后，才算真正成功发送。</p>
 <p><strong>设置分区：</strong><br>为保证 leader 可以根据follower 同步消息，一般会为 topic设置 replication.factor &gt;&#x3D; 3；这样就可以保证每个分区(partition) 至少有 3个副本，以确保消息队列的安全性；单机情况下，通过持久化到磁盘来保证消息不丢失 。</p>
 <p><strong>发送消息：</strong><br>Kafka 支持在生产者一侧进行 本地 buffer，累积一定条数才发送，如果这里设置不当会丢消息的。<br>生产者端设置：producer.type&#x3D;async, 默认是 sync；当设置为 async，会大幅提升性能，因为生产者会在本地缓冲消息，并适时批量发送； 如果对可靠性要求高，设置为 sync 同步发送  ；一般需要设置：min.insync.replicas&gt; 1 ，消息至少要被 写入到这么多 follower 才算成功，也是提升数据持久性的一个参数，与acks配合使用。但如果出现两者相等，还需要设置 replication.factor &#x3D; min.insync.replicas + 1 ，避免一个副本挂掉，整个分区无法工作的情况！</p>
 <p><strong>消费者端：</strong><br>消息处理完成前提交offset，可能造成数据的丢失， Consumer默认自动提交 offset(位移)，在后台提交位移前一定要保证消息被正常处理。 如果处理耗时很长，建议把逻辑放到另一个线程中去做，异步提交ack 会提高消费者的响应速度，但容易造成消息丢失。为避免消息丢失，设置 enable.auto.commit&#x3D;false，关闭自动提交位移，在消息被完整处理之后再手动提交位移。</p>
+<p>参考：Kafka总结–<a target="_blank" rel="noopener" href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
 
       
       
@@ -472,12 +464,7 @@
       <!-- 修改 -->
       <!-- 
           
-            <h2 id="2-Kafka-消息队列-基础"><a href="#2-Kafka-消息队列-基础" class="headerlink" title="2.Kafka 消息队列-基础"></a>2.Kafka 消息队列-基础</h2><p>参考：Kafka总结–<a target="_blank" rel="noopener" href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg" alt="64632972-37CD-4F85-BB74-47C31F5ECF35" width="550" height="350"  />
-
-
-
-<p>在Kafka 消息队列中，队列的名字叫 topic;  多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。  </p>
+            <h1 id="Kafka消息队列-基础"><a href="#Kafka消息队列-基础" class="headerlink" title="Kafka消息队列-基础"></a>Kafka消息队列-基础</h1><p>Kafka消息队列中，队列的名字叫 topic; 多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。  </p>
 <p>每个 topic下，可能有多个 partition分区:</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutubka7shj60y60c8tal02.jpg" alt="BCA7225F-6CD7-4997-B720-8C0E97C18FF6" width="650" height="300"  />
 
@@ -487,22 +474,23 @@
 <li>没有指定partition，但设置了数据key，则会根据key的值 hash出一个partition</li>
 <li>没有指定 partition ，也没有指定 key ， 会随机选择一个分区，并尽可能一直使用该分区，待该分区的 batch已满或过了间隔时间，再随机一个分区进行使用</li>
 </ol>
-<p>一台 Kafka服务器叫做 Broker，集群就是多台 Kafka服务器；一个 topic会分为多个partition，实际上 partition 会分布在不同的broker中，实现多机均匀负载。<br>例子：<br>往 topic里边存数据，这些数据会分到不同 partition上，这些 partition存在不同的broker上。<br>如果其中一台 broker挂了，会丢失其中 partition上的数据；但 kafka把这些 partition都做了备份。<br>如：现有三个partition，分别存在三台broker上，每个partition都会备份，这些备份散落在不同的broker上</p>
+<p>一台 Kafka服务器叫做 Broker，集群就是多台 Kafka服务器；一个 topic会分为多个partition，实际上 partition 会分布在不同的broker中，实现多机均匀负载。<br><strong>例子：</strong><br>往 topic里边存数据，这些数据会分到不同 partition上，这些 partition存在不同的broker上。<br>如果其中一台 broker挂了，会丢失其中 partition上的数据；但 kafka把这些 partition都做了备份。<br>如：现有三个partition，分别存在三台broker上，每个partition都会备份，这些备份散落在不同的broker上</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuc5g0cjj619c0oydjc02.jpg" alt="BE9B9937-1DC3-4DE6-ABFA-662EFD27312E" width="650" height="300"  />
 
 <p><strong>红色块的 partition代表的是主分区，紫色的 partition块代表的是备份分区</strong>。<br>生产者，消费者都是与主分区交互；<br>备份分区仅用作于备份不做读写，如果某个Broker挂了，就会选举出其他 Broker的 partition来作为主分区，实现高可用每一个 Partition 其实都是一个文件，收到消息后 Kafka会把数据插入到文件末尾（虚框部分）<br><strong>缺点：</strong>没办法删除数据，所以 Kafka 是不会删除数据的，它会把所有的数据都保留下来，每个消费者对每个 Topic都有一个 offset 用来表示读取到了第几条数据， offset 是由对应的消费者维护，会保存到 Zookeeper 里面。</p>
-<p>为避免磁盘被撑满，Kakfa 提供两种策略来删除数据：<br><strong>1.「基于时间」 （默认七天）；        2.「基于 Partition 文件大小」</strong></p>
+<p>为避免磁盘被撑满，Kakfa 提供两种策略来删除数据：<br>**1.「基于时间」 （默认七天）；        **</p>
+<p><strong>2.「基于 Partition 文件大小」</strong></p>
 <p>​                                       <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutud52gfgj60iu09waac02.jpg" alt="4235AE89-DA4A-43E7-8143-536C5A97C641" width="450" height="300" /></p>
-<p>消息发往一个主题下的某个分区中，例如：某个主题下有 5 个队列，那么这个主题并发度就提高为 5 ，同时可以有 5 个消费者并行消费该主题的消息。<br>消费者都是属于某个消费组的，一条消息会发往多个订阅这个主题的消费组<br>如：两个消费组分别是Group 1 和 Group 2，它们都订阅 Topic-a，此时有一条消息发往 Topic-a，那么这两个消费组都能接收到这条消息。</p>
-<p>这条消息实际是 写入Topic中的某个分区，消费组中的某个消费者对应消费一个 Topic 的某个分区。每个消费组会有自己的 offset（消费点位）来标识消费到的位置， 在消费点位之前表明已经消费过。 这个offset是 分区级别的，每个消费组都会维护订阅的 Topic下的每个分区的offset。<br><strong>kafka并发的粒度是 partition</strong>， 每个 partition对应一个消费者，多个消费者同时进行消费，以此来提高并发量。</p>
-<p><strong>消息轮询：</strong> 消费者 通过轮询 API(poll) 向 服务器定时请求数据，一旦消费者订阅了主题，轮询就会处理群组协调、分区再均衡、发送心跳和获取数据，使得开发者只需要关注从分区返回的数据，然后进行业务处理。</p>
+<p>消息发往一个主题下的某个分区中，例如：某个主题下有 5 个队列，那么这个主题并发度就提高为 5 ，同时可以有 5 个消费者并行消费该主题的消息。<br>消费者都是属于某个消费组的，一条消息会发往多个订阅这个主题的消费组<br>如：两个消费组分别是Group 1 和 Group 2，它们都订阅 Topic-a，此时有一条消息发往 Topic-a，那么这两个消费组都能接收到这条消息。这条消息实际是 写入Topic中的某个分区，消费组中的某个消费者对应消费一个 Topic 的某个分区。每个消费组会有自己的 offset（消费点位）来标识消费到的位置， 在消费点位之前表明已经消费过。 这个offset是 分区级别的，每个消费组都会维护订阅的 Topic下的每个分区的offset。</p>
+<p><strong>kafka并发的粒度是 partition</strong>， 每个 partition对应一个消费者，多个消费者同时进行消费，以此来提高并发量。</p>
+<h3 id="消息轮询："><a href="#消息轮询：" class="headerlink" title="消息轮询："></a><strong>消息轮询：</strong></h3><p>消费者 通过轮询 API(poll) 向 服务器定时请求数据，一旦消费者订阅了主题，轮询就会处理群组协调、分区再均衡、发送心跳和获取数据，使得开发者只需要关注从分区返回的数据，然后进行业务处理。</p>
 <p>Kafka的 Consumer Group 是采用Pull 方式来消费消息，每个Consumer 该消费哪个 Partition 的消息需要一套严格的机制来保证。Partition 可以水平无限扩展，随着 Partition 的扩展 Consumer消费的 Partition也会重新分配，这里涉及到 kafka消息消费分配策略，在 Kafka内部存在两种默认的分区分配策略：Range 和RoundRobin，当以下事件发生时，<strong>Kafka将会进行一次分区分配：</strong><br>1.同一个 Consumer Group内新增消费者<br>2.订阅的主题新增Partition<br>3.消费者离开当前所属的 Group，包括Shuts Down或Crashes</p>
 <p>**副本（Replica）： **为更好的做 负载均衡，Kafka 尽量将所有的 Partition均匀分配到整个集群上。<br><strong>部署方式：</strong>一个 Topic 的Partition数量大于Broker的数量，为提高Kafka的容错能力，需要将同一个 Partition的 Replica尽量分散到不同的机器。实际上，如果所有的 Replica 都在同一个Broker上，那一旦该 Broker宕机，该 Partition的所有 Replica都无法工作，也就达不到 备份的效果。<br>同时，如果某个Broker宕机，需要保证它上面的负载可以被 均匀的分配到其它幸存的所有Broker上。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutudyfq29j60zi0pwgpd02.jpg" alt="8A414154-00B7-4EAB-8025-D0CFAEC15B43" width="650" height="350" />
 
 
 
-<h4 id="持久化："><a href="#持久化：" class="headerlink" title="持久化："></a>持久化：</h4><p>Kafka是将 partition数据写在 磁盘(记录消息日志)，是 <strong>追加写入，避免随机 I&#x2F;O 操作，寻址磁盘效率低</strong>。<br>持久化时，partition会先缓存一部分, 放在page cache中，等到 足够多数据量&#x2F;等待一定的时间 再批量写入(flush)。<br>消费者实际上也是从partition中取数据。</p>
+<h3 id="持久化："><a href="#持久化：" class="headerlink" title="持久化："></a>持久化：</h3><p>Kafka是将 partition数据写在 磁盘(记录消息日志)，是 <strong>追加写入，避免随机 I&#x2F;O 操作，寻址磁盘效率低</strong>。<br>持久化时，partition会先缓存一部分, 放在page cache中，等到 足够多数据量&#x2F;等待一定的时间 再批量写入(flush)。<br>消费者实际上也是从partition中取数据。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuedmg33j61a80nctcs02.jpg" alt="D6797C5D-56AF-4A43-8706-004AEBEE0D7F" width="750" height="400"  />
 
 
@@ -510,30 +498,27 @@
 <p>生产者,消费者 都是可以有多个的，多个消费者可以组成一个消费者组，如果一个消费者消费三个分区，有消费者组就可以 每个消费者去消费一个分区，消费者组中各个消费者并发消费，以此来提高吞吐量。</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuepadv8j618a0isdis02.jpg" alt="899EF880-3E09-42EF-9A2A-7599E1DB5DB9" width="750" height="350"  />
 
-<p>​        如果消费者组中的某个消费者挂了，那么其中有一个消费者就要消费两个 partition；如果只有三个partition，而消费者组有4个消费者，那么一个消费者会空闲。消费者组之间从逻辑上是独立的，如果多加入一个消费者组，无论是新增的消费者组还是原本的消费者组，都能消费topic的全部数据；<br>​        生产者往 topic里丢数据是存在partition上，而 partition持久化到磁盘是 IO顺序访问，并且是先写缓存，隔一段时间或者数据量足够大的时候才批量写入磁盘的。正常的读磁盘数据是需要将 内核态数据拷贝到用户态的，Kafka通过零拷贝方式，直接从内核空间（DMA）到内核空间-Socket buffer，少做了一半拷贝操作。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg" alt="E20EAB06-EA82-4014-AA89-8ECFADAE9169" width="750" height="350"  />
+<p>​    如果消费者组中的某个消费者挂了，那么其中有一个消费者就要消费两个 partition；如果只有三个partition，而消费者组有4个消费者，那么一个消费者会空闲。消费者组之间从逻辑上是独立的，如果多加入一个消费者组，无论是新增的消费者组还是原本的消费者组，都能消费topic的全部数据；<br>​    生产者往 topic里丢数据是存在partition上，而 partition持久化到磁盘是 IO顺序访问，并且是先写缓存，隔一段时间或者数据量足够大的时候才批量写入磁盘的。正常的读磁盘数据是需要将 内核态数据拷贝到用户态的，Kafka通过零拷贝方式，直接从内核空间（DMA）到内核空间-Socket buffer，少做了一半拷贝操作。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg" alt="E20EAB06-EA82-4014-AA89-8ECFADAE9169" width="650" height="320"  />
 
-<p>​        offset 表示消费者的消费进度，每个消费者都有自己的 offset; 每次消费者消费的时候，都会提交这个offset<br>一个消费者组中的某个消费者挂了，但其所在分区可能有存活的消费者，存活的消费者继续去消费，但需要知道挂掉的消费者具体消费到了哪里，这里就需要offset</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg" alt="3489FA28-B499-43B6-B4E8-D3C1CD8216FB" width="750" height="400"  />
+<p>​    offset 表示消费者的消费进度，每个消费者都有自己的 offset; 每次消费者消费的时候，都会提交这个offset。<br>一个消费者组中的某个消费者挂了，但其所在分区可能有存活的消费者，存活的消费者继续去消费，但需要知道挂掉的消费者具体消费到了哪里，这里就需要offset。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg" alt="3489FA28-B499-43B6-B4E8-D3C1CD8216FB" width="650" height="380"  />
 
 <p><strong>Kafka 利用二分法来查找对应 offset 的消息位置：</strong></p>
 <ol>
-<li><p>按照二分法找到小于 offset的 segment 的.log 和.index</p>
-</li>
-<li><p>用目标 offset 减去文件名中的 offset得到消息在这个 segment 中的偏移量</p>
-</li>
-<li><p>再次用二分法在 index 文件中找到对应的索引</p>
-</li>
-<li><p>到 log 文件中，顺序查找，直到找到 offset 对应的消息</p>
-</li>
+<li>按照二分法找到小于 offset的 segment 的.log 和.index</li>
+<li>用目标 offset 减去文件名中的 offset得到消息在这个 segment 中的偏移量</li>
+<li>再次用二分法在 index 文件中找到对应的索引</li>
+<li>到 log 文件中，顺序查找，直到找到 offset 对应的消息</li>
 </ol>
 <p><strong>Kafka是分布式：</strong>往一个 topic丢数据实际上就是 往多个 broker的 partition存储数据，将 partition以消息日志的方式存储起来，通过 顺序访问IO和缓存(等到一定的量或时间) 才真正把数据写到磁盘上，以此来做持久化。<br>单个 partition写入是有顺序的，要保证全局有序 只能写入一个partition； 要消费有序则消费者也只能有一个<br>分布式无法避免 网络抖动&#x2F;机器宕机 等问题的发生，很有可能 消费者A读取数据，还没来得及消费就挂了。<br>Zookeeper 发现消费者A挂了，让消费者B 去消费原本A的分区，等消费者A重连的时候，发现已经重复消费同一条数据了(或消费者超时等等都有可能…)<br>如果 业务上 不允许重复消费，最好 消费者那端做业务上的校验（如果已经消费过就不消费了）</p>
-<h4 id="Kafka-和-其他消息队列的区别？"><a href="#Kafka-和-其他消息队列的区别？" class="headerlink" title="Kafka 和 其他消息队列的区别？"></a>Kafka 和 其他消息队列的区别？</h4><p>  Kafka设计目标：高吞吐量</p>
+<h3 id="Kafka-和-其他消息队列的区别？"><a href="#Kafka-和-其他消息队列的区别？" class="headerlink" title="Kafka 和 其他消息队列的区别？"></a>Kafka 和 其他消息队列的区别？</h3><p>  Kafka设计目标：高吞吐量</p>
 <p>1、Kafka操作 序列文件 I &#x2F; O（序列文件 按顺序写，按顺序读），为保证顺序，强制点对点的按顺序传递消息，一个 consumer在分区 中只有一个位置。<br>2、Kafka 不保存消息状态（消息是否被“消费”）一般消息系统需保存消息的状态，并且还需要以随机访问的形式更新消息的状态。<br>而Kafka 保存Consumer在 Topic分区中的位置 offset，offset之前的消息是已“消费”的， offset之后为“未消费”的，offset 可以任意移动，以此消除随机IO。<br>3、Kafka支持 点对点的 批量消息传递<br>4、Kafka 消息存储在 page cache（大小为一页4K ）用于缓存文件的逻辑内容，从而加快对磁盘上映像和数据的访问</p>
-<h4 id="如何保证不丢失消息？"><a href="#如何保证不丢失消息？" class="headerlink" title="如何保证不丢失消息？"></a>如何保证不丢失消息？</h4><p><strong>生产者 ACK机制：</strong><br>Kafka 采用至少一次保证消息不会丢，但可能会重复传输；acks 的默认值即为1，代表消息被 leader 接收之后才算成功发送，可以配置 acks &#x3D; all 代表所有副本都接收到该消息之后，才算真正成功发送。</p>
+<h3 id="如何保证不丢失消息？"><a href="#如何保证不丢失消息？" class="headerlink" title="如何保证不丢失消息？"></a>如何保证不丢失消息？</h3><p><strong>生产者 ACK机制：</strong><br>Kafka 采用至少一次保证消息不会丢，但可能会重复传输；acks 的默认值即为1，代表消息被 leader 接收之后才算成功发送，可以配置 acks &#x3D; all 代表所有副本都接收到该消息之后，才算真正成功发送。</p>
 <p><strong>设置分区：</strong><br>为保证 leader 可以根据follower 同步消息，一般会为 topic设置 replication.factor &gt;&#x3D; 3；这样就可以保证每个分区(partition) 至少有 3个副本，以确保消息队列的安全性；单机情况下，通过持久化到磁盘来保证消息不丢失 。</p>
 <p><strong>发送消息：</strong><br>Kafka 支持在生产者一侧进行 本地 buffer，累积一定条数才发送，如果这里设置不当会丢消息的。<br>生产者端设置：producer.type&#x3D;async, 默认是 sync；当设置为 async，会大幅提升性能，因为生产者会在本地缓冲消息，并适时批量发送； 如果对可靠性要求高，设置为 sync 同步发送  ；一般需要设置：min.insync.replicas&gt; 1 ，消息至少要被 写入到这么多 follower 才算成功，也是提升数据持久性的一个参数，与acks配合使用。但如果出现两者相等，还需要设置 replication.factor &#x3D; min.insync.replicas + 1 ，避免一个副本挂掉，整个分区无法工作的情况！</p>
 <p><strong>消费者端：</strong><br>消息处理完成前提交offset，可能造成数据的丢失， Consumer默认自动提交 offset(位移)，在后台提交位移前一定要保证消息被正常处理。 如果处理耗时很长，建议把逻辑放到另一个线程中去做，异步提交ack 会提高消费者的响应速度，但容易造成消息丢失。为避免消息丢失，设置 enable.auto.commit&#x3D;false，关闭自动提交位移，在消息被完整处理之后再手动提交位移。</p>
+<p>参考：Kafka总结–<a target="_blank" rel="noopener" href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
 
           
         

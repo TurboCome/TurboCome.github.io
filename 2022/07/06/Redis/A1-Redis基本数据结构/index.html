@@ -18,12 +18,12 @@
   
   
   <title>Redis数据结构 | Hexo</title>
-  <meta name="description" content="A1-Redis基本数据结构基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLogString :动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构 SDS 与 C 字符串的区别： C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是">
+  <meta name="description" content="Redis基本数据结构基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLogString :动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构 SDS 与 C 字符串的区别： C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis数据结构">
 <meta property="og:url" content="http://example.com/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
 <meta property="og:site_name" content="TurboCome">
-<meta property="og:description" content="A1-Redis基本数据结构基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLogString :动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构 SDS 与 C 字符串的区别： C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是">
+<meta property="og:description" content="Redis基本数据结构基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLogString :动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构 SDS 与 C 字符串的区别： C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwk020cnij611w0bwdgr02.jpg">
@@ -40,7 +40,7 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwkb4wfj2j610s04kmxq02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guwkbpk601j6156050gmo02.jpg">
 <meta property="article:published_time" content="2022-07-06T13:55:19.000Z">
-<meta property="article:modified_time" content="2022-04-19T06:44:05.870Z">
+<meta property="article:modified_time" content="2022-04-19T12:11:13.748Z">
 <meta property="article:author" content="TurboCome">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -408,7 +408,7 @@
 
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
+        <h1 id="Redis基本数据结构"><a href="#Redis基本数据结构" class="headerlink" title="Redis基本数据结构"></a>Redis基本数据结构</h1><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
 <h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
 
@@ -451,8 +451,8 @@
 <p>每一个节点的层数（level）是随机出来的，而且新插入一个节点并不会影响到其他节点的层数，因此 插入操作只需要 修改节点前后的指针，而不需要对多个节点都进行调整，这就降低插入操作的复杂度。 从刚才创建的这个结构中查找 23 这个不存在的数，查找路径：</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg" alt="54079B05-6914-4965-B95B-FA58520C9192" width="750" height="250" />
 
-<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><p><strong>随机层数：</strong><br>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
-<p><strong>节点更新:</strong><br>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
+<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><h4 id="随机层数："><a href="#随机层数：" class="headerlink" title="随机层数："></a><strong>随机层数：</strong></h4><p>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
+<h4 id="节点更新"><a href="#节点更新" class="headerlink" title="节点更新:"></a><strong>节点更新:</strong></h4><p>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
 <p><strong>元素排名：</strong>跳跃表是有序的， 在 skiplist 的 forward 指针上，为每一个 forward 指针都增加 span 属性，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点 中间会跳过多少个节点<br>在 插入、删除操作时，都会更新 span 值的大小，所以沿着 “搜索路径”把所有经过节点的 跨度 span 值累加 就可以算出当前元素的最终 rank 值。极端情况, 跳跃表中所有 score 值都是一样，zset 的查找性能会退化为 O(n)</p>
 <h3 id="BitMap-位图"><a href="#BitMap-位图" class="headerlink" title="BitMap:  位图"></a>BitMap:  位图</h3><p><strong>应用场景：</strong>对于统计浏览某个网页的 独立访客数量 UV（Unique visitor）的业务场景，考虑使用 BitMap、 布隆过滤器（缓存穿透）  </p>
 <p>Redis 位图是一个 二进制位组成的数组，数组的每个单元只能存储 0和1。 将数组中的每个 二进制位与用户 ID 一一对应， 使用位图去记录每个用户当日是否访问，存储的 1的个数就是UV数量。以 当天的日期加固定的前缀作为key，建立一个Bitmap，每一位二进制的 offset做为一个用户 ID的标识，当今天用户访问时就将Bitmap中标识此用户的二进制（value）从0置为1。最后统计所有bitmap 中 1 的个数，即为独立访客数量。</p>
@@ -475,7 +475,7 @@
 <li>存储空间巨大： 如果数量庞大，则需要用来存储的 set 集合就会非常大，去重功能将耗费较高的时间复杂度 ，影响性能</li>
 <li>统计复杂： 每个场景都需要一个set，对于多个 set 集合，如果要聚合统计一下，也是一个复杂的事情</li>
 </ol>
-<h4 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h4><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
+<h3 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h3><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
 <p>定期没删，也没查询，那可咋整？</p>
 <h4 id="内存淘汰策略："><a href="#内存淘汰策略：" class="headerlink" title="内存淘汰策略："></a>内存淘汰策略：</h4><p>1.noeviction:  永不删除<br>2.allkeys-random:  无过期时间的数据，随机删除一部分<br>3.allkeys-lru: 无过期时间的数据，删除 最近最少使用的（LRU）<br>4.volatile-random:  设置过期时间的数据，随机删除一部分<br>5.volatile-lru: 有过期时间的数据，删除最近最少使用的（LRU）<br>6.volatile-ttl: 有过期时间的数据，删除 剩余时间最短的（TTL）</p>
 <h4 id="缓存穿透："><a href="#缓存穿透：" class="headerlink" title="缓存穿透："></a>缓存穿透：</h4><p>缓存和数据库 中都没有的数据，而用户不断发起请求，导致请求不走缓存，直接访问到数据库，数据库压力过大<br>通常是 请求参数非法导致，(例如 id&#x3D;-1)</p>
@@ -494,7 +494,7 @@
       <!-- 修改 -->
       <!-- 
           
-            <h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
+            <h1 id="Redis基本数据结构"><a href="#Redis基本数据结构" class="headerlink" title="Redis基本数据结构"></a>Redis基本数据结构</h1><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
 <h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
 
@@ -537,8 +537,8 @@
 <p>每一个节点的层数（level）是随机出来的，而且新插入一个节点并不会影响到其他节点的层数，因此 插入操作只需要 修改节点前后的指针，而不需要对多个节点都进行调整，这就降低插入操作的复杂度。 从刚才创建的这个结构中查找 23 这个不存在的数，查找路径：</p>
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg" alt="54079B05-6914-4965-B95B-FA58520C9192" width="750" height="250" />
 
-<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><p><strong>随机层数：</strong><br>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
-<p><strong>节点更新:</strong><br>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
+<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><h4 id="随机层数："><a href="#随机层数：" class="headerlink" title="随机层数："></a><strong>随机层数：</strong></h4><p>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
+<h4 id="节点更新"><a href="#节点更新" class="headerlink" title="节点更新:"></a><strong>节点更新:</strong></h4><p>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
 <p><strong>元素排名：</strong>跳跃表是有序的， 在 skiplist 的 forward 指针上，为每一个 forward 指针都增加 span 属性，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点 中间会跳过多少个节点<br>在 插入、删除操作时，都会更新 span 值的大小，所以沿着 “搜索路径”把所有经过节点的 跨度 span 值累加 就可以算出当前元素的最终 rank 值。极端情况, 跳跃表中所有 score 值都是一样，zset 的查找性能会退化为 O(n)</p>
 <h3 id="BitMap-位图"><a href="#BitMap-位图" class="headerlink" title="BitMap:  位图"></a>BitMap:  位图</h3><p><strong>应用场景：</strong>对于统计浏览某个网页的 独立访客数量 UV（Unique visitor）的业务场景，考虑使用 BitMap、 布隆过滤器（缓存穿透）  </p>
 <p>Redis 位图是一个 二进制位组成的数组，数组的每个单元只能存储 0和1。 将数组中的每个 二进制位与用户 ID 一一对应， 使用位图去记录每个用户当日是否访问，存储的 1的个数就是UV数量。以 当天的日期加固定的前缀作为key，建立一个Bitmap，每一位二进制的 offset做为一个用户 ID的标识，当今天用户访问时就将Bitmap中标识此用户的二进制（value）从0置为1。最后统计所有bitmap 中 1 的个数，即为独立访客数量。</p>
@@ -561,7 +561,7 @@
 <li>存储空间巨大： 如果数量庞大，则需要用来存储的 set 集合就会非常大，去重功能将耗费较高的时间复杂度 ，影响性能</li>
 <li>统计复杂： 每个场景都需要一个set，对于多个 set 集合，如果要聚合统计一下，也是一个复杂的事情</li>
 </ol>
-<h4 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h4><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
+<h3 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h3><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
 <p>定期没删，也没查询，那可咋整？</p>
 <h4 id="内存淘汰策略："><a href="#内存淘汰策略：" class="headerlink" title="内存淘汰策略："></a>内存淘汰策略：</h4><p>1.noeviction:  永不删除<br>2.allkeys-random:  无过期时间的数据，随机删除一部分<br>3.allkeys-lru: 无过期时间的数据，删除 最近最少使用的（LRU）<br>4.volatile-random:  设置过期时间的数据，随机删除一部分<br>5.volatile-lru: 有过期时间的数据，删除最近最少使用的（LRU）<br>6.volatile-ttl: 有过期时间的数据，删除 剩余时间最短的（TTL）</p>
 <h4 id="缓存穿透："><a href="#缓存穿透：" class="headerlink" title="缓存穿透："></a>缓存穿透：</h4><p>缓存和数据库 中都没有的数据，而用户不断发起请求，导致请求不走缓存，直接访问到数据库，数据库压力过大<br>通常是 请求参数非法导致，(例如 id&#x3D;-1)</p>

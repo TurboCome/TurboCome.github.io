@@ -17,21 +17,23 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>MySQL扩展 | Hexo</title>
-  <meta name="description" content="MySQL扩展Mysql 数据库连接池 参数：userpasswordcharacterEncoding  编码方式autoReconnect：    当数据库连接异常中断时，是否自动重新连接？maxReconnects：   autoReconnect设置为true时，重试连接的次数connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时al">
+  <title>联合索引 | Hexo</title>
+  <meta name="description" content="联合索引联合索引使用：12345678select * from t where a&#x3D;1 and b&#x3D;1 and c &#x3D;1;     #利用到定义的索引（a,b,c）,用上a,b,cselect * from t where a&#x3D;1 and b&#x3D;1;              #利用到定义的索引（a,b,c）,用上a,bselect * from t where b&#x3D;1 and a&#x3D;1;   --">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MySQL扩展">
-<meta property="og:url" content="http://example.com/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/index.html">
+<meta property="og:title" content="联合索引">
+<meta property="og:url" content="http://example.com/2022/03/10/Mysql/B3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/index.html">
 <meta property="og:site_name" content="TurboCome">
-<meta property="og:description" content="MySQL扩展Mysql 数据库连接池 参数：userpasswordcharacterEncoding  编码方式autoReconnect：    当数据库连接异常中断时，是否自动重新连接？maxReconnects：   autoReconnect设置为true时，重试连接的次数connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时al">
+<meta property="og:description" content="联合索引联合索引使用：12345678select * from t where a&#x3D;1 and b&#x3D;1 and c &#x3D;1;     #利用到定义的索引（a,b,c）,用上a,b,cselect * from t where a&#x3D;1 and b&#x3D;1;              #利用到定义的索引（a,b,c）,用上a,bselect * from t where b&#x3D;1 and a&#x3D;1;   --">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-03-12T13:55:36.000Z">
-<meta property="article:modified_time" content="2022-04-19T06:44:47.975Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg">
+<meta property="article:published_time" content="2022-03-10T13:55:19.000Z">
+<meta property="article:modified_time" content="2022-04-19T12:09:35.669Z">
 <meta property="article:author" content="TurboCome">
 <meta property="article:tag" content="Mysql">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg">
   <!-- Canonical links -->
-  <link rel="canonical" href="http://example.com/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/index.html">
+  <link rel="canonical" href="http://example.com/2022/03/10/Mysql/B3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/index.html">
   
     <link rel="alternate" href="/atom.xml" title="TurboCome" type="application/atom+xml">
   
@@ -345,14 +347,14 @@
   
 <main class="main" role="main">
   <div class="content">
-  <article id="post-Mysql/A5-Mysql扩展" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-Mysql/B3-联合索引" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      MySQL扩展
+      联合索引
     </h1>
   
 
@@ -360,8 +362,8 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/" class="article-date">
-	  <time datetime="2022-03-12T13:55:36.000Z" itemprop="datePublished">2022-03-12</time>
+	<a href="/2022/03/10/Mysql/B3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/" class="article-date">
+	  <time datetime="2022-03-10T13:55:19.000Z" itemprop="datePublished">2022-03-10</time>
 	</a>
 </span>
         
@@ -386,21 +388,42 @@
 	</span>
 
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/#comments" class="article-comment-link">评论</a></span>
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2022/03/10/Mysql/B3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
 
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="MySQL扩展"><a href="#MySQL扩展" class="headerlink" title="MySQL扩展"></a>MySQL扩展</h2><h4 id="Mysql-数据库连接池-参数："><a href="#Mysql-数据库连接池-参数：" class="headerlink" title="Mysql 数据库连接池 参数："></a>Mysql 数据库连接池 参数：</h4><p>user<br>password<br>characterEncoding  编码方式<br>autoReconnect：    当数据库连接异常中断时，是否自动重新连接？<br>maxReconnects：   autoReconnect设置为true时，重试连接的次数<br>connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时<br>allowMultiQueries： mysql驱动开启批量执行sql的开关</p>
-<h4 id="Mysql-的参数："><a href="#Mysql-的参数：" class="headerlink" title="Mysql 的参数："></a>Mysql 的参数：</h4><p>max_connections&#x3D;3000:  MySql的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量<br>default-storage-engine:   MySQL的 默认存储引擎 </p>
-<p>innodb_buffer_pool_size:  (默认128M) 存储页面缓存数据<br>innodb_change_buffer_max_size： changeBuffer缓存区,修改记录的<br>read_rnd_buffer_size : 随机读缓冲区大小  MRR 做随机IO时使用，这里会对主键进行排序<br>read_buffer_size : 读入缓冲区大小。对表进行 顺序扫描的请求将分配一个读入缓冲区<br>innodb_log_buffer_size :  事务日志所使用的缓冲区； redo_log日志需要先缓存，再刷盘</p>
-<p>wait_timeout&#x3D;1800:  MySQL连接闲置 超过一定时间后将会被强行关闭<br>back_log&#x3D;500  : 连接数据达到 max_connections时，新来请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即back_log<br>max_user_connections ： 同一个账号能够同时连接到mysql服务的最大连接数。设置为0表示不限制</p>
-<h4 id="MySQL-主机宕机后，如何恢复？"><a href="#MySQL-主机宕机后，如何恢复？" class="headerlink" title="MySQL 主机宕机后，如何恢复？"></a>MySQL 主机宕机后，如何恢复？</h4><p>主库宕机：<br>1.确保所有从节点 relay log 全部更新完毕； 在每个从库上执行 show processlist 查看<br>2.登录所有 从节点，查看 master.info文件， 找 最大的  pos 节点作为新主库，数据最全<br>3.登录 pos 最大从节点，执行 stop slave;   删 relay-log.info 等从相关文件； 开启 bin-log 来记录sql 日志； 执行 reset master<br>4.创建用于 同步的用户并授权slave<br>5.登录其他从节点 ，执行 stop slave停止同步，再 执行 start slave ；<br>6.测试 新master 和 slave 数据是 否同步</p>
-<h4 id="从库宕机："><a href="#从库宕机：" class="headerlink" title="从库宕机："></a>从库宕机：</h4><p>1)查看 从库上 mysql 的错误日志，里面有记录 主从挂掉时的binlog信息<br>2)有了 binlog和postion信息后，只需要 重新在 从库上进行change master to配置； 配置后开启slave 状态，没有报错<br>3)查看 slave状态，发现slave已经正常了，开始进行 延时数据恢复 </p>
-<h4 id="MHA-多节点集群："><a href="#MHA-多节点集群：" class="headerlink" title="MHA+多节点集群："></a>MHA+多节点集群：</h4><p>MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master，整个故障转移过程对应用程序完全透明。<br>1）service mysql stop (关闭主库)<br>2）备库自动提升为主，IP地址同时漂移至备机<br>3）从库自动同步备库<br>修复原主库，将角色变为备，连接至现主库，三台主从又恢复了正常，重新建立MHA</p>
-<h4 id="redo-log-与-binlog-区别："><a href="#redo-log-与-binlog-区别：" class="headerlink" title="redo log 与 binlog 区别："></a>redo log 与 binlog 区别：</h4><p>1）作用不同：<br>redo log是用于保证MySQL宕机也不会影响持久性；<br>binlog是用于 保证服务器可以 基于时间点恢复数据，此外 binlog还用于主从复制。<br>2）层次不同：<br>redo log是 InnoDB存储引擎实现的；<br>binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎。<br>3）内容不同：<br>redo log 是物理日志，内容基于磁盘的Page；<br>binlog 内容是二进制的，根据binlog_format参数的不同，可能基于 sql语句，基于数据本身或者二者的混合。<br>4）写入时机不同：<br>binlog在事务提交时写入；<br>redo log 写入时机相对多元：<br>** 当事务提交时会调用 fsync对redo log进行刷盘；这是默认情况下的策略，修改innodb_flush_log_at_trx_commit参数可以改变该策略，但事务的持久性将无法保证。<br>** 除事务提交时，还有其他刷盘时机：如master thread每秒刷盘一次redo log等，这样好处是不一定要等到commit时刷盘，commit速度加快。</p>
+        <h1 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h1><h3 id="联合索引使用："><a href="#联合索引使用：" class="headerlink" title="联合索引使用："></a>联合索引使用：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and b=1 and c =1;     #利用到定义的索引（a,b,c）,用上a,b,c</span><br><span class="line">select * from t where a=1 and b=1;              #利用到定义的索引（a,b,c）,用上a,b</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and a=1;   -- 利用到定义的索引（a,b,c）,用上a,b（mysql有查询优化器）</span><br><span class="line">select * from t where a=1;           -- 可以利用到定义的索引（a,b,c）,用上a</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and c=1;    -- 不可以利用到定义的索引（a,b,c）； 最左 a 不匹配</span><br><span class="line">select * from t where a=1 and c=1;    -- 利用到定义的索引（a,b,c），但只用上a索引，b,c索引用不到</span><br></pre></td></tr></table></figure>
+
+<p>通过最左匹配原则你可以定义一个联合索引，但是使得多中查询条件都可以用到该索引。<br>值得注意的是，当遇到范围查询( &gt;、&lt;、between、like )就会停止匹配</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and b&gt;1 and c =1;  -- 这样a,b可以用到（a,b,c），c索引用不到 </span><br></pre></td></tr></table></figure>
+
+<p>但是如果是建立 (a,c,b)联合索引，则 a,b,c都可以使用索引，因为优化器会自动改写为最优查询语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and b &gt;1 and c=1; -- 如果是建立(a,c,b)联合索引，则a,b,c都可以使用索引</span><br></pre></td></tr></table></figure>
+
+<h4 id="优化器改写为："><a href="#优化器改写为：" class="headerlink" title="优化器改写为："></a>优化器改写为：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and c=1 and b &gt;1;  </span><br></pre></td></tr></table></figure>
+
+<p>最左匹配原则，索引index1:(a,b,c)，只会走a、a,b、a,b,c 三种类型的查询； 注意：a,c也走，但是只走a字段索引，不会走c字段。<br>特殊情况说明： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from table where a = &#x27;1&#x27; and b &gt; ‘2’ and c=&#x27;3&#x27;; -- 这种类型只会有 a与b走索引，c不会走</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以index （a,b,c）为例建立这样的索引相当于建立了索引a、ab、abc三个索引。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg" alt="236D41B5-19F2-4ADE-B133-7CCA5383265C" width="650" height="450" />
+
+<p>​    该图就是一个形如 (a,b,c) 联合索引的 b+ 树，其中的非叶子节点存储的是第一个关键字的索引 a，而叶子节点存储的是三个关键字的数据。这里可以看出 a 是有序的，而 b，c 都是无序的。但是当在 a 相同的时候，b 是有序的，b 相同的时候，c 又是有序的。最左匹配原则中如果遇到范围查询就会停止, </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=5 and b&gt;0 and c =1;   -- 这样a,b可以用到（a,b,c），c不可以</span><br></pre></td></tr></table></figure>
+
+<p>例子: 当查询到 b 的值以后（这是一个范围值），c 是无序的, 所以就不能根据联合索引来确定应该取哪一行。</p>
+<p>在 InnoDB 中联合索引只有先确定前一个（左侧的值）后，才能确定下一个值。如果有范围查询的话，那么联合索引中使用范围查询的字段后的索引在该条 SQL 中都不会起作用。</p>
+<p>值得注意的是，in 和 &#x3D;  都可以乱序，比如有索引（a,b,c），语句:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select * from t where c =1 and a=1 and b=1，</span><br><span class="line">这样的语句也可以用到最左匹配，因为 MySQL 中有一个优化器，他会分析 SQL 语句，将其优化成索引可以匹配的形式，即：</span><br><span class="line">select * from t where a =1 and a=1 and c=1 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="为什么要使用联合索引"><a href="#为什么要使用联合索引" class="headerlink" title="为什么要使用联合索引:"></a>为什么要使用联合索引:</h4><p><strong>1.减少开销：</strong> 建一个联合索引(col1,col2,col3)，实际相当于建 (col1),(col1,col2),(col1,col2,col3)三个索引,每多一个索引，都会增加写操作的开销和磁盘空间的开销。对于大量数据的表，使用联合索引会大大的减少开销！<br><strong>2.覆盖索引：</strong> 对联合索引(col1,col2,col3)，如果有如下的sql: select col1,col2,col3 from test where col1&#x3D;1 and col2&#x3D;2。那么MySQL可以直接通过遍历索引取得数据，而无需回表，这减少了很多的随机io操作，覆盖索引是主要的提升性能的优化手段之一。<br><strong>3.效率高：</strong> 索引列越多，通过索引筛选出的数据越少。有1000W条数据的表，有如下sql:select from table where col1&#x3D;1 and col2&#x3D;2 and col3&#x3D;3, 假设每个条件可以筛选出10%的数据，如果只有单值索引，那么通过该索引能筛选出1000W10%&#x3D;100w条数据，然后再回表从 100w条数据中找到符合col2&#x3D;2 and col3&#x3D; 3的数据，然后再排序，再分页；如果是联合索引，通过索引筛选出1000w10% 10% *10%&#x3D;1w，效率明显提升.</p>
 
       
       
@@ -408,14 +431,35 @@
       <!-- 修改 -->
       <!-- 
           
-            <h2 id="MySQL扩展"><a href="#MySQL扩展" class="headerlink" title="MySQL扩展"></a>MySQL扩展</h2><h4 id="Mysql-数据库连接池-参数："><a href="#Mysql-数据库连接池-参数：" class="headerlink" title="Mysql 数据库连接池 参数："></a>Mysql 数据库连接池 参数：</h4><p>user<br>password<br>characterEncoding  编码方式<br>autoReconnect：    当数据库连接异常中断时，是否自动重新连接？<br>maxReconnects：   autoReconnect设置为true时，重试连接的次数<br>connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时<br>allowMultiQueries： mysql驱动开启批量执行sql的开关</p>
-<h4 id="Mysql-的参数："><a href="#Mysql-的参数：" class="headerlink" title="Mysql 的参数："></a>Mysql 的参数：</h4><p>max_connections&#x3D;3000:  MySql的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量<br>default-storage-engine:   MySQL的 默认存储引擎 </p>
-<p>innodb_buffer_pool_size:  (默认128M) 存储页面缓存数据<br>innodb_change_buffer_max_size： changeBuffer缓存区,修改记录的<br>read_rnd_buffer_size : 随机读缓冲区大小  MRR 做随机IO时使用，这里会对主键进行排序<br>read_buffer_size : 读入缓冲区大小。对表进行 顺序扫描的请求将分配一个读入缓冲区<br>innodb_log_buffer_size :  事务日志所使用的缓冲区； redo_log日志需要先缓存，再刷盘</p>
-<p>wait_timeout&#x3D;1800:  MySQL连接闲置 超过一定时间后将会被强行关闭<br>back_log&#x3D;500  : 连接数据达到 max_connections时，新来请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即back_log<br>max_user_connections ： 同一个账号能够同时连接到mysql服务的最大连接数。设置为0表示不限制</p>
-<h4 id="MySQL-主机宕机后，如何恢复？"><a href="#MySQL-主机宕机后，如何恢复？" class="headerlink" title="MySQL 主机宕机后，如何恢复？"></a>MySQL 主机宕机后，如何恢复？</h4><p>主库宕机：<br>1.确保所有从节点 relay log 全部更新完毕； 在每个从库上执行 show processlist 查看<br>2.登录所有 从节点，查看 master.info文件， 找 最大的  pos 节点作为新主库，数据最全<br>3.登录 pos 最大从节点，执行 stop slave;   删 relay-log.info 等从相关文件； 开启 bin-log 来记录sql 日志； 执行 reset master<br>4.创建用于 同步的用户并授权slave<br>5.登录其他从节点 ，执行 stop slave停止同步，再 执行 start slave ；<br>6.测试 新master 和 slave 数据是 否同步</p>
-<h4 id="从库宕机："><a href="#从库宕机：" class="headerlink" title="从库宕机："></a>从库宕机：</h4><p>1)查看 从库上 mysql 的错误日志，里面有记录 主从挂掉时的binlog信息<br>2)有了 binlog和postion信息后，只需要 重新在 从库上进行change master to配置； 配置后开启slave 状态，没有报错<br>3)查看 slave状态，发现slave已经正常了，开始进行 延时数据恢复 </p>
-<h4 id="MHA-多节点集群："><a href="#MHA-多节点集群：" class="headerlink" title="MHA+多节点集群："></a>MHA+多节点集群：</h4><p>MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master，整个故障转移过程对应用程序完全透明。<br>1）service mysql stop (关闭主库)<br>2）备库自动提升为主，IP地址同时漂移至备机<br>3）从库自动同步备库<br>修复原主库，将角色变为备，连接至现主库，三台主从又恢复了正常，重新建立MHA</p>
-<h4 id="redo-log-与-binlog-区别："><a href="#redo-log-与-binlog-区别：" class="headerlink" title="redo log 与 binlog 区别："></a>redo log 与 binlog 区别：</h4><p>1）作用不同：<br>redo log是用于保证MySQL宕机也不会影响持久性；<br>binlog是用于 保证服务器可以 基于时间点恢复数据，此外 binlog还用于主从复制。<br>2）层次不同：<br>redo log是 InnoDB存储引擎实现的；<br>binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎。<br>3）内容不同：<br>redo log 是物理日志，内容基于磁盘的Page；<br>binlog 内容是二进制的，根据binlog_format参数的不同，可能基于 sql语句，基于数据本身或者二者的混合。<br>4）写入时机不同：<br>binlog在事务提交时写入；<br>redo log 写入时机相对多元：<br>** 当事务提交时会调用 fsync对redo log进行刷盘；这是默认情况下的策略，修改innodb_flush_log_at_trx_commit参数可以改变该策略，但事务的持久性将无法保证。<br>** 除事务提交时，还有其他刷盘时机：如master thread每秒刷盘一次redo log等，这样好处是不一定要等到commit时刷盘，commit速度加快。</p>
+            <h1 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h1><h3 id="联合索引使用："><a href="#联合索引使用：" class="headerlink" title="联合索引使用："></a>联合索引使用：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and b=1 and c =1;     #利用到定义的索引（a,b,c）,用上a,b,c</span><br><span class="line">select * from t where a=1 and b=1;              #利用到定义的索引（a,b,c）,用上a,b</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and a=1;   -- 利用到定义的索引（a,b,c）,用上a,b（mysql有查询优化器）</span><br><span class="line">select * from t where a=1;           -- 可以利用到定义的索引（a,b,c）,用上a</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and c=1;    -- 不可以利用到定义的索引（a,b,c）； 最左 a 不匹配</span><br><span class="line">select * from t where a=1 and c=1;    -- 利用到定义的索引（a,b,c），但只用上a索引，b,c索引用不到</span><br></pre></td></tr></table></figure>
+
+<p>通过最左匹配原则你可以定义一个联合索引，但是使得多中查询条件都可以用到该索引。<br>值得注意的是，当遇到范围查询( &gt;、&lt;、between、like )就会停止匹配</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and b&gt;1 and c =1;  -- 这样a,b可以用到（a,b,c），c索引用不到 </span><br></pre></td></tr></table></figure>
+
+<p>但是如果是建立 (a,c,b)联合索引，则 a,b,c都可以使用索引，因为优化器会自动改写为最优查询语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and b &gt;1 and c=1; -- 如果是建立(a,c,b)联合索引，则a,b,c都可以使用索引</span><br></pre></td></tr></table></figure>
+
+<h4 id="优化器改写为："><a href="#优化器改写为：" class="headerlink" title="优化器改写为："></a>优化器改写为：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=1 and c=1 and b &gt;1;  </span><br></pre></td></tr></table></figure>
+
+<p>最左匹配原则，索引index1:(a,b,c)，只会走a、a,b、a,b,c 三种类型的查询； 注意：a,c也走，但是只走a字段索引，不会走c字段。<br>特殊情况说明： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from table where a = &#x27;1&#x27; and b &gt; ‘2’ and c=&#x27;3&#x27;; -- 这种类型只会有 a与b走索引，c不会走</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以index （a,b,c）为例建立这样的索引相当于建立了索引a、ab、abc三个索引。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg" alt="236D41B5-19F2-4ADE-B133-7CCA5383265C" width="650" height="450" />
+
+<p>​    该图就是一个形如 (a,b,c) 联合索引的 b+ 树，其中的非叶子节点存储的是第一个关键字的索引 a，而叶子节点存储的是三个关键字的数据。这里可以看出 a 是有序的，而 b，c 都是无序的。但是当在 a 相同的时候，b 是有序的，b 相同的时候，c 又是有序的。最左匹配原则中如果遇到范围查询就会停止, </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from t where a=5 and b&gt;0 and c =1;   -- 这样a,b可以用到（a,b,c），c不可以</span><br></pre></td></tr></table></figure>
+
+<p>例子: 当查询到 b 的值以后（这是一个范围值），c 是无序的, 所以就不能根据联合索引来确定应该取哪一行。</p>
+<p>在 InnoDB 中联合索引只有先确定前一个（左侧的值）后，才能确定下一个值。如果有范围查询的话，那么联合索引中使用范围查询的字段后的索引在该条 SQL 中都不会起作用。</p>
+<p>值得注意的是，in 和 &#x3D;  都可以乱序，比如有索引（a,b,c），语句:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select * from t where c =1 and a=1 and b=1，</span><br><span class="line">这样的语句也可以用到最左匹配，因为 MySQL 中有一个优化器，他会分析 SQL 语句，将其优化成索引可以匹配的形式，即：</span><br><span class="line">select * from t where a =1 and a=1 and c=1 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="为什么要使用联合索引"><a href="#为什么要使用联合索引" class="headerlink" title="为什么要使用联合索引:"></a>为什么要使用联合索引:</h4><p><strong>1.减少开销：</strong> 建一个联合索引(col1,col2,col3)，实际相当于建 (col1),(col1,col2),(col1,col2,col3)三个索引,每多一个索引，都会增加写操作的开销和磁盘空间的开销。对于大量数据的表，使用联合索引会大大的减少开销！<br><strong>2.覆盖索引：</strong> 对联合索引(col1,col2,col3)，如果有如下的sql: select col1,col2,col3 from test where col1&#x3D;1 and col2&#x3D;2。那么MySQL可以直接通过遍历索引取得数据，而无需回表，这减少了很多的随机io操作，覆盖索引是主要的提升性能的优化手段之一。<br><strong>3.效率高：</strong> 索引列越多，通过索引筛选出的数据越少。有1000W条数据的表，有如下sql:select from table where col1&#x3D;1 and col2&#x3D;2 and col3&#x3D;3, 假设每个条件可以筛选出10%的数据，如果只有单值索引，那么通过该索引能筛选出1000W10%&#x3D;100w条数据，然后再回表从 100w条数据中找到符合col2&#x3D;2 and col3&#x3D; 3的数据，然后再排序，再分页；如果是联合索引，通过索引筛选出1000w10% 10% *10%&#x3D;1w，效率明显提升.</p>
 
           
         
@@ -428,7 +472,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="http://example.com/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/" title="MySQL扩展" target="_blank" rel="external">http://example.com/2022/03/12/Mysql/A5-Mysql扩展/</a>
+      <a href="http://example.com/2022/03/10/Mysql/B3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/" title="联合索引" target="_blank" rel="external">http://example.com/2022/03/10/Mysql/B3-联合索引/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -475,12 +519,12 @@
   <ul class="pager pull-left">
     
     <li class="prev">
-      <a href="/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/" title="SQL语法"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+      <a href="/2022/03/11/Mysql/A3-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" title="数据库隔离级别"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
     </li>
     
     
     <li class="next">
-      <a href="/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" title="数据库隔离级别"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/" title="Mysql:原理-优化"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     

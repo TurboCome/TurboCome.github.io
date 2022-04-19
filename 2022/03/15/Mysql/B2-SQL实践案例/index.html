@@ -18,17 +18,17 @@
   
   
   <title>SQL实践案例 | Hexo</title>
-  <meta name="description" content="SQL实践案例查寻每个省份中，金额排 前三的数据            123456789# a.province &#x3D; b.province 表示分组，里外统一省份# b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数# 先确定 外部金额，在从内部金额中找到满足条件的数量select * from city_order as a where 3 &gt; (">
+  <meta name="description" content="SQL实践案例查寻每个省份中，金额排 前三的数据            12345678# a.province &#x3D; b.province 表示分组，里外统一省份# b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数# 先确定 外部金额，在从内部金额中找到满足条件的数量select * from city_order as a where 3 &gt; ( s">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SQL实践案例">
 <meta property="og:url" content="http://example.com/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/index.html">
 <meta property="og:site_name" content="TurboCome">
-<meta property="og:description" content="SQL实践案例查寻每个省份中，金额排 前三的数据            123456789# a.province &#x3D; b.province 表示分组，里外统一省份# b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数# 先确定 外部金额，在从内部金额中找到满足条件的数量select * from city_order as a where 3 &gt; (">
+<meta property="og:description" content="SQL实践案例查寻每个省份中，金额排 前三的数据            12345678# a.province &#x3D; b.province 表示分组，里外统一省份# b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数# 先确定 外部金额，在从内部金额中找到满足条件的数量select * from city_order as a where 3 &gt; ( s">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryq33sqkj60q00g0mys02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1guryq7vz98j60pe08swfa02.jpg">
 <meta property="article:published_time" content="2022-03-15T13:55:19.000Z">
-<meta property="article:modified_time" content="2022-04-19T06:45:03.571Z">
+<meta property="article:modified_time" content="2022-04-19T12:09:19.436Z">
 <meta property="article:author" content="TurboCome">
 <meta property="article:tag" content="Mysql">
 <meta name="twitter:card" content="summary">
@@ -396,9 +396,11 @@
 
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="SQL实践案例"><a href="#SQL实践案例" class="headerlink" title="SQL实践案例"></a>SQL实践案例</h2><p>查寻每个省份中，金额排 前三的数据</p>
+        <h1 id="SQL实践案例"><a href="#SQL实践案例" class="headerlink" title="SQL实践案例"></a>SQL实践案例</h1><p>查寻每个省份中，金额排 前三的数据</p>
 <p><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryq33sqkj60q00g0mys02.jpg" alt="779BB0D3-D123-45C3-9705-FBE5B65973CA" width="350" height="200" />          <img src="https://tva1.sinaimg.cn/large/008i3skNly1guryq7vz98j60pe08swfa02.jpg" alt="A8F514AE-FB66-4027-B813-4FA44385AE55" width="350" height="150" /></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># a.province = b.province 表示分组，里外统一省份</span><br><span class="line"># b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数</span><br><span class="line"># 先确定 外部金额，在从内部金额中找到满足条件的数量</span><br><span class="line"></span><br><span class="line">select * </span><br><span class="line">from city_order as a </span><br><span class="line">where 3 &gt; ( select count(*) from city_order as b </span><br><span class="line">            where a.province=b.province and a.amount&lt; b.amount );</span><br><span class="line">ORDER BY amount desc;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># a.province = b.province 表示分组，里外统一省份</span><br><span class="line"># b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数</span><br><span class="line"># 先确定 外部金额，在从内部金额中找到满足条件的数量</span><br><span class="line">select * </span><br><span class="line">from city_order as a </span><br><span class="line">where 3 &gt; ( select count(*) from city_order as b </span><br><span class="line">            where a.province=b.province and a.amount&lt; b.amount );</span><br><span class="line">ORDER BY amount desc;</span><br></pre></td></tr></table></figure>
+
+
 
 <p>使用group by 分组统计之后，select 后面只能跟：  group by 的字段、聚合函数</p>
 <p>select 中的非多行函数列，都必须出现在group by 中,在group by 中的列，可以出现或不出现在 select 字句中:</p>
@@ -412,9 +414,14 @@
 <p>不适用 order by ， 实现在 salaries 表 中找 第二大 的员工信息：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select b.emp_no, max(b.salary),  a.last_name, a.first_name</span><br><span class="line">from  employees a,  salaries b  on a.emp_no = b.emp_no</span><br><span class="line">where b.salary &lt; (select max(bb.salary) from salaries bb);</span><br></pre></td></tr></table></figure>
 
-<p><strong>知识点：</strong><br>在 from 后边写 连接 left join,  right join ,  inner join;   通过 on  连接2个表的相连字段</p>
-<p>对所有员工的 薪水按照 salary降序进行 1-N的排名，要求相同 salary并列且按照 emp_no升序排列：</p>
+<p><strong>知识点：</strong><br>在 from 后边写 连接 left join,  right join ,  inner join;   通过 on  连接2个表的相连字段。<br>对所有员工的 薪水按照 salary降序进行 1-N的排名，要求相同 salary并列且按照 emp_no升序排列：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select emp_no, salary, </span><br><span class="line">    (select  count(distinct salary) from salaries s2  where s1.salary&lt;=s2.salary )</span><br><span class="line">from salaries s1</span><br><span class="line">order by salary Desc, emp_no Asc;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
 
 
       
@@ -423,9 +430,11 @@
       <!-- 修改 -->
       <!-- 
           
-            <h2 id="SQL实践案例"><a href="#SQL实践案例" class="headerlink" title="SQL实践案例"></a>SQL实践案例</h2><p>查寻每个省份中，金额排 前三的数据</p>
+            <h1 id="SQL实践案例"><a href="#SQL实践案例" class="headerlink" title="SQL实践案例"></a>SQL实践案例</h1><p>查寻每个省份中，金额排 前三的数据</p>
 <p><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryq33sqkj60q00g0mys02.jpg" alt="779BB0D3-D123-45C3-9705-FBE5B65973CA" width="350" height="200" />          <img src="https://tva1.sinaimg.cn/large/008i3skNly1guryq7vz98j60pe08swfa02.jpg" alt="A8F514AE-FB66-4027-B813-4FA44385AE55" width="350" height="150" /></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># a.province = b.province 表示分组，里外统一省份</span><br><span class="line"># b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数</span><br><span class="line"># 先确定 外部金额，在从内部金额中找到满足条件的数量</span><br><span class="line"></span><br><span class="line">select * </span><br><span class="line">from city_order as a </span><br><span class="line">where 3 &gt; ( select count(*) from city_order as b </span><br><span class="line">            where a.province=b.province and a.amount&lt; b.amount );</span><br><span class="line">ORDER BY amount desc;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># a.province = b.province 表示分组，里外统一省份</span><br><span class="line"># b.amount &gt; a.amount 表示 内部金额 &gt; 外部金额的 条数</span><br><span class="line"># 先确定 外部金额，在从内部金额中找到满足条件的数量</span><br><span class="line">select * </span><br><span class="line">from city_order as a </span><br><span class="line">where 3 &gt; ( select count(*) from city_order as b </span><br><span class="line">            where a.province=b.province and a.amount&lt; b.amount );</span><br><span class="line">ORDER BY amount desc;</span><br></pre></td></tr></table></figure>
+
+
 
 <p>使用group by 分组统计之后，select 后面只能跟：  group by 的字段、聚合函数</p>
 <p>select 中的非多行函数列，都必须出现在group by 中,在group by 中的列，可以出现或不出现在 select 字句中:</p>
@@ -439,9 +448,14 @@
 <p>不适用 order by ， 实现在 salaries 表 中找 第二大 的员工信息：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select b.emp_no, max(b.salary),  a.last_name, a.first_name</span><br><span class="line">from  employees a,  salaries b  on a.emp_no = b.emp_no</span><br><span class="line">where b.salary &lt; (select max(bb.salary) from salaries bb);</span><br></pre></td></tr></table></figure>
 
-<p><strong>知识点：</strong><br>在 from 后边写 连接 left join,  right join ,  inner join;   通过 on  连接2个表的相连字段</p>
-<p>对所有员工的 薪水按照 salary降序进行 1-N的排名，要求相同 salary并列且按照 emp_no升序排列：</p>
+<p><strong>知识点：</strong><br>在 from 后边写 连接 left join,  right join ,  inner join;   通过 on  连接2个表的相连字段。<br>对所有员工的 薪水按照 salary降序进行 1-N的排名，要求相同 salary并列且按照 emp_no升序排列：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select emp_no, salary, </span><br><span class="line">    (select  count(distinct salary) from salaries s2  where s1.salary&lt;=s2.salary )</span><br><span class="line">from salaries s1</span><br><span class="line">order by salary Desc, emp_no Asc;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
 
 
           
@@ -502,7 +516,7 @@
   <ul class="pager pull-left">
     
     <li class="prev">
-      <a href="/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/" title="计算机网络概述"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+      <a href="/2022/04/08/%E7%BD%91%E7%BB%9C/1.%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/" title="计算机网络概述"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
     </li>
     
     
