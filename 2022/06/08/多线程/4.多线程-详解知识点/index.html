@@ -27,7 +27,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gursjuuz12j60ha08yjsg02.jpg">
 <meta property="article:published_time" content="2022-06-08T13:55:19.000Z">
-<meta property="article:modified_time" content="2022-04-19T06:43:43.408Z">
+<meta property="article:modified_time" content="2022-04-19T07:37:17.608Z">
 <meta property="article:author" content="TurboCome">
 <meta property="article:tag" content="多线程">
 <meta name="twitter:card" content="summary">
@@ -395,7 +395,7 @@
 
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="多线程-详解知识点"><a href="#多线程-详解知识点" class="headerlink" title="多线程-详解知识点"></a>多线程-详解知识点</h2><h4 id="1-线程"><a href="#1-线程" class="headerlink" title="1. 线程:"></a><strong>1. 线程:</strong></h4><p>是 CPU 进行 运算调度的最⼩基本单位，包含在进程之中，没有 独立的资源，共享其进程中的资源，每个线程都有 自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小，系统不会为线程分配内存.</p>
+        <h1 id="多线程-详解知识点"><a href="#多线程-详解知识点" class="headerlink" title="多线程-详解知识点"></a>多线程-详解知识点</h1><h4 id="1-线程"><a href="#1-线程" class="headerlink" title="1. 线程:"></a><strong>1. 线程:</strong></h4><p>是 CPU 进行 运算调度的最⼩基本单位，包含在进程之中，没有 独立的资源，共享其进程中的资源，每个线程都有 自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小，系统不会为线程分配内存.</p>
 <h4 id="2-线程安全和线程不安全？"><a href="#2-线程安全和线程不安全？" class="headerlink" title="2.  线程安全和线程不安全？"></a><strong>2.  线程安全和线程不安全？</strong></h4><p><strong>线程安全:</strong> 多线程访问时，采用加锁机制，当一个线程访问 该类的某个数据时，进行保护，其他线程不能进⾏访问，直到该线程读取完，其他线程才可使用, 不会出现数据不一致问题。</p>
 <p><strong>线程不安全：</strong>不提供数据访问保护，有可能出现 <strong>多个线程先后更改数据</strong> 造成所得到的数据是脏数据； </p>
 <p>线程安全问题 都是由 全局变量，静态变量引起的，若有多个线程同时执行写操作，一般需要考虑线程同步，否则可能影响线程安全。</p>
@@ -629,7 +629,7 @@
       <!-- 修改 -->
       <!-- 
           
-            <h2 id="多线程-详解知识点"><a href="#多线程-详解知识点" class="headerlink" title="多线程-详解知识点"></a>多线程-详解知识点</h2><h4 id="1-线程"><a href="#1-线程" class="headerlink" title="1. 线程:"></a><strong>1. 线程:</strong></h4><p>是 CPU 进行 运算调度的最⼩基本单位，包含在进程之中，没有 独立的资源，共享其进程中的资源，每个线程都有 自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小，系统不会为线程分配内存.</p>
+            <h1 id="多线程-详解知识点"><a href="#多线程-详解知识点" class="headerlink" title="多线程-详解知识点"></a>多线程-详解知识点</h1><h4 id="1-线程"><a href="#1-线程" class="headerlink" title="1. 线程:"></a><strong>1. 线程:</strong></h4><p>是 CPU 进行 运算调度的最⼩基本单位，包含在进程之中，没有 独立的资源，共享其进程中的资源，每个线程都有 自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小，系统不会为线程分配内存.</p>
 <h4 id="2-线程安全和线程不安全？"><a href="#2-线程安全和线程不安全？" class="headerlink" title="2.  线程安全和线程不安全？"></a><strong>2.  线程安全和线程不安全？</strong></h4><p><strong>线程安全:</strong> 多线程访问时，采用加锁机制，当一个线程访问 该类的某个数据时，进行保护，其他线程不能进⾏访问，直到该线程读取完，其他线程才可使用, 不会出现数据不一致问题。</p>
 <p><strong>线程不安全：</strong>不提供数据访问保护，有可能出现 <strong>多个线程先后更改数据</strong> 造成所得到的数据是脏数据； </p>
 <p>线程安全问题 都是由 全局变量，静态变量引起的，若有多个线程同时执行写操作，一般需要考虑线程同步，否则可能影响线程安全。</p>
