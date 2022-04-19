@@ -1,212 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>持久化-哨兵/集群</title>
-    <url>/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</url>
-    <content><![CDATA[<h2 id="A2-Redis-持久化-哨兵-x2F-集群"><a href="#A2-Redis-持久化-哨兵-x2F-集群" class="headerlink" title="A2-Redis-持久化-哨兵&#x2F;集群"></a>A2-Redis-持久化-哨兵&#x2F;集群</h2><h4 id="Redis-简介："><a href="#Redis-简介：" class="headerlink" title="Redis 简介："></a>Redis 简介：</h4><p>1.非常快<br>2.支持丰富的数据类型<br>3.操作具有 原子性，单线程</p>
-<h4 id="为什么快？"><a href="#为什么快？" class="headerlink" title="为什么快？"></a>为什么快？</h4><p>1.数据结构简单，操作的时间复杂度低<br>2.单线程，没有多线程相互切换的开销，避免不必要的上下文切换和锁竞争条件<br>3.所有操作都是基于内存的<br>4.多路I&#x2F;O复用模型，非阻塞IO </p>
-<h4 id="RDB：快照持久化-，根据-指定时间内改变的key-数量来做持久化-（冷备）"><a href="#RDB：快照持久化-，根据-指定时间内改变的key-数量来做持久化-（冷备）" class="headerlink" title="RDB：快照持久化 ，根据 指定时间内改变的key 数量来做持久化  （冷备）"></a>RDB：快照持久化 ，根据 指定时间内改变的key 数量来做持久化  （冷备）</h4><p>快照持久化 完全交给 子进程处理，父进程 继续 处理客户端请求。<br>父进程调用 fork函数产生一个子进程 做数据持久化，不会修改现有的内存数据结构，只是对数据结构进行遍历读取，然后序列化写到磁盘中。但父进程继续响应客户端请求，然后对内存数据结构进行不间断的修改。<br>这个时候就会使用 操作系统的 COW 机制来进行 数据段页面 的分离。父进程对其中一个页面的数据进行修改时，将被共享的页面复制一份，并分离出来，然后对这个复制的页面进行修改。这时 子进程 相应的页面是 没有变化的，是一个快照的数据，然后子进程就可以遍历数据进行序列化写磁盘了。 </p>
-<h4 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h4><p>1.性能影响小，网络传输快<br>2.数据恢复速度快<br>3.文件小</p>
-<h4 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h4><p>1.无法实时同步，停机时会导致大量丢失数据<br>2.兼容性差（文件需要满足指定格式）</p>
-<h3 id="AOF-Append-Only-File-仅追加文件"><a href="#AOF-Append-Only-File-仅追加文件" class="headerlink" title="AOF ( Append Only File - 仅追加文件 )"></a>AOF ( Append Only File - 仅追加文件 )</h3><p>​        将每条 写入命令作为日志，以 append-only 的模式写入一个日志文件中，这个模式是 只追加的，没有任何磁盘寻址的开销，速度快；先执行指令再将日志存盘。</p>
-<p>每次执行 修改内存 中数据集的写操作时，都会 记录 该操作，在持久化恢复时 「重放」 所有的 修改性指令序列，来恢复 Redis 当前实例的内存数据结构的状态。AOF 是 先执行指令再将日志存盘，如果先写日志再操作的话，AOF日志中会出现 很多无效&#x2F;错误的命令记录（一些错误的操作也会记录）对本来就庞大的AOF文件来说就是雪上加霜；这一点不同于 MySQL 等存储引擎，如果先存储日志再做逻辑处理，这样就可以保证即使宕机了，仍然可以通过之前保存的日志恢复到之前的数据状态；<br>AOF 文件采用追加写的方式，避免IO 的随机寻址，优化磁盘写入性能</p>
-<h4 id="优点：-1"><a href="#优点：-1" class="headerlink" title="优点："></a>优点：</h4><p>1.实时持久化，可以做到秒级更新（一秒一次去通过线程 fsync操作，最多丢一秒数据）；<br>2.文件兼容性好，无需满足指定格式；<br>3.文件写入性能快，文件不容易破损；</p>
-<h4 id="缺点：-1"><a href="#缺点：-1" class="headerlink" title="缺点："></a>缺点：</h4><p>1.AOF 文件大；<br>2.恢复数据时对系统性能影响大；<br>3.恢复速度慢；</p>
-<h4 id="重写AOF-日志："><a href="#重写AOF-日志：" class="headerlink" title="重写AOF 日志："></a>重写AOF 日志：</h4><p>Redis 在长期运行的过程中，AOF 日志会越变越长，如果宕机重启，重放整个AOF日志会非常耗时，导致长时间Redis 无法对外提供服务，所以需要对AOF日志 “瘦身” 。Redis 提供 bg rewrite aof 指令用于对 AOF 日志进行瘦身；<br><strong>原理：</strong>父进程开辟一个子进程，由子进程对内存中的 redis数据库进行遍历 转换成一系列 Redis 的操作指令，序列化到一个新的 AOF 日志文件 中，序列化完毕后再将 操作期间发生的 增量AOF日志追加到这个新的 AOF日志文件中，追加完毕后就立即替代旧的AOF 日志文件</p>
-<p>AOF 日志是以文件的形式存在的，当程序对AOF 日志文件进行写操作时，实际上是将内容写到 内核为文件描述符分配的一个内存缓存中，内核会异步将脏数据刷回到磁盘。</p>
-<p><strong>出现事故时，第一时间用 RDB恢复，然后AOF做数据补全，冷备热备一起上。</strong></p>
-<h4 id="突然机器掉电会怎样？"><a href="#突然机器掉电会怎样？" class="headerlink" title="突然机器掉电会怎样？"></a>突然机器掉电会怎样？</h4><p>取决于AOF日志sync属性的配置，如果不要求性能，在 每条写指令时都sync一下磁盘，就不会丢失数据。但是在高性能的要求下每次都 sync是不现实的，一般都使用定时sync，比如1s 1次，这个时候最多丢失1s数据</p>
-<h4 id="主从复制模型：-主从同步，从从同步"><a href="#主从复制模型：-主从同步，从从同步" class="headerlink" title="主从复制模型： 主从同步，从从同步"></a>主从复制模型： 主从同步，从从同步</h4><h4 id="主从之间数据同步："><a href="#主从之间数据同步：" class="headerlink" title="主从之间数据同步："></a>主从之间数据同步：</h4><p>1.第一次同步时，主节点做一次 bgsave，并同时将后续修改操作记录到 内存buffer<br>2.完成后将 RDB快照文件 全量同步到复制节点，然后复制节点将RDB镜像加载到内存<br>3.加载完成后，再通知主节点将 期间修改的操作记录发送过来，复制节点重放这些操作记录<br>4.后续的 增量数据通过 AOF日志同步<br>主从复制模型： 同时使用 RDB 、 AOF 持久化操作</p>
-<h4 id="重点："><a href="#重点：" class="headerlink" title="重点："></a>重点：</h4><p>RDB快照数据生成时，缓存区也同时开始接受新请求，来保存同步期间的增量数据<br>传输过程中有什么网络问题，会自动重连，把缺少的数据补上<br><strong>优点：</strong>高可用，提高数据读的负载能力<br><strong>缺点：</strong>master 主节点故障，无法实现自动故障恢复</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkk6tseij610i0eidh802.jpg" alt="69DF28A0-0405-4D8E-95A3-6E028878273C" width="650" height="300" />
-
-
-
-
-
-<h3 id="哨兵模型："><a href="#哨兵模型：" class="headerlink" title="哨兵模型："></a>哨兵模型：</h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkkukxnlj60ci09mjrh02.jpg" alt="9EBF2504-8F59-45EA-BF6D-61EC4F8A8494" width="450" height="300" />
-
-<p>每个哨兵节点（Sentinal）每隔1秒向master、slave、其他哨兵节点发送 ping命令，如果对方能在指定时间内响应，说明节点健康存活。如果未在规定时间内（可配置）响应，那么该哨兵节点认为此节点 主观下线。</p>
-<h4 id="故障恢复过程："><a href="#故障恢复过程：" class="headerlink" title="故障恢复过程："></a>故障恢复过程：</h4><p>1.每个 Sentinal 节点  1次&#x2F;s 向 它所关联的 主, 从 , 其他Sentinal 节点发送 ping命令，心跳检测<br>2.如果一个 节点没有回复 ping 命令，或超时， 将被Sentinal 节点标记为 主观下线<br>3.如果主节点被标记主观下线，与主节点相连的其他Sentinal 节点也监测主节点，当达到一定数量的Sentinal 节点都认为主节点下线了，主节点被标记为客观下线<br>4.选举领导哨兵节点： 当主节点被判断客观下线以后，各个Sentinal 节点会进行协商，选举一个领导哨兵节点，并由该领导节点对其进行故障转移操作<br>监听该主节点的所有哨兵，都有可能被选为领导者，选举算法是 先到先得：即在一轮选举中，哨兵 A 向 B 发送成为领导者的申请，如果B没有同意过其他哨兵，则会同意A成为领导者。<br>5.故障转移：选举出的 领导者哨兵，开始进行故障转移操作，分 3个步骤：</p>
-<h4 id="在从节点中选择新的主节点，原则"><a href="#在从节点中选择新的主节点，原则" class="headerlink" title="在从节点中选择新的主节点，原则:"></a>在从节点中选择新的主节点，原则:</h4><p>1.首先 过滤掉不健康的从节点； （下线或断线），没有回复过哨兵ping响应的从节点<br>2.然后 根据指定的优先级选择，默认情况下所有的从节点priority值为100，如果倾向于选择同机房的另一台salve节点替代现有的master节点，则可以把同机房的 从节点的 priority值设置的低一些<br>3.如果 优先级无法区分，则选择 复制偏移量最大的从节点；数据更新程度选择<br>4.如果仍无法区分，则选择 runid最小的从节点；每个节点启动的时候都会有一个唯一的runId<br>更新主从状态：通过 slaveof no one命令，让新选出来的从节点成为主节点；并通过 slaveof命令让其他节点成为其从节点，将已经下线的 主节点也设置为从节点。</p>
-<p>每个哨兵都设置一个随机休眠时间，苏醒后向其他哨兵发送申请成为领导者的请求；其他哨兵只能对收到的第一个请求进行回复确认   ；首先达到多数确认选票的哨兵节点，成为领导者 Sentinal 节点数量是基数个，通过投票机制来 选出 leader 哨兵，如果当前 选不出来则重新进行投票。 每个Sentinal 节点会把 票投给第一个请求他的 Sentinal 节点 </p>
-<p>Redis Sentinal 高可用，提高读负载，在 master宕机时会自动将slave提升为master，继续提供服务。<br>Redis Cluster 扩展性，提高写负载，在单个redis内存不足时，使用Cluster进行分片存储。<br><strong>优点：</strong> 在复制的基础上，实现自动故障恢复<br><strong>缺点：</strong>写操作无法实现负载，存储能力受单机限制 （集群可解决）</p>
-<h3 id="集群模型："><a href="#集群模型：" class="headerlink" title="集群模型："></a>集群模型：</h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkn395yzj60q90ext9y02.jpg" alt="D62740AC-71C8-49D7-97A9-D1644C0A2012" width="750" height="400" />
-
-<p>16384 &#x3D;  2^14<br>一致性hash ： 2^32 -1<br>想扩展 并发读就添加Slaver，想扩展 并发写就添加Master，想扩容也就是添加Master，任何一个 Slaver或几个Master挂了都不会是灾难性的故障。<br>1.Redis集群是一个由 多个节点组成的分布式服务集群，具有复制、高可用和分片特性<br>2.集群没有中心节点，并且带有 复制和故障转移特性，不会因某个节点下线而影响整个集群<br>3.集群中的 主节点负责处理 槽（储存数据），而从节点则是主节点的 复制品<br>4.主节点只会执行自己槽有关的命令，当节点接收到不属于自己处理的槽的命令时，将会处理指定槽节点的地址返回给客户端，而 客户端会向正确的节点重新发送</p>
-<p>各个哨兵模型下 slaver 间相互监听，若有故障随时替换，故障恢复<br>各个 master节点间均分数据分片，当 添加节点，删除节点时，由一致性Hash算法维护<br>现在 服务器都是多核的，如何高效使用 Redis?      通过在单机开多个Redis实例<br>集群中，各个master 节点保存 其他master 的数据槽范围，当出现 数据请求不在当前范围时，返回给 客户端并告诉其应该访问的具体master的  ip 信息。</p>
-<h4 id="解决单机-Redis-的瓶颈？"><a href="#解决单机-Redis-的瓶颈？" class="headerlink" title="解决单机 Redis 的瓶颈？"></a>解决单机 Redis 的瓶颈？</h4><p><strong>集群部署方式：</strong> Redis cluster； 主从同步读写分离，类似Mysql的主从同步，Redis cluster 支撑 N 个 Redis master node，对数据分片，每个master node都可以挂载多个slave node。整个Redis 可以横向扩容，如果要支撑更大数据量的缓存，那就横向扩容更多的master 节点，每个master 节点能存放更多数据。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Redis数据结构</title>
-    <url>/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</url>
-    <content><![CDATA[<h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
-<h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
-
-
-
-<p><strong>1.计数方式不同：</strong>  C 不保存数组长度，每次都需要遍历一遍整个数组，获取字符串长度 O(N) ；  redis 自己本身就保存 长度信息<br><strong>2.避免缓冲区溢出：</strong>执行 拼接 or 缩短字符串的操作时，可能出现 缓冲区溢出&#x2F;内存泄漏 的问题<br>现在需要在后面拼接，但是没计算好内存，结果可能因 内存不足，被意外的修改；<br>SDS 结构存储 当前长度+ free未使用长度，在做拼接操作时，会判断是否可以放得下，如果长度够直接执行，如果 不够那就进行扩容<br>    <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk020cnij611w0bwdgr02.jpg" alt="30466B01-C2DD-46B1-B7C0-90DD45C08A93" width="650" height="200"  /></p>
-<p><strong>3.减少 修改字符串时带来的内存重分配次数：</strong> Redis是个高速缓存数据库，如果需要对字符串进行 频繁的拼接和截断操作，在写代码时忘记了重新分配内存，就可能造成缓冲区溢出，以及内存泄露。Redis为避免 C字符串这样的缺陷，就分别采用了两种解决方案，去达到性能最大化，空间利用最大化：<br>***空间预分配：对SDS进行扩展操作的时候，Redis会为 SDS分配好内存，并且根据特定的公式，分配多余的 free空间，还有多余的 1byte空间（这1byte也是为了存空字符），这样就可以避免连续执行 字符串添加所带来的内存分配消耗。<br>*** 算法动态计算调整free值：字符串变长了，Redis还会根据算法计算出一个 free值给他备用；再继续拼接会发现，备用的 free用上了，省去这次的内存重分配</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk0n3hsdj611807ajs102.jpg" alt="DC43FF4A-EFE1-468A-AFF3-6123FF14F3E0" width="650" height="150" />
-
-<p><strong>4.惰性空间释放：</strong> 当执行完一个字符串缩减的操作，为了预防继续添加的操作，redis并不会马上收回空间，这样来减少分配空间带来的消耗；当再次操作还没用到多余空间的时候，Redis就会收回多余的空间，防止内存的浪费。<br>调用删减函数，并不会马上释放掉 free空间；如果需要继续添加，则这个空间就能用上，减少内存的重分配，如果空间不需要，调用函数删掉</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1cugrtj61120e4jsw02.jpg" alt="DB44101E-34A5-4AEF-AFCE-B7A66ACAC422" width="650" height="200" />
-
-<p><strong>5.二进制安全：</strong> 因为 C 语言中的字符串必须符合某种编码（如 ASCII），中间出现 ‘\0’ 可能会被判定为提前结束的字符串而识别不了；因此 C的字符串  只能保存文本数据；<br>Redis 保存字符串的长度，不判断空字符而是判断长度； 所以redis 可以保存 各种二进制数据，更加安全；</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1xfew3j611a0cwgmx02.jpg" alt="FBB69EB8-5F6F-40D6-BD76-9111B9FCBF10"  width="650" height="200" />
-
-<p>List：双向链表，类似于 Java 中的 LinkedList，插入、删除 性能好，时间复杂度为 O(1)，但索引定位慢，查询 O(n)；   应用：消息队列；  结构：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">typedef struct list&#123;</span><br><span class="line">    <span class="comment">//表 头结点</span></span><br><span class="line">    listNode  *head;</span><br><span class="line">    <span class="comment">//表 尾节点</span></span><br><span class="line">    listNode  *tail;</span><br><span class="line">    <span class="comment">//链表 长度</span></span><br><span class="line">    unsigned <span class="type">long</span> len;</span><br><span class="line">    <span class="comment">//节点值复制函数</span></span><br><span class="line">    <span class="keyword">void</span> *(*dup) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值释放函数</span></span><br><span class="line">    <span class="keyword">void</span>  (*free) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值对比函数</span></span><br><span class="line">    <span class="type">int</span> (*match) (<span class="keyword">void</span> *ptr,<span class="keyword">void</span> *key);</span><br><span class="line">&#125;list</span><br></pre></td></tr></table></figure>
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk2o47wcj60xi0eywft02.jpg" alt="C494BCEE-029D-4025-94D4-5B8B64A68BC5" width="650" height="250"/>
-
-<h4 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h4><p>1.无环双向链表<br>2.获取表头指针，表尾指针，链表节点长度的 时间复杂度均为O(1)<br>3.链表使用 void *指针来保存节点值，可以保存各种不同类型的值</p>
-<h3 id="Hash"><a href="#Hash" class="headerlink" title="Hash:"></a>Hash:</h3><p>数组 + 链表， 类似于 Java 中的 HashMap ，链地址法来解决部分 哈希冲突， 2倍扩容， 初始容量 16.</p>
-<h4 id="结构："><a href="#结构：" class="headerlink" title="结构："></a>结构：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk36f5cej60ze0j0jsx02.jpg" alt="406435D6-0269-4F31-AAD5-4483C7B8FDC2" width="650" height="300" />
-
-<p>ht[0]： 用于存放真实的key-vlaue数据； ht[1]：用于扩容(rehash)<br>Redis中哈希算法和哈希冲突跟Java实现的差不多，它俩差异: Redis哈希冲突，链表头插法；JDK1.8后，Java哈希冲突，链表尾插法。</p>
-<h4 id="渐进式-rehash："><a href="#渐进式-rehash：" class="headerlink" title="渐进式 rehash："></a>渐进式 rehash：</h4><p>Hash 扩容是比较耗时间的，需重新申请新的数组，然后将旧字典所有链表中的元素重新挂接到新数组下面，这是一个 O(n) 的操作，作为 单线程的 Redis 很难承受这样耗时的过程，所以 Redis 使用 渐进式 rehash 来实现小步搬迁。</p>
-<p>在 rehash时，保留新旧两个 hash结构，查询时先查新hash, 没有再查旧hash，并搬迁至新hash;  增加直接加到新hash;  修改先改hash, 没有改旧hash, 然后删除搬迁至新hash; 删除先删新hash, 没有再删旧hash。</p>
-<p><strong>扩容条件：</strong>当 hash表中 元素个数 &#x3D;&#x3D; 数组.size()  扩容 原数组大小 2 倍。 如果 Redis 正在做 bgsave(持久化命令)，为减少内存，尽量不去扩容，但如果 hash 表非常满，达到一维数组长度 5 倍，这时就会 强制扩容。<br><strong>缩容条件：</strong>当 hash 表中  元素个数 &lt;  数组.size() * 10% ，缩容不会考虑  是否在做 bgsave</p>
-<p>在对哈希表进行 扩展或者收缩操作时，reash过程并不是一次性地完成的，而是 渐进式地完成的。<br>Redis在 rehash时采取渐进式的原因：数据量如果过大的话，一次性rehash会有庞大的计算量，这很可能导致服务器一段时间内停止服务。<br>Redis具体是rehash时这么干的：<br>1: 在字典中维持一个 索引计数器变量 rehashidx，并将设置为0，表示rehash开始。<br>2:在 rehash期间每次对字典进行 增加、查询、删除和更新操作时，除了执行指定命令外；还会将ht[0]中rehashidx 索引上的值 rehash到ht[1]，操作完成后 rehashidx+1。<br>3:字典操作不断执行，最终在某个时间点，所有的键值对完成rehash，这时将rehashidx设置为-1，表示rehash完成<br>4:在渐进式rehash过程中，字典会 同时使用两个哈希表ht[0]和ht[1]，所有的更新、删除、查找操作也会在两个哈希表进行。例如要查找一个键的话，服务器会优先查找ht[0]，如果不存在，再查找ht[1]，诸如此类。此外当执行新增操作时，新的键值对一律保存到ht[1]，不再对ht[0]进行任何操作，以保证ht[0]的键值对数量只减不增，直至变为空表。</p>
-<h3 id="Set-："><a href="#Set-：" class="headerlink" title="Set ："></a>Set ：</h3><p> 键值对 无序、唯一，类似于 Java 语言中的 HashSet， 在 HashMap 的基础上对所有的 value &#x3D; NULL </p>
-<h3 id="SortedSet（zset）"><a href="#SortedSet（zset）" class="headerlink" title="SortedSet（zset）:"></a>SortedSet（zset）:</h3><p>ziplist  +  跳表（ skiplist）；  应用：排行榜 ；    参考： <a href="http://blog.jobbole.com/111731/">http://blog.jobbole.com/111731/</a><br>zset 可以按照 用户指定的 排序规则对输入字段进行排序， 支持随机插入、删除<br>同时满足如下条件时, 使用的是 ziplist,  其他时候使用 skiplist<br><strong>1.有序集合保存的元素  数量小于128个</strong><br><strong>2.有序集合保存的所有元素的 长度小于64字节</strong><br>ziplist 为存储结构时,每个集合元素使用 两个紧挨在一起的 压缩列表结点 来保存, 第一个 节点保存元素的成员, 第二个元素保存元素的分值score 。 </p>
-<h4 id="为什么不考虑平衡树，红黑树？"><a href="#为什么不考虑平衡树，红黑树？" class="headerlink" title="为什么不考虑平衡树，红黑树？"></a>为什么不考虑平衡树，红黑树？</h4><p>1.性能考虑： 在高并发情况下，树形结构需要执行一些 rebalance 这样的可能涉及整棵树的操作，相对来说跳跃表的变化 只涉及局部 ；<br>2.实现考虑： 在复杂度与红黑树相同的情况下，跳跃表实现起来更简单；</p>
-<p>在新产生的链表上，每两个相邻的节点增加一个指针，从而产生第三层链表：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk71tl5oj60g6038jre02.jpg" alt="03F9B84C-612F-40A8-A518-1B898D67ADA4" width="750" height="150" />
-
-
-<p>skiplist  为每个节点随机出一个层数(level)，比如：一个节点随机出的层数 3，就把它链入到 第 1 层到第 3 层这三层链表中</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk7wpk4pj60u012tq6f02.jpg" alt="35A292CF-7CF8-48E7-9E0F-11775A623FBB" width="750" height="750" />
-
-<p>每一个节点的层数（level）是随机出来的，而且新插入一个节点并不会影响到其他节点的层数，因此 插入操作只需要 修改节点前后的指针，而不需要对多个节点都进行调整，这就降低插入操作的复杂度。 从刚才创建的这个结构中查找 23 这个不存在的数，查找路径：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg" alt="54079B05-6914-4965-B95B-FA58520C9192" width="750" height="250" />
-
-<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><p><strong>随机层数：</strong><br>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
-<p><strong>节点更新:</strong><br>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
-<p><strong>元素排名：</strong>跳跃表是有序的， 在 skiplist 的 forward 指针上，为每一个 forward 指针都增加 span 属性，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点 中间会跳过多少个节点<br>在 插入、删除操作时，都会更新 span 值的大小，所以沿着 “搜索路径”把所有经过节点的 跨度 span 值累加 就可以算出当前元素的最终 rank 值。极端情况, 跳跃表中所有 score 值都是一样，zset 的查找性能会退化为 O(n)</p>
-<h3 id="BitMap-位图"><a href="#BitMap-位图" class="headerlink" title="BitMap:  位图"></a>BitMap:  位图</h3><p><strong>应用场景：</strong>对于统计浏览某个网页的 独立访客数量 UV（Unique visitor）的业务场景，考虑使用 BitMap、 布隆过滤器（缓存穿透）  </p>
-<p>Redis 位图是一个 二进制位组成的数组，数组的每个单元只能存储 0和1。 将数组中的每个 二进制位与用户 ID 一一对应， 使用位图去记录每个用户当日是否访问，存储的 1的个数就是UV数量。以 当天的日期加固定的前缀作为key，建立一个Bitmap，每一位二进制的 offset做为一个用户 ID的标识，当今天用户访问时就将Bitmap中标识此用户的二进制（value）从0置为1。最后统计所有bitmap 中 1 的个数，即为独立访客数量。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk9dz2toj60dw0bgjrl02.jpg" alt="F49C49F5-90EC-4448-870F-23D9E3A0A472" width="350" height="250" />
-
-
-
-<h3 id="HyperLogLog："><a href="#HyperLogLog：" class="headerlink" title="HyperLogLog："></a>HyperLogLog：</h3><p>基数统计 通常是用来 统计一个集合中不重复的元素个数 ；某个网页的 独立访客数量 UV（Unique visitor）的业务场景<br>Bitmap 已经节约了内存，但如果页面访问量非常大（例如用户规模达到1亿），那么用于统计单个页面的UV内存占用需要 100000000&#x2F;8&#x2F;1024&#x2F;1024 ≈ 12M；若分别统计多个页面，则内存占用会线性增加。如果只需要 每天的UV大致统计数量，使用HyperLogLog 比较合适。<br>HyperLogLog 是用来做 基数估计的算法，HyperLogLog 用12K字节的内存占用，可以计算接近 264 个不同元素的基数（UV）</p>
-<p>2.比特串的基数估计<br>在UV统计中需要统计一组集合中 不重复元素的个数。利用哈希算法将集合中的数据转换成 0和1构成的二进制数串，那么一个二进制串可以类比为一次抛硬币实验，1是抛到正面，0是反面。<br>使用 MurmurHash2 算法来计算 集合数据的哈希值，该算法有很好的均匀性，即使输入集合数据按规律排列，哈希之后仍能保证数据随机分布，因此可以保证每 bit出现 0或1的概率均为1&#x2F;2，Redis中采用的是MurmurHash2固定64比特版本，另外该算法的计算速度也较快。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwka6pez0j60v80hwdid02.jpg" alt="AC03EB09-D3C4-4316-80D1-D5A6723A1C4C" width="650" height="350" />
-
-<p>HLL算法思想的核心就在于通过 保留少量的比特信息，来 估计或观察消息流。二进制串中从低位开始第一个 1出现的位置可以理解为抛硬币试验中第一次出现正面的抛掷次数k，那么基于上面的结论，可以 通过多次抛硬币实验的最大抛到正面的次数来预估总共进行了多少次实验，通过第一个1出现位置的最大值  kmax来预估总共有多少个不同数字</p>
-<h4 id="分桶平均"><a href="#分桶平均" class="headerlink" title="分桶平均"></a>分桶平均</h4><p>如果直接应用上面的HLL方法进行基数估计会由于偶然性带来较大的误差，因此 HLL算法采用分桶平均的方法来消减偶然性的误差、提高估计的准确度。<br>1.先把数据 分成若干个分组（桶bucket），估计每个分组的基数<br>2.然后用所有 分组基数的平均数来估计总的基数。<br>Redis 中桶的个数是16384，对于每个哈希值（64bit），14 位作为 桶编号用来定位数据分布的桶位置，剩余的50bit 即伯努利过程，每个桶对应 6 bit大小，记录kmax。<br>举例说明，若 UV值通过Hash 算法得到比特串:  10110000 00000000 01101100 00000100 00101001 11000000 00 000100 00011101<br>后面 14位确定桶编号，即bucket&#x3D;1053; 前面的50 bit 伯努利过程，该例中 kmax&#x3D; 9，那么UV基数估计为29<br>多个桶用平均数计算，HLL采用的是 调和平均方法，然后再基于 因子修正公式计算得出，调和平均较比 几何平均有更高的精度<br>Redis中规定 分桶个数16384，每个桶的kmax用 6bit空间来存放，6*16384&#x2F;8 字节，再加上结构头等数据，加起来一共12304个字节；用12K字节的内存占用，即可 计算接近 264 个不同元素的基数。这和基数越大占用内存越大的其它计算基数的方式形成鲜明对比。<br>但Redis对应内存的节约还不止于此，12K字节内存是 encoding&#x3D;HLL_DENSE(密集)模式下的内存占用；<br>对于基数值比较少，大多数桶的计数值kmax为0的情况，Redis采用HLL_SPARSE稀疏模式的存储，稀疏存储的空间占用远小于12K字节。对密集存储和稀疏存储方式，本文做简单介绍：<br>密集存储的结构很简单，就是连续的 16384个6比特连起来的位图。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkb4wfj2j610s04kmxq02.jpg" alt="6715C6C3-8585-4629-BD40-59DE35B1111B" width="650" height="100" />
-
-<p>稀疏存储 针对的就是很多的桶计数值为 0的情况，因此会有大量连续0的情况出现</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkbpk601j6156050gmo02.jpg" alt="23A5FB80-92CF-4E8B-8236-40C6F3C4ABAA" width="650" height="100" />
-
-<h4 id="使用-set-集合问题："><a href="#使用-set-集合问题：" class="headerlink" title="使用 set 集合问题："></a>使用 set 集合问题：</h4><ol>
-<li>存储空间巨大： 如果数量庞大，则需要用来存储的 set 集合就会非常大，去重功能将耗费较高的时间复杂度 ，影响性能</li>
-<li>统计复杂： 每个场景都需要一个set，对于多个 set 集合，如果要聚合统计一下，也是一个复杂的事情</li>
-</ol>
-<h4 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h4><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
-<p>定期没删，也没查询，那可咋整？</p>
-<h4 id="内存淘汰策略："><a href="#内存淘汰策略：" class="headerlink" title="内存淘汰策略："></a>内存淘汰策略：</h4><p>1.noeviction:  永不删除<br>2.allkeys-random:  无过期时间的数据，随机删除一部分<br>3.allkeys-lru: 无过期时间的数据，删除 最近最少使用的（LRU）<br>4.volatile-random:  设置过期时间的数据，随机删除一部分<br>5.volatile-lru: 有过期时间的数据，删除最近最少使用的（LRU）<br>6.volatile-ttl: 有过期时间的数据，删除 剩余时间最短的（TTL）</p>
-<h4 id="缓存穿透："><a href="#缓存穿透：" class="headerlink" title="缓存穿透："></a>缓存穿透：</h4><p>缓存和数据库 中都没有的数据，而用户不断发起请求，导致请求不走缓存，直接访问到数据库，数据库压力过大<br>通常是 请求参数非法导致，(例如 id&#x3D;-1)</p>
-<h4 id="解决："><a href="#解决：" class="headerlink" title="解决："></a>解决：</h4><p>1.接口层 增加校验，比如 用户鉴权校验，参数做校验<br>2.在缓存中取不到，数据库中也没有取到，此时将对应Key的 Value 改写：{ null、位置错误、稍后重试 }，参照具体的场景<br>3.布隆过滤器（Bloom Filter）利用bitMap结构和hash算法，判断出这个Key是否在数据库中存在，不存在 return，存在就去查 DB刷新KV 再return</p>
-<p><strong>缓存击穿：</strong>一个热点 Key，扛着高并发，当这个Key在失效瞬间，持续的高并发击穿缓存，直接请求到数据库<br>解决：<br>1.设置 热点数据永远不过期<br>2.加上互斥锁，保证 同一进程中对同一数据，不会并发请求到DB</p>
-<p><strong>缓存雪崩：</strong>同一时间多个热点 Key值， 大面积失效，导致大量请求访问到DB<br>解决：<br>1.把每个 Key的失效时间都加个随机值，保证 数据不会在同一时间大面积失效<br>2.设置 热点数据永远不过期<br>3.将 多个热点数据 均匀分布在不同的Redis库中<br>4.使用主从、集群模型，提高缓存服务的高可用<br>缓存雪崩需要做 熔断等策略</p>
-<ul>
-<li>事前： Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃</li>
-<li>事中： 本地 ehcache 缓存 + Hystrix 限流+降级，避免MySQL被打死</li>
-<li>事后： Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据</li>
-</ul>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Redis性能优化</title>
-    <url>/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</url>
-    <content><![CDATA[<h2 id="A3-Redis-优化"><a href="#A3-Redis-优化" class="headerlink" title="A3-Redis 优化"></a>A3-Redis 优化</h2><h4 id="布隆过滤器：-应用场景：缓存穿透，海量数据去重"><a href="#布隆过滤器：-应用场景：缓存穿透，海量数据去重" class="headerlink" title="布隆过滤器： 应用场景：缓存穿透，海量数据去重"></a>布隆过滤器： 应用场景：缓存穿透，海量数据去重</h4><p>​        K 个哈希函数，每个 字符串跟 k 个 bit对应，降低冲突概率<br>当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在<br><strong>Bloom Filter 和单哈希函数 Bit-Map不同：</strong>Bloom Filter使用了 k个哈希函数，每个 字符串跟 k个bit对应。降低冲突概率</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg" alt="DB32F606-7EE5-46FC-9E99-3B5438DC21F1" width="650" height="300"/>
-
-<h4 id="存在的问题："><a href="#存在的问题：" class="headerlink" title="存在的问题："></a>存在的问题：</h4><p><strong>存在误判：</strong>hash之后得到的  k个位置上值都是1，但可能此值不存在；<br><strong>解决：</strong>可以通过建立一个 白名单来存储可能会误判的元素<br>删除困难： 一个放入容器的元素映射到 bit数组的k个位置上是1，删除的时候不能简单的直接置为0，可能会影响其他元素的判断；<br>解决： 可以采用Counting Bloom Filter</p>
-<h4 id="分布式锁：-常规锁只能适用于单机，对于-分布式架构无法保证"><a href="#分布式锁：-常规锁只能适用于单机，对于-分布式架构无法保证" class="headerlink" title="分布式锁： 常规锁只能适用于单机，对于 分布式架构无法保证"></a>分布式锁： 常规锁只能适用于单机，对于 分布式架构无法保证</h4><p>避免不同节点重复相同的工作： 比如用户执行某个操作有可能不同节点会发送多封邮件；<br>避免破坏数据的正确性：如果两个节点在同一条数据上同时进行操作，可能会造成数据错误或不一致的情况出现；</p>
-<h4 id="Redis-分布式锁的问题：-锁超时"><a href="#Redis-分布式锁的问题：-锁超时" class="headerlink" title="Redis 分布式锁的问题： 锁超时"></a>Redis 分布式锁的问题： 锁超时</h4><p>有两台平行的服务 A B，其中 A 服务在 获取锁之后 由于某种原因突然 挂了，那么 B 服务就永远无法获取到锁； 需要额外设置一个超时时间，来保证服务的可用性。如果 加锁，释放锁 之间的逻辑执行得太长，以至于 超出了锁的超时限制，也会出现问题。<br>因为这时第一个线程持有锁过期了，而临界区逻辑还没执行完，与此同时第二个线程就提前拥有了这把锁，导致临界区的代码不能得到严格的串行执行。为避免这个问题，Redis 分布式锁 不要用于较长时间的任务。</p>
-<p><strong>解决：标记版本号</strong>  将锁 value 值设置为一个随机数，释放锁时先匹配随机数是否一致，然后再删除 key， 确保当前线程占有的锁不会被其他线程释放，除非这个锁是因为过期而被服务器自动释放的，但匹配  value 和 删除 key 在 Redis 中并不是一个原子性的操作，需要使用像 Lua 脚本来处理，因为 Lua 脚本可以 保证多个指令的原子性执行</p>
-<h4 id="分布式锁：setnx-是-SET-if-Not-exists"><a href="#分布式锁：setnx-是-SET-if-Not-exists" class="headerlink" title="分布式锁：setnx 是 SET if Not exists"></a>分布式锁：setnx 是 SET if Not exists</h4><p>设置过期时间：  EXPIRE name  5       # 5s 后过期<br>EXPIRE 命令依赖于 SETNX 的执行结果，而事务中没有 if-else 的分支逻辑，如果 SETNX 没有抢到锁，EXPIRE 就不应该执行。<br>加入 SET 指令扩展参数，使 SETNX 和 EXPIRE 指令一起执行： SET key value [EX seconds | PX milliseconds] [NX | XX] [KEEPTTL]<br>设置一个过期时间，就算线程 1挂了，也会在失效时间到了，自动释放<br>计数： 使用 INCR 命令进行 原子性 的自增操作，多个 客户端对同一个 key 进行操作，也决不会导致竞争的情况</p>
-<p>Setnx 加锁， expire 过期时间； 不是原子性操作；<br>Redis:: set( “my:lock”,   $token,  “nx”, “ex”, 10);<br>直接使用 set进行锁，参数配置，让 加锁+过期时间 成原子操作；传统的 del 解锁方式，存在问题； 如果  expire time 释放锁后， 其他线程重新获取，直接 del 解锁，会删除别人建立的锁了。通过 lua脚本（保证一系列操作的原子性），先进行 get，再进行 del； 外加 token 字段，一个随机数，当 lock的时候，往redis的 my:lock中存的是这个token，unlock的时候，先 get一下lock中的token，如果 和要删除的 token是一致的，说明这个锁是之前我 set的，否则说明这个锁已经过期，是别人set的，就不应该对它进行任何操作。</p>
-<h4 id="场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？"><a href="#场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？" class="headerlink" title="场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？"></a>场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？</h4><p>使用 keys 指令可以扫出 指定模式的 key列表；如果 redis正在给 线上的业务提供服务，那使用 keys指令会有什么问题？<br>Redis单线程的，keys指令会导致线程阻塞一段时间，线上服务会停顿，直到指令执行完毕，服务才能恢复。<br>可以使用 scan指令，无阻塞的提取出指定模式的key列表，但会有一定的重复概率，需要在客户端做一次去重，整体所花费的时间会比直接用keys指令长。</p>
-<p>分布式场景下，多个微服务间协同调用，调用链使用 UUID 唯一</p>
-<h4 id="redis常见性能问题和解决方案："><a href="#redis常见性能问题和解决方案：" class="headerlink" title="redis常见性能问题和解决方案："></a>redis常见性能问题和解决方案：</h4><p>1.Master写内存快照，save命令调度rdbSave函数，会阻塞主线程的工作，当快照比较大时对性能影响是非常大的，会间断性暂停服务，所以 Master最好不要写内存快照。<br>2.Master AOF持久化，如果不重写AOF文件，这个持久化方式对性能的影响是最小的，但是AOF文件会不断增大，AOF文件过大会影响 Master重启的恢复速度。Master最好不要做任何持久化工作，包括内存快照和AOF日志文件，特别是不要启用内存快照做持久化, 如果数据比较关键，某个 Slave开启AOF备份数据，策略为每秒同步一次。<br>3.Master 调用bgrewrite AOF 重写AOF文件，AOF在重写的时候会占大量的CPU和内存资源，导致服务load过高，出现短暂服务暂停现象。<br>4.Redis主从复制的性能问题，为主从复制速度和连接的稳定性，Slave和 Master最好在同一个局域网内。</p>
-<h4 id="Redis-事务特征："><a href="#Redis-事务特征：" class="headerlink" title="Redis 事务特征："></a>Redis 事务特征：</h4><p>1.在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis 不会再为其它客户端请求提供任何服务，从而保证s事务中的所有命令被原子的执行。<br>2.和关系型数据库中的事务相比，在 Redis事务中，如果 某一条命令执行失败，其后的命令仍然会被继续执行。<br>3.通过 multi 命令开启一个事务，在该语句之后执行的命令都将被视为事务之内的操作，最后通过执行 exec&#x2F;discard  命令来提交&#x2F; 回滚 该事务内的所有操作。 这两个Redis命令可被视为等同于关系型数据库中的 commit&#x2F;rollback 语句。<br>4.在事务开启之前，如果 客户端与服务器之间出现通讯故障并导致网络断开，其后所有待执行的语句都将不会被服务器执行。如果网络中断事件是发生在客户端执行exec 命令之后，那么该事务中的所有命令都会被服务器执行。<br>5.当使用 Append-Only模式时，Redis会通过调用系统函数write 将该事务内的所有写操作在本次调用中全部写入磁盘。如果在写入过程中出现系统崩溃，如电源故障导致宕机，此时也许只有部分数据被写入到磁盘，而另一部分数据却已经丢失。Redis服务器会在重启时执行一系列必要的一致性检测，一旦发现类似问题，会立即退出并给出相应的错误提示。 此时需要充分利用Redis 工具包中提供的 redis-check-aof工具来定位到数据不一致的错误，并将已经写入的部分数据进行回滚。修复后就可以再次重新启动 Redis服务器了。</p>
-<h4 id="Redis做异步队列："><a href="#Redis做异步队列：" class="headerlink" title="Redis做异步队列："></a>Redis做异步队列：</h4><p>使用 list结构作为队列，rpush生产消息， lpop消费消息<br>当lpop没有消息的时候，要适当sleep一会再重试。不使用 sleep: list还有个指令叫 blpop，在没有消息的时候，它会阻塞住直到消息到来。</p>
-<p>使用 pub&#x2F;sub主题订阅者模式，可以实现 1:N 的消息队列。<br>pub&#x2F;sub缺点： 在消费者下线的情况下，生产的消息会丢失，得使用专业的消息队列如RocketMQ等</p>
-<h4 id="使用Redis-实现可靠的消息队列-ack-机制？"><a href="#使用Redis-实现可靠的消息队列-ack-机制？" class="headerlink" title="使用Redis 实现可靠的消息队列 ack 机制？"></a>使用Redis 实现可靠的消息队列 ack 机制？</h4><p>消费者用 rpop 取出元素，若消费者在 取出元素之后崩溃了，此时消息 已被取出且没有正确处理，会造成该消息的丢失<br>队列的备份：消费者程序在 从主消息队列中取出消息后，再将其插入到备份队列中，直到消费者程序完成正常的处理逻辑后再将该消息从备份队列中删除。<br>当备份队列中消息过期时，重新将其 再放回到主消息队列中，以便其它的消费者程序继续处理。RPOPLPUSH命令执行过程示意图如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwktpi57yj60yc0kyq4o02.jpg" alt="7D32B33D-052D-4C35-AB1A-9F995B4E0833" width="650" height="350" />
-
-<h4 id="Redis-如何实现延时队列？"><a href="#Redis-如何实现延时队列？" class="headerlink" title="Redis 如何实现延时队列？"></a>Redis 如何实现延时队列？</h4><p>使用 sortedset，拿时间戳作为 score，消息内容作为 key调用 zadd来生产消息，消费者用 zrangebyscore指令获取N秒之前的数据轮询进行处理。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>集群一致性hash算法</title>
-    <url>/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="A4-Redis集群一致性Hash算法"><a href="#A4-Redis集群一致性Hash算法" class="headerlink" title="A4-Redis集群一致性Hash算法"></a>A4-Redis集群一致性Hash算法</h2><p>​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkyjmsc7j60cq0dxq3z02.jpg" alt="24B62610-55A7-4EE4-8004-C29EA286ABB3" width="450" height="400" />
-
-<p>​        使用上述 Hash算法进行缓存时，会出现一些缺陷，在服务器数量变动时，所有缓存的位置都要发生改变！那原本  hash(a.png) % 4 &#x3D; 2 的公式就变成了 hash(a.png) % 5 &#x3D; ？ ， 这个结果不是2的，此时所有 缓存位置都要发生改变！也就是当服务器数量发生改变时，所有缓存在一定时间内是失效的。<br>​        假设 4台缓存中突然有一台缓存服务器出现故障，需要将故障机器移除，但如果移除一台缓存服务器，缓存服务器数量从 4台变为 3台，也会出现上述问题！</p>
-<h4 id="一致性Hash算法就是解决这个问题的"><a href="#一致性Hash算法就是解决这个问题的" class="headerlink" title="一致性Hash算法就是解决这个问题的 !"></a>一致性Hash算法就是解决这个问题的 !</h4><p>​        刚才描述的取模法是对服务器的数量进行取模，而 一致性Hash算法是对 2^32 取模，简单来说，一致性Hash算法将整个哈希值空间组织成一个虚拟的圆环，假设某哈希函数H 的值空间为： 0 ~ 2^14<br>​        0 点右侧的第一个点代表1，以此类推，2,3,4,5,6……直到 2^14，也就是说 0点左侧的第一个点代表 2^14， 0和2^14 在零点中方向重合，我们把这个由2^14 个点组成的圆环称为 Hash环。下一步将各个服务器使用Hash进行一个哈希，具体可以选择服务器的IP或主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置，这里假设将上文中四台服务器使用IP地址哈希后在环空间的位置如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg" alt="901FC87C-32CA-4E10-8943-08F53DD41989" width="450" height="450" />
-
-
-<p>接下来使用如下算法定位数据访问到相应服务器：将数据 key使用相同的函数 Hash计算出哈希值，并确定此数据在环上的位置，从此位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器！</p>
-<p><strong>例如:</strong> 有 Object A,Object B,Object C,Object D四个数据对象，经过哈希计算后，在环空间上的位置如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl006m9dj60iy0joq3x02.jpg" alt="A1D101C3-6A2A-4CFE-BF40-CC1E4E055A93" width="450" height="450"/>
-
-
-<p>根据 一致性 Hash算法，数据A会被定为到Node A 上，B被定为到Node B上，C被定为到Node C上，D被定为到Node D上。 </p>
-<h4 id="一致性Hash算法-容错性和可扩展性"><a href="#一致性Hash算法-容错性和可扩展性" class="headerlink" title="一致性Hash算法 容错性和可扩展性:"></a>一致性Hash算法 容错性和可扩展性:</h4><p>​        现假设Node C 不幸宕机，可以看到此时对象A、B、D不会受到影响，只有C对象被重定位到Node D。在一致性Hash算法中，如果一台服务器不可用，则受影响的数据仅仅是此服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它不会受到影响，如果在系统中增加一台服务器Node X，如下图所示：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl0l7ymmj60it0jqwfl02.jpg" alt="506CDC9D-B69A-4C3B-BC31-2323D07AFEDA" width="450" height="450" />
-
-
-<p>​        此时对象Object A，B，D不受影响，只有对象C需要重定位到新的Node X ！一般的，在一致性Hash算法中，如果增加一台服务器，则受影响的数据仅仅是新服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它数据也不会受到影响。一致性Hash算法对于节点的增减都只需重定位环空间中的一小部分数据，具有较好的容错性和可扩展性。</p>
-<h4 id="Hash环的数据倾斜问题："><a href="#Hash环的数据倾斜问题：" class="headerlink" title="Hash环的数据倾斜问题："></a>Hash环的数据倾斜问题：</h4><p>​        一致性Hash算法在服务节点太少时，容易因为节点分部不均匀而造成数据倾斜（被缓存的对象大部分集中缓存在某一台服务器上）问题，例如系统中只有两台服务器，其环分布如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg" alt="398CEE1E-B2F5-4272-B255-27F09C2248B2" width="450" height="450" />
-
-<p>​        此时必然造成大量数据集中到Node A上，而只有极少量会定位到Node B上。为了解决这种数据倾斜问题，一致性Hash算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以在服务器IP或主机名的后面增加编号来实现。</p>
-<p>​        例如:上面的情况，可以为每台服务器计算 三个虚拟节点，于是可以分别计算 “Node A#1”，“Node A#2”，“Node A#3”，“Node B#1”，“Node B#2”，“Node B#3”  哈希值，于是形成六个虚拟节点：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg" alt="C98156D9-C596-492C-A992-01E1A3C3266E" width="450" height="450" />
-
-<p>​        通过虚拟节点做为中间变量，再从虚拟节点—&gt;实际节点，实现数据映射。同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”，“Node A#2”，“Node A#3”  三个虚拟节点的数据均定位到Node A上。 这样就解决了服务节点少时数据倾斜的问题，在实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mysql:索引-事务</title>
     <url>/TurboCome/2022/03/08/Mysql/A1-%E7%B4%A2%E5%BC%95-%E4%BA%8B%E5%8A%A1/</url>
     <content><![CDATA[<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h3 id="搜索引擎："><a href="#搜索引擎：" class="headerlink" title="搜索引擎："></a>搜索引擎：</h3><p><strong>InnoDB :</strong>   支持事务，外键，行锁（用MVCC支持高并发）；聚簇索引，叶子节点data域存行记录；跨平台copy 容易复制；Delete 表时一行一行删除<br><strong>MyIsAM:</strong>  不支持 事务，外键，行锁；   非聚簇索引，叶子节点data域中存引用地址；   跨平台难 copy 不易复制； Delete表时先Drop 再Create； </p>
@@ -331,6 +125,49 @@
       </tags>
   </entry>
   <entry>
+    <title>联合索引</title>
+    <url>/TurboCome/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/</url>
+    <content><![CDATA[<h2 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h2><p>联合索引使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b=1 and c =1;     #利用到定义的索引（a,b,c）,用上a,b,c</span><br><span class="line">select * from t where a=1 and b=1;              #利用到定义的索引（a,b,c）,用上a,b</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and a=1;   -- 利用到定义的索引（a,b,c）,用上a,b（mysql有查询优化器）</span><br><span class="line">select * from t where a=1;           -- 可以利用到定义的索引（a,b,c）,用上a</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and c=1;    -- 不可以利用到定义的索引（a,b,c）； 最左 a 不匹配</span><br><span class="line">select * from t where a=1 and c=1;    -- 利用到定义的索引（a,b,c），但只用上a索引，b,c索引用不到</span><br></pre></td></tr></table></figure>
+
+<p>通过最左匹配原则你可以定义一个联合索引，但是使得多中查询条件都可以用到该索引。<br>值得注意的是，当遇到范围查询( &gt;、&lt;、between、like )就会停止匹配</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b&gt;1 and c =1;  -- 这样a,b可以用到（a,b,c），c索引用不到 </span><br></pre></td></tr></table></figure>
+
+<p>但是如果是建立 (a,c,b)联合索引，则 a,b,c都可以使用索引，因为优化器会自动改写为最优查询语句</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b &gt;1 and c=1; -- 如果是建立(a,c,b)联合索引，则a,b,c都可以使用索引</span><br></pre></td></tr></table></figure>
+
+<p>#优化器改写为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and c=1 and b &gt;1;  </span><br></pre></td></tr></table></figure>
+
+<p>最左匹配原则，索引index1:(a,b,c)，只会走a、a,b、a,b,c 三种类型的查询； 注意：a,c也走，但是只走a字段索引，不会走c字段。<br>特殊情况说明： </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from table where a = &#x27;1&#x27; and b &gt; ‘2’ and c=&#x27;3&#x27;; -- 这种类型只会有 a与b走索引，c不会走</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以index （a,b,c）为例建立这样的索引相当于建立了索引a、ab、abc三个索引。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg" alt="236D41B5-19F2-4ADE-B133-7CCA5383265C" width="650" height="450" />
+
+<p>​        该图就是一个形如 (a,b,c) 联合索引的 b+ 树，其中的非叶子节点存储的是第一个关键字的索引 a，而叶子节点存储的是三个关键字的数据。这里可以看出 a 是有序的，而 b，c 都是无序的。但是当在 a 相同的时候，b 是有序的，b 相同的时候，c 又是有序的。最左匹配原则中如果遇到范围查询就会停止, </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=5 and b&gt;0 and c =1;   -- 这样a,b可以用到（a,b,c），c不可以</span><br></pre></td></tr></table></figure>
+
+<p>例子: 当查询到 b 的值以后（这是一个范围值），c 是无序的, 所以就不能根据联合索引来确定应该取哪一行。</p>
+<p>在 InnoDB 中联合索引只有先确定前一个（左侧的值）后，才能确定下一个值。如果有范围查询的话，那么联合索引中使用范围查询的字段后的索引在该条 SQL 中都不会起作用。</p>
+<p>值得注意的是，in 和 &#x3D;  都可以乱序，比如有索引（a,b,c），语句:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where c =1 and a=1 and b=1，</span><br><span class="line">这样的语句也可以用到最左匹配，因为 MySQL 中有一个优化器，他会分析 SQL 语句，将其优化成索引可以匹配的形式，即：</span><br><span class="line">select * from t where a =1 and a=1 and c=1 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="为什么要使用联合索引"><a href="#为什么要使用联合索引" class="headerlink" title="为什么要使用联合索引:"></a>为什么要使用联合索引:</h4><p><strong>1.减少开销：</strong> 建一个联合索引(col1,col2,col3)，实际相当于建 (col1),(col1,col2),(col1,col2,col3)三个索引,每多一个索引，都会增加写操作的开销和磁盘空间的开销。对于大量数据的表，使用联合索引会大大的减少开销！<br><strong>2.覆盖索引：</strong> 对联合索引(col1,col2,col3)，如果有如下的sql: select col1,col2,col3 from test where col1&#x3D;1 and col2&#x3D;2。那么MySQL可以直接通过遍历索引取得数据，而无需回表，这减少了很多的随机io操作，覆盖索引是主要的提升性能的优化手段之一。<br><strong>3.效率高：</strong> 索引列越多，通过索引筛选出的数据越少。有1000W条数据的表，有如下sql:select from table where col1&#x3D;1 and col2&#x3D;2 and col3&#x3D;3, 假设每个条件可以筛选出10%的数据，如果只有单值索引，那么通过该索引能筛选出1000W10%&#x3D;100w条数据，然后再回表从 100w条数据中找到符合col2&#x3D;2 and col3&#x3D; 3的数据，然后再排序，再分页；如果是联合索引，通过索引筛选出1000w10% 10% *10%&#x3D;1w，效率明显提升.</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mysql:原理-优化</title>
     <url>/TurboCome/2022/03/09/Mysql/A2-%E5%8E%9F%E7%90%86-%E4%BC%98%E5%8C%96/</url>
     <content><![CDATA[<h2 id="Mysql-原理-优化"><a href="#Mysql-原理-优化" class="headerlink" title="Mysql 原理-优化"></a>Mysql 原理-优化</h2><h4 id="mysql-执行过程："><a href="#mysql-执行过程：" class="headerlink" title="mysql 执行过程："></a>mysql 执行过程：</h4><p>客户端 —&gt;连接器 —&gt;缓存—&gt;分析器 —&gt;优化器—&gt;执行器 —&gt;引擎 —&gt; 查询结果<br>客户端 —&gt;连接器 —&gt;缓存—&gt; 查询结果  </p>
@@ -404,6 +241,26 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL扩展</title>
+    <url>/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</url>
+    <content><![CDATA[<h2 id="MySQL扩展"><a href="#MySQL扩展" class="headerlink" title="MySQL扩展"></a>MySQL扩展</h2><h4 id="Mysql-数据库连接池-参数："><a href="#Mysql-数据库连接池-参数：" class="headerlink" title="Mysql 数据库连接池 参数："></a>Mysql 数据库连接池 参数：</h4><p>user<br>password<br>characterEncoding  编码方式<br>autoReconnect：    当数据库连接异常中断时，是否自动重新连接？<br>maxReconnects：   autoReconnect设置为true时，重试连接的次数<br>connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时<br>allowMultiQueries： mysql驱动开启批量执行sql的开关</p>
+<h4 id="Mysql-的参数："><a href="#Mysql-的参数：" class="headerlink" title="Mysql 的参数："></a>Mysql 的参数：</h4><p>max_connections&#x3D;3000:  MySql的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量<br>default-storage-engine:   MySQL的 默认存储引擎 </p>
+<p>innodb_buffer_pool_size:  (默认128M) 存储页面缓存数据<br>innodb_change_buffer_max_size： changeBuffer缓存区,修改记录的<br>read_rnd_buffer_size : 随机读缓冲区大小  MRR 做随机IO时使用，这里会对主键进行排序<br>read_buffer_size : 读入缓冲区大小。对表进行 顺序扫描的请求将分配一个读入缓冲区<br>innodb_log_buffer_size :  事务日志所使用的缓冲区； redo_log日志需要先缓存，再刷盘</p>
+<p>wait_timeout&#x3D;1800:  MySQL连接闲置 超过一定时间后将会被强行关闭<br>back_log&#x3D;500  : 连接数据达到 max_connections时，新来请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即back_log<br>max_user_connections ： 同一个账号能够同时连接到mysql服务的最大连接数。设置为0表示不限制</p>
+<h4 id="MySQL-主机宕机后，如何恢复？"><a href="#MySQL-主机宕机后，如何恢复？" class="headerlink" title="MySQL 主机宕机后，如何恢复？"></a>MySQL 主机宕机后，如何恢复？</h4><p>主库宕机：<br>1.确保所有从节点 relay log 全部更新完毕； 在每个从库上执行 show processlist 查看<br>2.登录所有 从节点，查看 master.info文件， 找 最大的  pos 节点作为新主库，数据最全<br>3.登录 pos 最大从节点，执行 stop slave;   删 relay-log.info 等从相关文件； 开启 bin-log 来记录sql 日志； 执行 reset master<br>4.创建用于 同步的用户并授权slave<br>5.登录其他从节点 ，执行 stop slave停止同步，再 执行 start slave ；<br>6.测试 新master 和 slave 数据是 否同步</p>
+<h4 id="从库宕机："><a href="#从库宕机：" class="headerlink" title="从库宕机："></a>从库宕机：</h4><p>1)查看 从库上 mysql 的错误日志，里面有记录 主从挂掉时的binlog信息<br>2)有了 binlog和postion信息后，只需要 重新在 从库上进行change master to配置； 配置后开启slave 状态，没有报错<br>3)查看 slave状态，发现slave已经正常了，开始进行 延时数据恢复 </p>
+<h4 id="MHA-多节点集群："><a href="#MHA-多节点集群：" class="headerlink" title="MHA+多节点集群："></a>MHA+多节点集群：</h4><p>MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master，整个故障转移过程对应用程序完全透明。<br>1）service mysql stop (关闭主库)<br>2）备库自动提升为主，IP地址同时漂移至备机<br>3）从库自动同步备库<br>修复原主库，将角色变为备，连接至现主库，三台主从又恢复了正常，重新建立MHA</p>
+<h4 id="redo-log-与-binlog-区别："><a href="#redo-log-与-binlog-区别：" class="headerlink" title="redo log 与 binlog 区别："></a>redo log 与 binlog 区别：</h4><p>1）作用不同：<br>redo log是用于保证MySQL宕机也不会影响持久性；<br>binlog是用于 保证服务器可以 基于时间点恢复数据，此外 binlog还用于主从复制。<br>2）层次不同：<br>redo log是 InnoDB存储引擎实现的；<br>binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎。<br>3）内容不同：<br>redo log 是物理日志，内容基于磁盘的Page；<br>binlog 内容是二进制的，根据binlog_format参数的不同，可能基于 sql语句，基于数据本身或者二者的混合。<br>4）写入时机不同：<br>binlog在事务提交时写入；<br>redo log 写入时机相对多元：<br>** 当事务提交时会调用 fsync对redo log进行刷盘；这是默认情况下的策略，修改innodb_flush_log_at_trx_commit参数可以改变该策略，但事务的持久性将无法保证。<br>** 除事务提交时，还有其他刷盘时机：如master thread每秒刷盘一次redo log等，这样好处是不一定要等到commit时刷盘，commit速度加快。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>数据库隔离级别</title>
     <url>/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</url>
     <content><![CDATA[<h2 id="数据库隔离级别"><a href="#数据库隔离级别" class="headerlink" title="数据库隔离级别"></a>数据库隔离级别</h2><p>参考：   <a href="https://www.cnblogs.com/kismetv/p/10331633.html">https://www.cnblogs.com/kismetv/p/10331633.html</a></p>
@@ -435,133 +292,6 @@
 <p>RR：  可避免 脏读，不可重复读，不能避免 幻读<br>RC： 可避免  脏读， 不能避免 不可重复读，幻读<br>因为 B 线程修改数据提交后，A线程在第二次 select 时，此时不再进行 id 值的比较，会重建ReadView, 使得数据丢失</p>
 <h4 id="MVCC是-RR隔离级别下“非加锁读”实现隔离性的方式"><a href="#MVCC是-RR隔离级别下“非加锁读”实现隔离性的方式" class="headerlink" title="MVCC是 RR隔离级别下“非加锁读”实现隔离性的方式"></a>MVCC是 RR隔离级别下“非加锁读”实现隔离性的方式</h4><h5 id="1）读已提交（RC）隔离级别下的非加锁读"><a href="#1）读已提交（RC）隔离级别下的非加锁读" class="headerlink" title="1）读已提交（RC）隔离级别下的非加锁读"></a>1）读已提交（RC）隔离级别下的非加锁读</h5><p>RC与RR一样，都使用了 MVCC，其主要区别在于：<br>RR 是在事务开始后第一次执行select前创建ReadView，直到事务提交都不会再创建；RR可以避免脏读，不可重复读和幻读。<br>RC 每次执行select前都会重新建立一个新的ReadView，因此如果事务 A第一次select之后，事务B对数据进行了修改并提交，那么事务A第二次select 时会重新建立新的ReadView，因此事务 B的修改对事务 A是可见的；因此RC隔离级别可以避免脏读，但是无法避免不可重复读和幻读。</p>
 <h5 id="2）加锁读-与-next-key-lock"><a href="#2）加锁读-与-next-key-lock" class="headerlink" title="2）加锁读 与 next-key lock"></a>2）加锁读 与 next-key lock</h5><p>按照是否加锁，MySQL的读可以分为两种：<br>1.非加锁读（快照读，一致性读），使用普通 select语句，这种情况下使用 MVCC避免了脏读，不可重复读，幻读，保证了隔离性。<br>2.加锁读，在查询时会对查询的 数据加锁（共享锁或排它锁）；由于锁的特性，当某事务对数据进行加锁读后，其他事务无法对数据进行写操作，因此可以 避免脏读和不可重复读。而避免幻读，则需要通过 next-key lock，它是一种行锁，相当于 record lock(记录锁) + gap lock(间隙锁)；其不仅会锁住 记录本身(record lock功能)，还会 锁定一个范围(gap lock功能)；因此，加锁读同样可以避免脏读，不可重复读和幻读，保证隔离性。<br>#共享锁读取<br>select…lock in share mode<br>#排它锁读取<br>select…for update</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>联合索引</title>
-    <url>/TurboCome/2022/03/10/Mysql/A3-%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95/</url>
-    <content><![CDATA[<h2 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h2><p>联合索引使用：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b=1 and c =1;     #利用到定义的索引（a,b,c）,用上a,b,c</span><br><span class="line">select * from t where a=1 and b=1;              #利用到定义的索引（a,b,c）,用上a,b</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and a=1;   -- 利用到定义的索引（a,b,c）,用上a,b（mysql有查询优化器）</span><br><span class="line">select * from t where a=1;           -- 可以利用到定义的索引（a,b,c）,用上a</span><br><span class="line"></span><br><span class="line">select * from t where b=1 and c=1;    -- 不可以利用到定义的索引（a,b,c）； 最左 a 不匹配</span><br><span class="line">select * from t where a=1 and c=1;    -- 利用到定义的索引（a,b,c），但只用上a索引，b,c索引用不到</span><br></pre></td></tr></table></figure>
-
-<p>通过最左匹配原则你可以定义一个联合索引，但是使得多中查询条件都可以用到该索引。<br>值得注意的是，当遇到范围查询( &gt;、&lt;、between、like )就会停止匹配</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b&gt;1 and c =1;  -- 这样a,b可以用到（a,b,c），c索引用不到 </span><br></pre></td></tr></table></figure>
-
-<p>但是如果是建立 (a,c,b)联合索引，则 a,b,c都可以使用索引，因为优化器会自动改写为最优查询语句</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and b &gt;1 and c=1; -- 如果是建立(a,c,b)联合索引，则a,b,c都可以使用索引</span><br></pre></td></tr></table></figure>
-
-<p>#优化器改写为</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=1 and c=1 and b &gt;1;  </span><br></pre></td></tr></table></figure>
-
-<p>最左匹配原则，索引index1:(a,b,c)，只会走a、a,b、a,b,c 三种类型的查询； 注意：a,c也走，但是只走a字段索引，不会走c字段。<br>特殊情况说明： </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from table where a = &#x27;1&#x27; and b &gt; ‘2’ and c=&#x27;3&#x27;; -- 这种类型只会有 a与b走索引，c不会走</span><br></pre></td></tr></table></figure>
-
-
-
-<p>以index （a,b,c）为例建立这样的索引相当于建立了索引a、ab、abc三个索引。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryje2r28j60lt0i8jse02.jpg" alt="236D41B5-19F2-4ADE-B133-7CCA5383265C" width="650" height="450" />
-
-<p>​        该图就是一个形如 (a,b,c) 联合索引的 b+ 树，其中的非叶子节点存储的是第一个关键字的索引 a，而叶子节点存储的是三个关键字的数据。这里可以看出 a 是有序的，而 b，c 都是无序的。但是当在 a 相同的时候，b 是有序的，b 相同的时候，c 又是有序的。最左匹配原则中如果遇到范围查询就会停止, </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where a=5 and b&gt;0 and c =1;   -- 这样a,b可以用到（a,b,c），c不可以</span><br></pre></td></tr></table></figure>
-
-<p>例子: 当查询到 b 的值以后（这是一个范围值），c 是无序的, 所以就不能根据联合索引来确定应该取哪一行。</p>
-<p>在 InnoDB 中联合索引只有先确定前一个（左侧的值）后，才能确定下一个值。如果有范围查询的话，那么联合索引中使用范围查询的字段后的索引在该条 SQL 中都不会起作用。</p>
-<p>值得注意的是，in 和 &#x3D;  都可以乱序，比如有索引（a,b,c），语句:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from t where c =1 and a=1 and b=1，</span><br><span class="line">这样的语句也可以用到最左匹配，因为 MySQL 中有一个优化器，他会分析 SQL 语句，将其优化成索引可以匹配的形式，即：</span><br><span class="line">select * from t where a =1 and a=1 and c=1 </span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="为什么要使用联合索引"><a href="#为什么要使用联合索引" class="headerlink" title="为什么要使用联合索引:"></a>为什么要使用联合索引:</h4><p><strong>1.减少开销：</strong> 建一个联合索引(col1,col2,col3)，实际相当于建 (col1),(col1,col2),(col1,col2,col3)三个索引,每多一个索引，都会增加写操作的开销和磁盘空间的开销。对于大量数据的表，使用联合索引会大大的减少开销！<br><strong>2.覆盖索引：</strong> 对联合索引(col1,col2,col3)，如果有如下的sql: select col1,col2,col3 from test where col1&#x3D;1 and col2&#x3D;2。那么MySQL可以直接通过遍历索引取得数据，而无需回表，这减少了很多的随机io操作，覆盖索引是主要的提升性能的优化手段之一。<br><strong>3.效率高：</strong> 索引列越多，通过索引筛选出的数据越少。有1000W条数据的表，有如下sql:select from table where col1&#x3D;1 and col2&#x3D;2 and col3&#x3D;3, 假设每个条件可以筛选出10%的数据，如果只有单值索引，那么通过该索引能筛选出1000W10%&#x3D;100w条数据，然后再回表从 100w条数据中找到符合col2&#x3D;2 and col3&#x3D; 3的数据，然后再排序，再分页；如果是联合索引，通过索引筛选出1000w10% 10% *10%&#x3D;1w，效率明显提升.</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL扩展</title>
-    <url>/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</url>
-    <content><![CDATA[<h2 id="MySQL扩展"><a href="#MySQL扩展" class="headerlink" title="MySQL扩展"></a>MySQL扩展</h2><h4 id="Mysql-数据库连接池-参数："><a href="#Mysql-数据库连接池-参数：" class="headerlink" title="Mysql 数据库连接池 参数："></a>Mysql 数据库连接池 参数：</h4><p>user<br>password<br>characterEncoding  编码方式<br>autoReconnect：    当数据库连接异常中断时，是否自动重新连接？<br>maxReconnects：   autoReconnect设置为true时，重试连接的次数<br>connectTimeout：   和数据库服务器建立 socket连接时的超时，单位：毫秒。 0表示永不超时<br>allowMultiQueries： mysql驱动开启批量执行sql的开关</p>
-<h4 id="Mysql-的参数："><a href="#Mysql-的参数：" class="headerlink" title="Mysql 的参数："></a>Mysql 的参数：</h4><p>max_connections&#x3D;3000:  MySql的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量<br>default-storage-engine:   MySQL的 默认存储引擎 </p>
-<p>innodb_buffer_pool_size:  (默认128M) 存储页面缓存数据<br>innodb_change_buffer_max_size： changeBuffer缓存区,修改记录的<br>read_rnd_buffer_size : 随机读缓冲区大小  MRR 做随机IO时使用，这里会对主键进行排序<br>read_buffer_size : 读入缓冲区大小。对表进行 顺序扫描的请求将分配一个读入缓冲区<br>innodb_log_buffer_size :  事务日志所使用的缓冲区； redo_log日志需要先缓存，再刷盘</p>
-<p>wait_timeout&#x3D;1800:  MySQL连接闲置 超过一定时间后将会被强行关闭<br>back_log&#x3D;500  : 连接数据达到 max_connections时，新来请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即back_log<br>max_user_connections ： 同一个账号能够同时连接到mysql服务的最大连接数。设置为0表示不限制</p>
-<h4 id="MySQL-主机宕机后，如何恢复？"><a href="#MySQL-主机宕机后，如何恢复？" class="headerlink" title="MySQL 主机宕机后，如何恢复？"></a>MySQL 主机宕机后，如何恢复？</h4><p>主库宕机：<br>1.确保所有从节点 relay log 全部更新完毕； 在每个从库上执行 show processlist 查看<br>2.登录所有 从节点，查看 master.info文件， 找 最大的  pos 节点作为新主库，数据最全<br>3.登录 pos 最大从节点，执行 stop slave;   删 relay-log.info 等从相关文件； 开启 bin-log 来记录sql 日志； 执行 reset master<br>4.创建用于 同步的用户并授权slave<br>5.登录其他从节点 ，执行 stop slave停止同步，再 执行 start slave ；<br>6.测试 新master 和 slave 数据是 否同步</p>
-<h4 id="从库宕机："><a href="#从库宕机：" class="headerlink" title="从库宕机："></a>从库宕机：</h4><p>1)查看 从库上 mysql 的错误日志，里面有记录 主从挂掉时的binlog信息<br>2)有了 binlog和postion信息后，只需要 重新在 从库上进行change master to配置； 配置后开启slave 状态，没有报错<br>3)查看 slave状态，发现slave已经正常了，开始进行 延时数据恢复 </p>
-<h4 id="MHA-多节点集群："><a href="#MHA-多节点集群：" class="headerlink" title="MHA+多节点集群："></a>MHA+多节点集群：</h4><p>MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master，整个故障转移过程对应用程序完全透明。<br>1）service mysql stop (关闭主库)<br>2）备库自动提升为主，IP地址同时漂移至备机<br>3）从库自动同步备库<br>修复原主库，将角色变为备，连接至现主库，三台主从又恢复了正常，重新建立MHA</p>
-<h4 id="redo-log-与-binlog-区别："><a href="#redo-log-与-binlog-区别：" class="headerlink" title="redo log 与 binlog 区别："></a>redo log 与 binlog 区别：</h4><p>1）作用不同：<br>redo log是用于保证MySQL宕机也不会影响持久性；<br>binlog是用于 保证服务器可以 基于时间点恢复数据，此外 binlog还用于主从复制。<br>2）层次不同：<br>redo log是 InnoDB存储引擎实现的；<br>binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎。<br>3）内容不同：<br>redo log 是物理日志，内容基于磁盘的Page；<br>binlog 内容是二进制的，根据binlog_format参数的不同，可能基于 sql语句，基于数据本身或者二者的混合。<br>4）写入时机不同：<br>binlog在事务提交时写入；<br>redo log 写入时机相对多元：<br>** 当事务提交时会调用 fsync对redo log进行刷盘；这是默认情况下的策略，修改innodb_flush_log_at_trx_commit参数可以改变该策略，但事务的持久性将无法保证。<br>** 除事务提交时，还有其他刷盘时机：如master thread每秒刷盘一次redo log等，这样好处是不一定要等到commit时刷盘，commit速度加快。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>Mysql</category>
-      </categories>
-      <tags>
-        <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL优化实践</title>
-    <url>/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<h2 id="MySQL优化实践"><a href="#MySQL优化实践" class="headerlink" title="MySQL优化实践"></a>MySQL优化实践</h2><h4 id="1-大数据量拆分："><a href="#1-大数据量拆分：" class="headerlink" title="1.大数据量拆分："></a>1.大数据量拆分：</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update coupons </span><br><span class="line">set status = 1 </span><br><span class="line">where status= 0 and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59&#x27;;</span><br></pre></td></tr></table></figure>
-
-<p>问题： 一个 SQL只能使用一个 cpu core去处理，如果 SQL很复杂或执行很慢，就会 阻塞后面的 SQL请求，造成活动连接数暴增，MySQL CPU 100%，相应的 接口Timeout，同时对于 主从复制架构，做了业务读写分离，更新500w数据需要5分钟，Master上执行了5分钟，binlog传到了slave也需要执行5分钟，那就是Slave延迟5分钟，在这期间会造成 业务脏数据，比如重复下单等。</p>
-<p>1.先获取 where 条件中的 最小id  ，最大id，<br>2.然后 分批次去更新，每个批次 1000条，这样既能快速完成更新，又能保证 主从复制不会出现延迟</p>
-<p>先获取要更新的 数据范围内的 最小id和最大id（表没有物理delete，所以id是连续的）</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select min(id) min_id, max(id) max_id from coupons </span><br><span class="line">where status=0 </span><br><span class="line">and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’; </span><br><span class="line"></span><br><span class="line">current_id = min_id;</span><br><span class="line">for current_id &lt; max_id do</span><br><span class="line">    update coupons set status=1 </span><br><span class="line">    where id&gt;= current_id and id&lt;= current_id + 1000;    //通过主键id更新1000条很快</span><br><span class="line">commit;</span><br><span class="line">current_id += 1000;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-<p>充分利用 辅助索引包含主键id的特性，先通过索引获取主键 id走覆盖索引扫描，不需要回表，然后再通过id去关联操作是高效的，同时根据 MySQL的特性 使用分而治之的思想既能高效完成操作，又能避免主从复制延迟产生的业务数据混乱。</p>
-<h4 id="2-分解多表连接："><a href="#2-分解多表连接：" class="headerlink" title="2.分解多表连接："></a>2.分解多表连接：</h4><p>例如，使用 IN() 代替连接查询（in 等价于等值查询）可排序，让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM tag</span><br><span class="line">    JOIN tag_post ON tag_post.tag_id= tag.id</span><br><span class="line">    JOIN post ON tag_post.post_id= post.id</span><br><span class="line">    WHERE tag.tag=&#x27;mysql’;</span><br><span class="line"></span><br><span class="line">SELECT * FROM tag WHERE tag=&#x27;mysql&#x27;;           --&gt; tag_id = 1234</span><br><span class="line">SELECT * FROM tag_post WHERE tag_id=1234;      —&gt; (123,456,567,9098,8904)</span><br><span class="line">SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="3-MRR优化："><a href="#3-MRR优化：" class="headerlink" title="3.MRR优化："></a>3.MRR优化：</h4><p><strong>应用实例一：</strong>（mysql优化器改变where 条件顺序—&gt;匹配联合索引） </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM t WHERE key_part1&gt;=1000 and key_part1&lt;2000 AND key_part2=1000;</span><br></pre></td></tr></table></figure>
-
-<p>表 t 有 ( key_part1,  key_part2 ) 的联合索引 ，因此索引根据 key_part1,  key_part2 的位置关系进行排序。<br>没有MRR：SQL优化器会先将 key_part1&gt;1000 and key_part2&lt;2000 的数据查询出来，待取出的数据后，再根据key_part2的条件进行过滤。这会导致无用的数据被取出，如果有大量的数据是 key_part2 !&#x3D;1000，则启用MRR优化会使性能有巨大的提升.<br>启用MRR优化：优化器会先 将查询条件进行拆分，然后在进行数据查询。优化器会将查询条件拆分为(1000,1000),(1001,1000),(1002,1000),…,(1999,1000)，然后在根据这些拆分出的条件，使用索引下推进行数据查询，避免回表。</p>
-<p><strong>应用实例二：</strong><br> 在没有MRR之前,或没有开启 MRR特性时，MySQL 针对基于辅助索引的查询策略是这样的：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column </span><br><span class="line">from tb where key_column=x;</span><br></pre></td></tr></table></figure>
-
-<p>MySQL 执行查询的伪代码<br>第一步 先根据 where 条件中的 辅助索引，获取辅助索引与主键的集合，结果集为 rest</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb </span><br><span class="line">where key_column=x order by key_column </span><br></pre></td></tr></table></figure>
-
-<p>第二步 通过第一步获取的主键来获取 对应的值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for each pk_column value in rest do:</span><br><span class="line">select non_key_column from tb where pk_column=val</span><br></pre></td></tr></table></figure>
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg" alt="71AD8A06-C4D7-4035-A63F-E0978354FC50" width="450" height="350"/>
-
-<p>由于MySQL存储数据的方式： 辅助索引的存储顺序并非与主键的顺序一致，从图中可以看出,根据辅助索引获取的主键来访问表中的数据会导致随机的IO . 不同主键不在同一个page 里面时必然导致多次IO 和随机读。<br>  在使用 MRR优化特性的情况下，MySQL 针对基于辅助索引的查询策略是这样的：<br>第一步 先根据 where条件中的辅助索引获取辅助索引与主键的集合，结果集为rest</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb where key_column = x order by key_column </span><br></pre></td></tr></table></figure>
-
-<p>第二步 将结果集rest 放在buffer里面(read_rnd_buffer_size 大小直到buffer满了)，然后对结果集 rest按照pk_column排序，得到结果集是rest_sort<br>第三步 利用已经排序过的结果集，访问表中的数据，此时是顺序IO.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column fromtb where pk_column in ( rest_sort )</span><br></pre></td></tr></table></figure>
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg" alt="863DB3B3-6049-45F0-B0DC-16D319E21722" width="650" height="350"/>
-
-<p>​        从图示MRR原理，MySQL 将根据 辅助索引获取的结果集根据主键进行排序，将乱序化为有序，可以用-主键顺序访问基表，将随机读转化为顺序读，多页数据记录可一次性读入或 根据此次的主键范围分次读入，以减少IO操作，提高查询效率。<br>MRR的使用与否，是由 MySQL中的开关控制，只要设置开启，它会自动在 read_rnd_buffer_size 缓冲区 内，对primaryKey进行排序。但这个开关并不是一直开着，因为对于 大多数的单条查询，重新在中间添加一步排序，是对性能的损失，没有必要。所以Mysql 中还有一个 mrr_cost_based 开关，如果设置关闭，则完全按照 mrr 开关来执行了；如果设为开启，MySQL的优化器会通过 CBO算法确定是否开启MRR特性（进行对 primaryKey的排序）<br>mrr&#x3D;{on|off}<br>mrr_cost_based&#x3D;{on|off}</p>
-<h4 id="4-大数据量下分页查询-limit-offset-batchSize"><a href="#4-大数据量下分页查询-limit-offset-batchSize" class="headerlink" title="4.大数据量下分页查询 limit offset, batchSize :"></a>4.大数据量下分页查询 limit offset, batchSize :</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select  * from trade_info </span><br><span class="line">where status = 0 and </span><br><span class="line">create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’ </span><br><span class="line">order by id desc </span><br><span class="line">limit 102120, 20;</span><br></pre></td></tr></table></figure>
-
-<p>表 trade_info 上有索引 idx_status_create_time(status, create_time); 等价于索引（status, create_time,id)<br>对于典型的 分页 limit m, n来说，越往后翻页越慢( m越大会越慢);  因为要 定位 m位置需要扫描的数据越来越多，导致IO开销比较大。这里可以利用 辅助索引的覆盖扫描来进行优化，先获取id，这一步就是 索引覆盖扫描，不需要回表，然后通过 id 跟原表 trade_info进行关联<br>&#x2F;&#x2F; 改写后的SQL如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * </span><br><span class="line">from trade_info a , </span><br><span class="line">   (select id from trade_info </span><br><span class="line">    where status = 0 </span><br><span class="line">    and create_time &gt;=&#x27;2020-10-01 00:00:00&#x27; and create_time &lt;=&#x27;2020-10-07 23:59:59’ </span><br><span class="line">    order by id desc limit 102120, 20)  as b    -- 这一步走的是索引覆盖扫描，不需要回表</span><br><span class="line"> where a.id = b.id;</span><br></pre></td></tr></table></figure>
-
-<p><strong>问题：</strong> 分页查询时，MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，而且在取offset+N 行数据时，因为是select * … 的操作，所以是需要回表的，查询到索引叶子节点数据，根据叶子节点上的主键值去聚簇索引上查询需要的全部字段值。<br>那当 offset 特别大的时候，此时使用 limit m,n 效率就非常的低下，因为回表了 M 行无用的数据，并且占用了大量的 buffer pool 缓存。</p>
-<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h4><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
-<h4 id="常见慢查询问题："><a href="#常见慢查询问题：" class="headerlink" title="常见慢查询问题："></a>常见慢查询问题：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg" alt="14B56083-7EBD-4768-AD40-E3C00DFA418D" width="850" height="500" />
-
-
-
-<p>1.确定主键，索引字段，将它们作为查询条件<br>2.数据量过大，使用 limit 做分页处理，  limit  起始id, 条数count<br>3.当 limit 起始行数很大时， 查询效率会降低， 可以考虑使用自增 id </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Select *. From table limit  150000 , 5000</span><br><span class="line"></span><br><span class="line">优化： Select * from table where id&gt;150000 and id&lt;200000;  -- 速度会有提升</span><br></pre></td></tr></table></figure>
-
-<p>4.数据导入，可尝试批量导入数据 ；   性能：    Load  &gt; insert.<br> load 只操作一次，之后数据 批量插入<br> insert 每个数据操作一次，’就要遍历 一次字段索引</p>
 ]]></content>
       <categories>
         <category>后端</category>
@@ -772,6 +502,417 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL优化实践</title>
+    <url>/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<h2 id="MySQL优化实践"><a href="#MySQL优化实践" class="headerlink" title="MySQL优化实践"></a>MySQL优化实践</h2><h4 id="1-大数据量拆分："><a href="#1-大数据量拆分：" class="headerlink" title="1.大数据量拆分："></a>1.大数据量拆分：</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update coupons </span><br><span class="line">set status = 1 </span><br><span class="line">where status= 0 and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>问题： 一个 SQL只能使用一个 cpu core去处理，如果 SQL很复杂或执行很慢，就会 阻塞后面的 SQL请求，造成活动连接数暴增，MySQL CPU 100%，相应的 接口Timeout，同时对于 主从复制架构，做了业务读写分离，更新500w数据需要5分钟，Master上执行了5分钟，binlog传到了slave也需要执行5分钟，那就是Slave延迟5分钟，在这期间会造成 业务脏数据，比如重复下单等。</p>
+<p>1.先获取 where 条件中的 最小id  ，最大id，<br>2.然后 分批次去更新，每个批次 1000条，这样既能快速完成更新，又能保证 主从复制不会出现延迟</p>
+<p>先获取要更新的 数据范围内的 最小id和最大id（表没有物理delete，所以id是连续的）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select min(id) min_id, max(id) max_id from coupons </span><br><span class="line">where status=0 </span><br><span class="line">and create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’; </span><br><span class="line"></span><br><span class="line">current_id = min_id;</span><br><span class="line">for current_id &lt; max_id do</span><br><span class="line">    update coupons set status=1 </span><br><span class="line">    where id&gt;= current_id and id&lt;= current_id + 1000;    //通过主键id更新1000条很快</span><br><span class="line">commit;</span><br><span class="line">current_id += 1000;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>充分利用 辅助索引包含主键id的特性，先通过索引获取主键 id走覆盖索引扫描，不需要回表，然后再通过id去关联操作是高效的，同时根据 MySQL的特性 使用分而治之的思想既能高效完成操作，又能避免主从复制延迟产生的业务数据混乱。</p>
+<h4 id="2-分解多表连接："><a href="#2-分解多表连接：" class="headerlink" title="2.分解多表连接："></a>2.分解多表连接：</h4><p>例如，使用 IN() 代替连接查询（in 等价于等值查询）可排序，让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM tag</span><br><span class="line">    JOIN tag_post ON tag_post.tag_id= tag.id</span><br><span class="line">    JOIN post ON tag_post.post_id= post.id</span><br><span class="line">    WHERE tag.tag=&#x27;mysql’;</span><br><span class="line"></span><br><span class="line">SELECT * FROM tag WHERE tag=&#x27;mysql&#x27;;           --&gt; tag_id = 1234</span><br><span class="line">SELECT * FROM tag_post WHERE tag_id=1234;      —&gt; (123,456,567,9098,8904)</span><br><span class="line">SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-MRR优化："><a href="#3-MRR优化：" class="headerlink" title="3.MRR优化："></a>3.MRR优化：</h4><p><strong>应用实例一：</strong>（mysql优化器改变where 条件顺序—&gt;匹配联合索引） </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM t WHERE key_part1&gt;=1000 and key_part1&lt;2000 AND key_part2=1000;</span><br></pre></td></tr></table></figure>
+
+<p>表 t 有 ( key_part1,  key_part2 ) 的联合索引 ，因此索引根据 key_part1,  key_part2 的位置关系进行排序。<br>没有MRR：SQL优化器会先将 key_part1&gt;1000 and key_part2&lt;2000 的数据查询出来，待取出的数据后，再根据key_part2的条件进行过滤。这会导致无用的数据被取出，如果有大量的数据是 key_part2 !&#x3D;1000，则启用MRR优化会使性能有巨大的提升.<br>启用MRR优化：优化器会先 将查询条件进行拆分，然后在进行数据查询。优化器会将查询条件拆分为(1000,1000),(1001,1000),(1002,1000),…,(1999,1000)，然后在根据这些拆分出的条件，使用索引下推进行数据查询，避免回表。</p>
+<p><strong>应用实例二：</strong><br> 在没有MRR之前,或没有开启 MRR特性时，MySQL 针对基于辅助索引的查询策略是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column </span><br><span class="line">from tb where key_column=x;</span><br></pre></td></tr></table></figure>
+
+<p>MySQL 执行查询的伪代码<br>第一步 先根据 where 条件中的 辅助索引，获取辅助索引与主键的集合，结果集为 rest</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb </span><br><span class="line">where key_column=x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 通过第一步获取的主键来获取 对应的值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for each pk_column value in rest do:</span><br><span class="line">select non_key_column from tb where pk_column=val</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryagegrej60ko0im3zx02.jpg" alt="71AD8A06-C4D7-4035-A63F-E0978354FC50" width="450" height="350"/>
+
+<p>由于MySQL存储数据的方式： 辅助索引的存储顺序并非与主键的顺序一致，从图中可以看出,根据辅助索引获取的主键来访问表中的数据会导致随机的IO . 不同主键不在同一个page 里面时必然导致多次IO 和随机读。<br>  在使用 MRR优化特性的情况下，MySQL 针对基于辅助索引的查询策略是这样的：<br>第一步 先根据 where条件中的辅助索引获取辅助索引与主键的集合，结果集为rest</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select key_column, pk_column from tb where key_column = x order by key_column </span><br></pre></td></tr></table></figure>
+
+<p>第二步 将结果集rest 放在buffer里面(read_rnd_buffer_size 大小直到buffer满了)，然后对结果集 rest按照pk_column排序，得到结果集是rest_sort<br>第三步 利用已经排序过的结果集，访问表中的数据，此时是顺序IO.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select non_key_column fromtb where pk_column in ( rest_sort )</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guryaq9apaj60y80hkwge02.jpg" alt="863DB3B3-6049-45F0-B0DC-16D319E21722" width="650" height="350"/>
+
+<p>​        从图示MRR原理，MySQL 将根据 辅助索引获取的结果集根据主键进行排序，将乱序化为有序，可以用-主键顺序访问基表，将随机读转化为顺序读，多页数据记录可一次性读入或 根据此次的主键范围分次读入，以减少IO操作，提高查询效率。<br>MRR的使用与否，是由 MySQL中的开关控制，只要设置开启，它会自动在 read_rnd_buffer_size 缓冲区 内，对primaryKey进行排序。但这个开关并不是一直开着，因为对于 大多数的单条查询，重新在中间添加一步排序，是对性能的损失，没有必要。所以Mysql 中还有一个 mrr_cost_based 开关，如果设置关闭，则完全按照 mrr 开关来执行了；如果设为开启，MySQL的优化器会通过 CBO算法确定是否开启MRR特性（进行对 primaryKey的排序）<br>mrr&#x3D;{on|off}<br>mrr_cost_based&#x3D;{on|off}</p>
+<h4 id="4-大数据量下分页查询-limit-offset-batchSize"><a href="#4-大数据量下分页查询-limit-offset-batchSize" class="headerlink" title="4.大数据量下分页查询 limit offset, batchSize :"></a>4.大数据量下分页查询 limit offset, batchSize :</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select  * from trade_info </span><br><span class="line">where status = 0 and </span><br><span class="line">create_time &gt;= &#x27;2020-10-01 00:00:00&#x27; and create_time &lt;= &#x27;2020-10-07 23:59:59’ </span><br><span class="line">order by id desc </span><br><span class="line">limit 102120, 20;</span><br></pre></td></tr></table></figure>
+
+<p>表 trade_info 上有索引 idx_status_create_time(status, create_time); 等价于索引（status, create_time,id)<br>对于典型的 分页 limit m, n来说，越往后翻页越慢( m越大会越慢);  因为要 定位 m位置需要扫描的数据越来越多，导致IO开销比较大。这里可以利用 辅助索引的覆盖扫描来进行优化，先获取id，这一步就是 索引覆盖扫描，不需要回表，然后通过 id 跟原表 trade_info进行关联<br>&#x2F;&#x2F; 改写后的SQL如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * </span><br><span class="line">from trade_info a , </span><br><span class="line">   (select id from trade_info </span><br><span class="line">    where status = 0 </span><br><span class="line">    and create_time &gt;=&#x27;2020-10-01 00:00:00&#x27; and create_time &lt;=&#x27;2020-10-07 23:59:59’ </span><br><span class="line">    order by id desc limit 102120, 20)  as b    -- 这一步走的是索引覆盖扫描，不需要回表</span><br><span class="line"> where a.id = b.id;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题：</strong> 分页查询时，MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，而且在取offset+N 行数据时，因为是select * … 的操作，所以是需要回表的，查询到索引叶子节点数据，根据叶子节点上的主键值去聚簇索引上查询需要的全部字段值。<br>那当 offset 特别大的时候，此时使用 limit m,n 效率就非常的低下，因为回表了 M 行无用的数据，并且占用了大量的 buffer pool 缓存。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h4><p>1.控制返回的总页数；<br>2.对超过特定阈值的页数进行 SQL 改写<br>SELECT a.* FROM USER a  INNER JOIN  (SELECT id  FROM USER WHERE age &#x3D; 10 LIMIT 100000,10) b  ON a.id &#x3D; b.id;  结果0.53s<br>需要对 where条件增加索引，id 因为是主键自带索引，select返回减少回表可以提升查询性能, 所以采用查询主键字段后进行关联大幅度提升了查询效率。<br>3.使用Redis 来保存lastMaxtId, 下一次分页查询时直接拼接在 where 条件后边，直接跨过 offset 行数据。</p>
+<h4 id="常见慢查询问题："><a href="#常见慢查询问题：" class="headerlink" title="常见慢查询问题："></a>常见慢查询问题：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guryax8sv9j61860oan1002.jpg" alt="14B56083-7EBD-4768-AD40-E3C00DFA418D" width="850" height="500" />
+
+
+
+<p>1.确定主键，索引字段，将它们作为查询条件<br>2.数据量过大，使用 limit 做分页处理，  limit  起始id, 条数count<br>3.当 limit 起始行数很大时， 查询效率会降低， 可以考虑使用自增 id </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Select *. From table limit  150000 , 5000</span><br><span class="line"></span><br><span class="line">优化： Select * from table where id&gt;150000 and id&lt;200000;  -- 速度会有提升</span><br></pre></td></tr></table></figure>
+
+<p>4.数据导入，可尝试批量导入数据 ；   性能：    Load  &gt; insert.<br> load 只操作一次，之后数据 批量插入<br> insert 每个数据操作一次，’就要遍历 一次字段索引</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Mysql</category>
+      </categories>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis数据结构</title>
+    <url>/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</url>
+    <content><![CDATA[<h2 id="A1-Redis基本数据结构"><a href="#A1-Redis基本数据结构" class="headerlink" title="A1-Redis基本数据结构"></a>A1-Redis基本数据结构</h2><h4 id="基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog"><a href="#基本数据结构：-String、List、Hash、Set、SortedSet、-bitMap，HyperLogLog" class="headerlink" title="基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog"></a>基本数据结构： String、List、Hash、Set、SortedSet、 bitMap，HyperLogLog</h4><h3 id="String"><a href="#String" class="headerlink" title="String :"></a>String :</h3><p>动态字符串，类似于 Java 中的 ArrayList，一个字符数组；     应用：缓存;  使用 SDS 结构</p>
+<h4 id="SDS-与-C-字符串的区别："><a href="#SDS-与-C-字符串的区别：" class="headerlink" title="SDS 与 C 字符串的区别："></a>SDS 与 C 字符串的区别：</h4><p> C 语言使用一个长度 N+1 的字符数组来表示长度为 N 的字符串，字符数组最后一个元素是 ‘\0’</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwjznf9x3j60nx055jrm02.jpg" alt="image-20210928191147121" width="650" height="150"/>         
+
+
+
+<p><strong>1.计数方式不同：</strong>  C 不保存数组长度，每次都需要遍历一遍整个数组，获取字符串长度 O(N) ；  redis 自己本身就保存 长度信息<br><strong>2.避免缓冲区溢出：</strong>执行 拼接 or 缩短字符串的操作时，可能出现 缓冲区溢出&#x2F;内存泄漏 的问题<br>现在需要在后面拼接，但是没计算好内存，结果可能因 内存不足，被意外的修改；<br>SDS 结构存储 当前长度+ free未使用长度，在做拼接操作时，会判断是否可以放得下，如果长度够直接执行，如果 不够那就进行扩容<br>    <img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk020cnij611w0bwdgr02.jpg" alt="30466B01-C2DD-46B1-B7C0-90DD45C08A93" width="650" height="200"  /></p>
+<p><strong>3.减少 修改字符串时带来的内存重分配次数：</strong> Redis是个高速缓存数据库，如果需要对字符串进行 频繁的拼接和截断操作，在写代码时忘记了重新分配内存，就可能造成缓冲区溢出，以及内存泄露。Redis为避免 C字符串这样的缺陷，就分别采用了两种解决方案，去达到性能最大化，空间利用最大化：<br>***空间预分配：对SDS进行扩展操作的时候，Redis会为 SDS分配好内存，并且根据特定的公式，分配多余的 free空间，还有多余的 1byte空间（这1byte也是为了存空字符），这样就可以避免连续执行 字符串添加所带来的内存分配消耗。<br>*** 算法动态计算调整free值：字符串变长了，Redis还会根据算法计算出一个 free值给他备用；再继续拼接会发现，备用的 free用上了，省去这次的内存重分配</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk0n3hsdj611807ajs102.jpg" alt="DC43FF4A-EFE1-468A-AFF3-6123FF14F3E0" width="650" height="150" />
+
+<p><strong>4.惰性空间释放：</strong> 当执行完一个字符串缩减的操作，为了预防继续添加的操作，redis并不会马上收回空间，这样来减少分配空间带来的消耗；当再次操作还没用到多余空间的时候，Redis就会收回多余的空间，防止内存的浪费。<br>调用删减函数，并不会马上释放掉 free空间；如果需要继续添加，则这个空间就能用上，减少内存的重分配，如果空间不需要，调用函数删掉</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1cugrtj61120e4jsw02.jpg" alt="DB44101E-34A5-4AEF-AFCE-B7A66ACAC422" width="650" height="200" />
+
+<p><strong>5.二进制安全：</strong> 因为 C 语言中的字符串必须符合某种编码（如 ASCII），中间出现 ‘\0’ 可能会被判定为提前结束的字符串而识别不了；因此 C的字符串  只能保存文本数据；<br>Redis 保存字符串的长度，不判断空字符而是判断长度； 所以redis 可以保存 各种二进制数据，更加安全；</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk1xfew3j611a0cwgmx02.jpg" alt="FBB69EB8-5F6F-40D6-BD76-9111B9FCBF10"  width="650" height="200" />
+
+<p>List：双向链表，类似于 Java 中的 LinkedList，插入、删除 性能好，时间复杂度为 O(1)，但索引定位慢，查询 O(n)；   应用：消息队列；  结构：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">typedef struct list&#123;</span><br><span class="line">    <span class="comment">//表 头结点</span></span><br><span class="line">    listNode  *head;</span><br><span class="line">    <span class="comment">//表 尾节点</span></span><br><span class="line">    listNode  *tail;</span><br><span class="line">    <span class="comment">//链表 长度</span></span><br><span class="line">    unsigned <span class="type">long</span> len;</span><br><span class="line">    <span class="comment">//节点值复制函数</span></span><br><span class="line">    <span class="keyword">void</span> *(*dup) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值释放函数</span></span><br><span class="line">    <span class="keyword">void</span>  (*free) (viod *ptr);</span><br><span class="line">    <span class="comment">//节点值对比函数</span></span><br><span class="line">    <span class="type">int</span> (*match) (<span class="keyword">void</span> *ptr,<span class="keyword">void</span> *key);</span><br><span class="line">&#125;list</span><br></pre></td></tr></table></figure>
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk2o47wcj60xi0eywft02.jpg" alt="C494BCEE-029D-4025-94D4-5B8B64A68BC5" width="650" height="250"/>
+
+<h4 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h4><p>1.无环双向链表<br>2.获取表头指针，表尾指针，链表节点长度的 时间复杂度均为O(1)<br>3.链表使用 void *指针来保存节点值，可以保存各种不同类型的值</p>
+<h3 id="Hash"><a href="#Hash" class="headerlink" title="Hash:"></a>Hash:</h3><p>数组 + 链表， 类似于 Java 中的 HashMap ，链地址法来解决部分 哈希冲突， 2倍扩容， 初始容量 16.</p>
+<h4 id="结构："><a href="#结构：" class="headerlink" title="结构："></a>结构：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk36f5cej60ze0j0jsx02.jpg" alt="406435D6-0269-4F31-AAD5-4483C7B8FDC2" width="650" height="300" />
+
+<p>ht[0]： 用于存放真实的key-vlaue数据； ht[1]：用于扩容(rehash)<br>Redis中哈希算法和哈希冲突跟Java实现的差不多，它俩差异: Redis哈希冲突，链表头插法；JDK1.8后，Java哈希冲突，链表尾插法。</p>
+<h4 id="渐进式-rehash："><a href="#渐进式-rehash：" class="headerlink" title="渐进式 rehash："></a>渐进式 rehash：</h4><p>Hash 扩容是比较耗时间的，需重新申请新的数组，然后将旧字典所有链表中的元素重新挂接到新数组下面，这是一个 O(n) 的操作，作为 单线程的 Redis 很难承受这样耗时的过程，所以 Redis 使用 渐进式 rehash 来实现小步搬迁。</p>
+<p>在 rehash时，保留新旧两个 hash结构，查询时先查新hash, 没有再查旧hash，并搬迁至新hash;  增加直接加到新hash;  修改先改hash, 没有改旧hash, 然后删除搬迁至新hash; 删除先删新hash, 没有再删旧hash。</p>
+<p><strong>扩容条件：</strong>当 hash表中 元素个数 &#x3D;&#x3D; 数组.size()  扩容 原数组大小 2 倍。 如果 Redis 正在做 bgsave(持久化命令)，为减少内存，尽量不去扩容，但如果 hash 表非常满，达到一维数组长度 5 倍，这时就会 强制扩容。<br><strong>缩容条件：</strong>当 hash 表中  元素个数 &lt;  数组.size() * 10% ，缩容不会考虑  是否在做 bgsave</p>
+<p>在对哈希表进行 扩展或者收缩操作时，reash过程并不是一次性地完成的，而是 渐进式地完成的。<br>Redis在 rehash时采取渐进式的原因：数据量如果过大的话，一次性rehash会有庞大的计算量，这很可能导致服务器一段时间内停止服务。<br>Redis具体是rehash时这么干的：<br>1: 在字典中维持一个 索引计数器变量 rehashidx，并将设置为0，表示rehash开始。<br>2:在 rehash期间每次对字典进行 增加、查询、删除和更新操作时，除了执行指定命令外；还会将ht[0]中rehashidx 索引上的值 rehash到ht[1]，操作完成后 rehashidx+1。<br>3:字典操作不断执行，最终在某个时间点，所有的键值对完成rehash，这时将rehashidx设置为-1，表示rehash完成<br>4:在渐进式rehash过程中，字典会 同时使用两个哈希表ht[0]和ht[1]，所有的更新、删除、查找操作也会在两个哈希表进行。例如要查找一个键的话，服务器会优先查找ht[0]，如果不存在，再查找ht[1]，诸如此类。此外当执行新增操作时，新的键值对一律保存到ht[1]，不再对ht[0]进行任何操作，以保证ht[0]的键值对数量只减不增，直至变为空表。</p>
+<h3 id="Set-："><a href="#Set-：" class="headerlink" title="Set ："></a>Set ：</h3><p> 键值对 无序、唯一，类似于 Java 语言中的 HashSet， 在 HashMap 的基础上对所有的 value &#x3D; NULL </p>
+<h3 id="SortedSet（zset）"><a href="#SortedSet（zset）" class="headerlink" title="SortedSet（zset）:"></a>SortedSet（zset）:</h3><p>ziplist  +  跳表（ skiplist）；  应用：排行榜 ；    参考： <a href="http://blog.jobbole.com/111731/">http://blog.jobbole.com/111731/</a><br>zset 可以按照 用户指定的 排序规则对输入字段进行排序， 支持随机插入、删除<br>同时满足如下条件时, 使用的是 ziplist,  其他时候使用 skiplist<br><strong>1.有序集合保存的元素  数量小于128个</strong><br><strong>2.有序集合保存的所有元素的 长度小于64字节</strong><br>ziplist 为存储结构时,每个集合元素使用 两个紧挨在一起的 压缩列表结点 来保存, 第一个 节点保存元素的成员, 第二个元素保存元素的分值score 。 </p>
+<h4 id="为什么不考虑平衡树，红黑树？"><a href="#为什么不考虑平衡树，红黑树？" class="headerlink" title="为什么不考虑平衡树，红黑树？"></a>为什么不考虑平衡树，红黑树？</h4><p>1.性能考虑： 在高并发情况下，树形结构需要执行一些 rebalance 这样的可能涉及整棵树的操作，相对来说跳跃表的变化 只涉及局部 ；<br>2.实现考虑： 在复杂度与红黑树相同的情况下，跳跃表实现起来更简单；</p>
+<p>在新产生的链表上，每两个相邻的节点增加一个指针，从而产生第三层链表：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk71tl5oj60g6038jre02.jpg" alt="03F9B84C-612F-40A8-A518-1B898D67ADA4" width="750" height="150" />
+
+
+<p>skiplist  为每个节点随机出一个层数(level)，比如：一个节点随机出的层数 3，就把它链入到 第 1 层到第 3 层这三层链表中</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk7wpk4pj60u012tq6f02.jpg" alt="35A292CF-7CF8-48E7-9E0F-11775A623FBB" width="750" height="750" />
+
+<p>每一个节点的层数（level）是随机出来的，而且新插入一个节点并不会影响到其他节点的层数，因此 插入操作只需要 修改节点前后的指针，而不需要对多个节点都进行调整，这就降低插入操作的复杂度。 从刚才创建的这个结构中查找 23 这个不存在的数，查找路径：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk8ko5wnj60v00aeq3p02.jpg" alt="54079B05-6914-4965-B95B-FA58520C9192" width="750" height="250" />
+
+<h4 id="跳跃表-重要过程："><a href="#跳跃表-重要过程：" class="headerlink" title="跳跃表 重要过程："></a>跳跃表 重要过程：</h4><p><strong>随机层数：</strong><br>对于每一个新插入的节点，都需要调用 一个随机算法给它分配一个合理的层数；<br>直观上期望的目标是 50% 的概率被分配到 Level 1； 25% 的概率被分配到 Level 2； 12.5% 的概率被分配到 Level 3，以此类推…有 2^(-63) 的概率被分配到最顶层，因为这里每一层的晋升率都是 50%<br>默认允许 最大的层数是 32，当 Level[0] 有 264 个元素时，才能达到 32 层，所以定义 32 完全够用了<br>插入节点：找到当前需要插入的位置 （其中包括相同 score 时的处理）； 创建新节点，调整前后的指针指向，完成插入<br>节点删除: 和插入过程类似，先把 “搜索路径” 找出来，然后对于 每个层的相关节点重排一下 前向后向指针，同时更新一下最高层数 maxLevel</p>
+<p><strong>节点更新:</strong><br>当调用 ZADD 方法时，如果对应的 value 不存在，那就是插入过程，<br>如果这个 value 已经存在，只是调整一下 score 的值，那就需要走一个 更新流程<br>如果这个新的 score 值 并不会带来排序上的变化，那就不需要调整位置，直接修改元素的 score 值<br>如果 排序位置改变，那就需要调整位置，把这个元素 删除再插入，需要经过两次路径搜索； 需调整顺序，先删再插</p>
+<p><strong>元素排名：</strong>跳跃表是有序的， 在 skiplist 的 forward 指针上，为每一个 forward 指针都增加 span 属性，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点 中间会跳过多少个节点<br>在 插入、删除操作时，都会更新 span 值的大小，所以沿着 “搜索路径”把所有经过节点的 跨度 span 值累加 就可以算出当前元素的最终 rank 值。极端情况, 跳跃表中所有 score 值都是一样，zset 的查找性能会退化为 O(n)</p>
+<h3 id="BitMap-位图"><a href="#BitMap-位图" class="headerlink" title="BitMap:  位图"></a>BitMap:  位图</h3><p><strong>应用场景：</strong>对于统计浏览某个网页的 独立访客数量 UV（Unique visitor）的业务场景，考虑使用 BitMap、 布隆过滤器（缓存穿透）  </p>
+<p>Redis 位图是一个 二进制位组成的数组，数组的每个单元只能存储 0和1。 将数组中的每个 二进制位与用户 ID 一一对应， 使用位图去记录每个用户当日是否访问，存储的 1的个数就是UV数量。以 当天的日期加固定的前缀作为key，建立一个Bitmap，每一位二进制的 offset做为一个用户 ID的标识，当今天用户访问时就将Bitmap中标识此用户的二进制（value）从0置为1。最后统计所有bitmap 中 1 的个数，即为独立访客数量。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwk9dz2toj60dw0bgjrl02.jpg" alt="F49C49F5-90EC-4448-870F-23D9E3A0A472" width="350" height="250" />
+
+
+
+<h3 id="HyperLogLog："><a href="#HyperLogLog：" class="headerlink" title="HyperLogLog："></a>HyperLogLog：</h3><p>基数统计 通常是用来 统计一个集合中不重复的元素个数 ；某个网页的 独立访客数量 UV（Unique visitor）的业务场景<br>Bitmap 已经节约了内存，但如果页面访问量非常大（例如用户规模达到1亿），那么用于统计单个页面的UV内存占用需要 100000000&#x2F;8&#x2F;1024&#x2F;1024 ≈ 12M；若分别统计多个页面，则内存占用会线性增加。如果只需要 每天的UV大致统计数量，使用HyperLogLog 比较合适。<br>HyperLogLog 是用来做 基数估计的算法，HyperLogLog 用12K字节的内存占用，可以计算接近 264 个不同元素的基数（UV）</p>
+<p>2.比特串的基数估计<br>在UV统计中需要统计一组集合中 不重复元素的个数。利用哈希算法将集合中的数据转换成 0和1构成的二进制数串，那么一个二进制串可以类比为一次抛硬币实验，1是抛到正面，0是反面。<br>使用 MurmurHash2 算法来计算 集合数据的哈希值，该算法有很好的均匀性，即使输入集合数据按规律排列，哈希之后仍能保证数据随机分布，因此可以保证每 bit出现 0或1的概率均为1&#x2F;2，Redis中采用的是MurmurHash2固定64比特版本，另外该算法的计算速度也较快。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwka6pez0j60v80hwdid02.jpg" alt="AC03EB09-D3C4-4316-80D1-D5A6723A1C4C" width="650" height="350" />
+
+<p>HLL算法思想的核心就在于通过 保留少量的比特信息，来 估计或观察消息流。二进制串中从低位开始第一个 1出现的位置可以理解为抛硬币试验中第一次出现正面的抛掷次数k，那么基于上面的结论，可以 通过多次抛硬币实验的最大抛到正面的次数来预估总共进行了多少次实验，通过第一个1出现位置的最大值  kmax来预估总共有多少个不同数字</p>
+<h4 id="分桶平均"><a href="#分桶平均" class="headerlink" title="分桶平均"></a>分桶平均</h4><p>如果直接应用上面的HLL方法进行基数估计会由于偶然性带来较大的误差，因此 HLL算法采用分桶平均的方法来消减偶然性的误差、提高估计的准确度。<br>1.先把数据 分成若干个分组（桶bucket），估计每个分组的基数<br>2.然后用所有 分组基数的平均数来估计总的基数。<br>Redis 中桶的个数是16384，对于每个哈希值（64bit），14 位作为 桶编号用来定位数据分布的桶位置，剩余的50bit 即伯努利过程，每个桶对应 6 bit大小，记录kmax。<br>举例说明，若 UV值通过Hash 算法得到比特串:  10110000 00000000 01101100 00000100 00101001 11000000 00 000100 00011101<br>后面 14位确定桶编号，即bucket&#x3D;1053; 前面的50 bit 伯努利过程，该例中 kmax&#x3D; 9，那么UV基数估计为29<br>多个桶用平均数计算，HLL采用的是 调和平均方法，然后再基于 因子修正公式计算得出，调和平均较比 几何平均有更高的精度<br>Redis中规定 分桶个数16384，每个桶的kmax用 6bit空间来存放，6*16384&#x2F;8 字节，再加上结构头等数据，加起来一共12304个字节；用12K字节的内存占用，即可 计算接近 264 个不同元素的基数。这和基数越大占用内存越大的其它计算基数的方式形成鲜明对比。<br>但Redis对应内存的节约还不止于此，12K字节内存是 encoding&#x3D;HLL_DENSE(密集)模式下的内存占用；<br>对于基数值比较少，大多数桶的计数值kmax为0的情况，Redis采用HLL_SPARSE稀疏模式的存储，稀疏存储的空间占用远小于12K字节。对密集存储和稀疏存储方式，本文做简单介绍：<br>密集存储的结构很简单，就是连续的 16384个6比特连起来的位图。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkb4wfj2j610s04kmxq02.jpg" alt="6715C6C3-8585-4629-BD40-59DE35B1111B" width="650" height="100" />
+
+<p>稀疏存储 针对的就是很多的桶计数值为 0的情况，因此会有大量连续0的情况出现</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkbpk601j6156050gmo02.jpg" alt="23A5FB80-92CF-4E8B-8236-40C6F3C4ABAA" width="650" height="100" />
+
+<h4 id="使用-set-集合问题："><a href="#使用-set-集合问题：" class="headerlink" title="使用 set 集合问题："></a>使用 set 集合问题：</h4><ol>
+<li>存储空间巨大： 如果数量庞大，则需要用来存储的 set 集合就会非常大，去重功能将耗费较高的时间复杂度 ，影响性能</li>
+<li>统计复杂： 每个场景都需要一个set，对于多个 set 集合，如果要聚合统计一下，也是一个复杂的事情</li>
+</ol>
+<h4 id="Redis-过期策略：-定期删除-惰性删除"><a href="#Redis-过期策略：-定期删除-惰性删除" class="headerlink" title="Redis 过期策略： 定期删除+ 惰性删除"></a>Redis 过期策略： 定期删除+ 惰性删除</h4><p>定期删除：默认100ms 就随机抽一些 设置了过期时间的key，去检查是否过期，过期了就删<br>如果一直没随机到很多key，里面不就存在大量的无效key了？<br>惰性删除：不主动删，等你来查询我，看看过期没，过期就删了</p>
+<p>定期没删，也没查询，那可咋整？</p>
+<h4 id="内存淘汰策略："><a href="#内存淘汰策略：" class="headerlink" title="内存淘汰策略："></a>内存淘汰策略：</h4><p>1.noeviction:  永不删除<br>2.allkeys-random:  无过期时间的数据，随机删除一部分<br>3.allkeys-lru: 无过期时间的数据，删除 最近最少使用的（LRU）<br>4.volatile-random:  设置过期时间的数据，随机删除一部分<br>5.volatile-lru: 有过期时间的数据，删除最近最少使用的（LRU）<br>6.volatile-ttl: 有过期时间的数据，删除 剩余时间最短的（TTL）</p>
+<h4 id="缓存穿透："><a href="#缓存穿透：" class="headerlink" title="缓存穿透："></a>缓存穿透：</h4><p>缓存和数据库 中都没有的数据，而用户不断发起请求，导致请求不走缓存，直接访问到数据库，数据库压力过大<br>通常是 请求参数非法导致，(例如 id&#x3D;-1)</p>
+<h4 id="解决："><a href="#解决：" class="headerlink" title="解决："></a>解决：</h4><p>1.接口层 增加校验，比如 用户鉴权校验，参数做校验<br>2.在缓存中取不到，数据库中也没有取到，此时将对应Key的 Value 改写：{ null、位置错误、稍后重试 }，参照具体的场景<br>3.布隆过滤器（Bloom Filter）利用bitMap结构和hash算法，判断出这个Key是否在数据库中存在，不存在 return，存在就去查 DB刷新KV 再return</p>
+<p><strong>缓存击穿：</strong>一个热点 Key，扛着高并发，当这个Key在失效瞬间，持续的高并发击穿缓存，直接请求到数据库<br>解决：<br>1.设置 热点数据永远不过期<br>2.加上互斥锁，保证 同一进程中对同一数据，不会并发请求到DB</p>
+<p><strong>缓存雪崩：</strong>同一时间多个热点 Key值， 大面积失效，导致大量请求访问到DB<br>解决：<br>1.把每个 Key的失效时间都加个随机值，保证 数据不会在同一时间大面积失效<br>2.设置 热点数据永远不过期<br>3.将 多个热点数据 均匀分布在不同的Redis库中<br>4.使用主从、集群模型，提高缓存服务的高可用<br>缓存雪崩需要做 熔断等策略</p>
+<ul>
+<li>事前： Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃</li>
+<li>事中： 本地 ehcache 缓存 + Hystrix 限流+降级，避免MySQL被打死</li>
+<li>事后： Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据</li>
+</ul>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>持久化-哨兵/集群</title>
+    <url>/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</url>
+    <content><![CDATA[<h2 id="A2-Redis-持久化-哨兵-x2F-集群"><a href="#A2-Redis-持久化-哨兵-x2F-集群" class="headerlink" title="A2-Redis-持久化-哨兵&#x2F;集群"></a>A2-Redis-持久化-哨兵&#x2F;集群</h2><h4 id="Redis-简介："><a href="#Redis-简介：" class="headerlink" title="Redis 简介："></a>Redis 简介：</h4><p>1.非常快<br>2.支持丰富的数据类型<br>3.操作具有 原子性，单线程</p>
+<h4 id="为什么快？"><a href="#为什么快？" class="headerlink" title="为什么快？"></a>为什么快？</h4><p>1.数据结构简单，操作的时间复杂度低<br>2.单线程，没有多线程相互切换的开销，避免不必要的上下文切换和锁竞争条件<br>3.所有操作都是基于内存的<br>4.多路I&#x2F;O复用模型，非阻塞IO </p>
+<h4 id="RDB：快照持久化-，根据-指定时间内改变的key-数量来做持久化-（冷备）"><a href="#RDB：快照持久化-，根据-指定时间内改变的key-数量来做持久化-（冷备）" class="headerlink" title="RDB：快照持久化 ，根据 指定时间内改变的key 数量来做持久化  （冷备）"></a>RDB：快照持久化 ，根据 指定时间内改变的key 数量来做持久化  （冷备）</h4><p>快照持久化 完全交给 子进程处理，父进程 继续 处理客户端请求。<br>父进程调用 fork函数产生一个子进程 做数据持久化，不会修改现有的内存数据结构，只是对数据结构进行遍历读取，然后序列化写到磁盘中。但父进程继续响应客户端请求，然后对内存数据结构进行不间断的修改。<br>这个时候就会使用 操作系统的 COW 机制来进行 数据段页面 的分离。父进程对其中一个页面的数据进行修改时，将被共享的页面复制一份，并分离出来，然后对这个复制的页面进行修改。这时 子进程 相应的页面是 没有变化的，是一个快照的数据，然后子进程就可以遍历数据进行序列化写磁盘了。 </p>
+<h4 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h4><p>1.性能影响小，网络传输快<br>2.数据恢复速度快<br>3.文件小</p>
+<h4 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h4><p>1.无法实时同步，停机时会导致大量丢失数据<br>2.兼容性差（文件需要满足指定格式）</p>
+<h3 id="AOF-Append-Only-File-仅追加文件"><a href="#AOF-Append-Only-File-仅追加文件" class="headerlink" title="AOF ( Append Only File - 仅追加文件 )"></a>AOF ( Append Only File - 仅追加文件 )</h3><p>​        将每条 写入命令作为日志，以 append-only 的模式写入一个日志文件中，这个模式是 只追加的，没有任何磁盘寻址的开销，速度快；先执行指令再将日志存盘。</p>
+<p>每次执行 修改内存 中数据集的写操作时，都会 记录 该操作，在持久化恢复时 「重放」 所有的 修改性指令序列，来恢复 Redis 当前实例的内存数据结构的状态。AOF 是 先执行指令再将日志存盘，如果先写日志再操作的话，AOF日志中会出现 很多无效&#x2F;错误的命令记录（一些错误的操作也会记录）对本来就庞大的AOF文件来说就是雪上加霜；这一点不同于 MySQL 等存储引擎，如果先存储日志再做逻辑处理，这样就可以保证即使宕机了，仍然可以通过之前保存的日志恢复到之前的数据状态；<br>AOF 文件采用追加写的方式，避免IO 的随机寻址，优化磁盘写入性能</p>
+<h4 id="优点：-1"><a href="#优点：-1" class="headerlink" title="优点："></a>优点：</h4><p>1.实时持久化，可以做到秒级更新（一秒一次去通过线程 fsync操作，最多丢一秒数据）；<br>2.文件兼容性好，无需满足指定格式；<br>3.文件写入性能快，文件不容易破损；</p>
+<h4 id="缺点：-1"><a href="#缺点：-1" class="headerlink" title="缺点："></a>缺点：</h4><p>1.AOF 文件大；<br>2.恢复数据时对系统性能影响大；<br>3.恢复速度慢；</p>
+<h4 id="重写AOF-日志："><a href="#重写AOF-日志：" class="headerlink" title="重写AOF 日志："></a>重写AOF 日志：</h4><p>Redis 在长期运行的过程中，AOF 日志会越变越长，如果宕机重启，重放整个AOF日志会非常耗时，导致长时间Redis 无法对外提供服务，所以需要对AOF日志 “瘦身” 。Redis 提供 bg rewrite aof 指令用于对 AOF 日志进行瘦身；<br><strong>原理：</strong>父进程开辟一个子进程，由子进程对内存中的 redis数据库进行遍历 转换成一系列 Redis 的操作指令，序列化到一个新的 AOF 日志文件 中，序列化完毕后再将 操作期间发生的 增量AOF日志追加到这个新的 AOF日志文件中，追加完毕后就立即替代旧的AOF 日志文件</p>
+<p>AOF 日志是以文件的形式存在的，当程序对AOF 日志文件进行写操作时，实际上是将内容写到 内核为文件描述符分配的一个内存缓存中，内核会异步将脏数据刷回到磁盘。</p>
+<p><strong>出现事故时，第一时间用 RDB恢复，然后AOF做数据补全，冷备热备一起上。</strong></p>
+<h4 id="突然机器掉电会怎样？"><a href="#突然机器掉电会怎样？" class="headerlink" title="突然机器掉电会怎样？"></a>突然机器掉电会怎样？</h4><p>取决于AOF日志sync属性的配置，如果不要求性能，在 每条写指令时都sync一下磁盘，就不会丢失数据。但是在高性能的要求下每次都 sync是不现实的，一般都使用定时sync，比如1s 1次，这个时候最多丢失1s数据</p>
+<h4 id="主从复制模型：-主从同步，从从同步"><a href="#主从复制模型：-主从同步，从从同步" class="headerlink" title="主从复制模型： 主从同步，从从同步"></a>主从复制模型： 主从同步，从从同步</h4><h4 id="主从之间数据同步："><a href="#主从之间数据同步：" class="headerlink" title="主从之间数据同步："></a>主从之间数据同步：</h4><p>1.第一次同步时，主节点做一次 bgsave，并同时将后续修改操作记录到 内存buffer<br>2.完成后将 RDB快照文件 全量同步到复制节点，然后复制节点将RDB镜像加载到内存<br>3.加载完成后，再通知主节点将 期间修改的操作记录发送过来，复制节点重放这些操作记录<br>4.后续的 增量数据通过 AOF日志同步<br>主从复制模型： 同时使用 RDB 、 AOF 持久化操作</p>
+<h4 id="重点："><a href="#重点：" class="headerlink" title="重点："></a>重点：</h4><p>RDB快照数据生成时，缓存区也同时开始接受新请求，来保存同步期间的增量数据<br>传输过程中有什么网络问题，会自动重连，把缺少的数据补上<br><strong>优点：</strong>高可用，提高数据读的负载能力<br><strong>缺点：</strong>master 主节点故障，无法实现自动故障恢复</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkk6tseij610i0eidh802.jpg" alt="69DF28A0-0405-4D8E-95A3-6E028878273C" width="650" height="300" />
+
+
+
+
+
+<h3 id="哨兵模型："><a href="#哨兵模型：" class="headerlink" title="哨兵模型："></a>哨兵模型：</h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkkukxnlj60ci09mjrh02.jpg" alt="9EBF2504-8F59-45EA-BF6D-61EC4F8A8494" width="450" height="300" />
+
+<p>每个哨兵节点（Sentinal）每隔1秒向master、slave、其他哨兵节点发送 ping命令，如果对方能在指定时间内响应，说明节点健康存活。如果未在规定时间内（可配置）响应，那么该哨兵节点认为此节点 主观下线。</p>
+<h4 id="故障恢复过程："><a href="#故障恢复过程：" class="headerlink" title="故障恢复过程："></a>故障恢复过程：</h4><p>1.每个 Sentinal 节点  1次&#x2F;s 向 它所关联的 主, 从 , 其他Sentinal 节点发送 ping命令，心跳检测<br>2.如果一个 节点没有回复 ping 命令，或超时， 将被Sentinal 节点标记为 主观下线<br>3.如果主节点被标记主观下线，与主节点相连的其他Sentinal 节点也监测主节点，当达到一定数量的Sentinal 节点都认为主节点下线了，主节点被标记为客观下线<br>4.选举领导哨兵节点： 当主节点被判断客观下线以后，各个Sentinal 节点会进行协商，选举一个领导哨兵节点，并由该领导节点对其进行故障转移操作<br>监听该主节点的所有哨兵，都有可能被选为领导者，选举算法是 先到先得：即在一轮选举中，哨兵 A 向 B 发送成为领导者的申请，如果B没有同意过其他哨兵，则会同意A成为领导者。<br>5.故障转移：选举出的 领导者哨兵，开始进行故障转移操作，分 3个步骤：</p>
+<h4 id="在从节点中选择新的主节点，原则"><a href="#在从节点中选择新的主节点，原则" class="headerlink" title="在从节点中选择新的主节点，原则:"></a>在从节点中选择新的主节点，原则:</h4><p>1.首先 过滤掉不健康的从节点； （下线或断线），没有回复过哨兵ping响应的从节点<br>2.然后 根据指定的优先级选择，默认情况下所有的从节点priority值为100，如果倾向于选择同机房的另一台salve节点替代现有的master节点，则可以把同机房的 从节点的 priority值设置的低一些<br>3.如果 优先级无法区分，则选择 复制偏移量最大的从节点；数据更新程度选择<br>4.如果仍无法区分，则选择 runid最小的从节点；每个节点启动的时候都会有一个唯一的runId<br>更新主从状态：通过 slaveof no one命令，让新选出来的从节点成为主节点；并通过 slaveof命令让其他节点成为其从节点，将已经下线的 主节点也设置为从节点。</p>
+<p>每个哨兵都设置一个随机休眠时间，苏醒后向其他哨兵发送申请成为领导者的请求；其他哨兵只能对收到的第一个请求进行回复确认   ；首先达到多数确认选票的哨兵节点，成为领导者 Sentinal 节点数量是基数个，通过投票机制来 选出 leader 哨兵，如果当前 选不出来则重新进行投票。 每个Sentinal 节点会把 票投给第一个请求他的 Sentinal 节点 </p>
+<p>Redis Sentinal 高可用，提高读负载，在 master宕机时会自动将slave提升为master，继续提供服务。<br>Redis Cluster 扩展性，提高写负载，在单个redis内存不足时，使用Cluster进行分片存储。<br><strong>优点：</strong> 在复制的基础上，实现自动故障恢复<br><strong>缺点：</strong>写操作无法实现负载，存储能力受单机限制 （集群可解决）</p>
+<h3 id="集群模型："><a href="#集群模型：" class="headerlink" title="集群模型："></a>集群模型：</h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkn395yzj60q90ext9y02.jpg" alt="D62740AC-71C8-49D7-97A9-D1644C0A2012" width="750" height="400" />
+
+<p>16384 &#x3D;  2^14<br>一致性hash ： 2^32 -1<br>想扩展 并发读就添加Slaver，想扩展 并发写就添加Master，想扩容也就是添加Master，任何一个 Slaver或几个Master挂了都不会是灾难性的故障。<br>1.Redis集群是一个由 多个节点组成的分布式服务集群，具有复制、高可用和分片特性<br>2.集群没有中心节点，并且带有 复制和故障转移特性，不会因某个节点下线而影响整个集群<br>3.集群中的 主节点负责处理 槽（储存数据），而从节点则是主节点的 复制品<br>4.主节点只会执行自己槽有关的命令，当节点接收到不属于自己处理的槽的命令时，将会处理指定槽节点的地址返回给客户端，而 客户端会向正确的节点重新发送</p>
+<p>各个哨兵模型下 slaver 间相互监听，若有故障随时替换，故障恢复<br>各个 master节点间均分数据分片，当 添加节点，删除节点时，由一致性Hash算法维护<br>现在 服务器都是多核的，如何高效使用 Redis?      通过在单机开多个Redis实例<br>集群中，各个master 节点保存 其他master 的数据槽范围，当出现 数据请求不在当前范围时，返回给 客户端并告诉其应该访问的具体master的  ip 信息。</p>
+<h4 id="解决单机-Redis-的瓶颈？"><a href="#解决单机-Redis-的瓶颈？" class="headerlink" title="解决单机 Redis 的瓶颈？"></a>解决单机 Redis 的瓶颈？</h4><p><strong>集群部署方式：</strong> Redis cluster； 主从同步读写分离，类似Mysql的主从同步，Redis cluster 支撑 N 个 Redis master node，对数据分片，每个master node都可以挂载多个slave node。整个Redis 可以横向扩容，如果要支撑更大数据量的缓存，那就横向扩容更多的master 节点，每个master 节点能存放更多数据。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>集群一致性hash算法</title>
+    <url>/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="A4-Redis集群一致性Hash算法"><a href="#A4-Redis集群一致性Hash算法" class="headerlink" title="A4-Redis集群一致性Hash算法"></a>A4-Redis集群一致性Hash算法</h2><p>​        类似于数据库，当单表数据 &gt;500W 时，需要对其进行分库分表，当数据量很大时，同样需要对 Redis进行分库分表的操作。在做缓存集群时，为缓解服务器压力，会部署多台缓存服务器，把数据资源均匀的分配到每个服务器上，分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkyjmsc7j60cq0dxq3z02.jpg" alt="24B62610-55A7-4EE4-8004-C29EA286ABB3" width="450" height="400" />
+
+<p>​        使用上述 Hash算法进行缓存时，会出现一些缺陷，在服务器数量变动时，所有缓存的位置都要发生改变！那原本  hash(a.png) % 4 &#x3D; 2 的公式就变成了 hash(a.png) % 5 &#x3D; ？ ， 这个结果不是2的，此时所有 缓存位置都要发生改变！也就是当服务器数量发生改变时，所有缓存在一定时间内是失效的。<br>​        假设 4台缓存中突然有一台缓存服务器出现故障，需要将故障机器移除，但如果移除一台缓存服务器，缓存服务器数量从 4台变为 3台，也会出现上述问题！</p>
+<h4 id="一致性Hash算法就是解决这个问题的"><a href="#一致性Hash算法就是解决这个问题的" class="headerlink" title="一致性Hash算法就是解决这个问题的 !"></a>一致性Hash算法就是解决这个问题的 !</h4><p>​        刚才描述的取模法是对服务器的数量进行取模，而 一致性Hash算法是对 2^32 取模，简单来说，一致性Hash算法将整个哈希值空间组织成一个虚拟的圆环，假设某哈希函数H 的值空间为： 0 ~ 2^14<br>​        0 点右侧的第一个点代表1，以此类推，2,3,4,5,6……直到 2^14，也就是说 0点左侧的第一个点代表 2^14， 0和2^14 在零点中方向重合，我们把这个由2^14 个点组成的圆环称为 Hash环。下一步将各个服务器使用Hash进行一个哈希，具体可以选择服务器的IP或主机名作为关键字进行哈希，这样每台机器就能确定其在哈希环上的位置，这里假设将上文中四台服务器使用IP地址哈希后在环空间的位置如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwkzf0nilj60j70jpgm602.jpg" alt="901FC87C-32CA-4E10-8943-08F53DD41989" width="450" height="450" />
+
+
+<p>接下来使用如下算法定位数据访问到相应服务器：将数据 key使用相同的函数 Hash计算出哈希值，并确定此数据在环上的位置，从此位置沿环顺时针“行走”，第一台遇到的服务器就是其应该定位到的服务器！</p>
+<p><strong>例如:</strong> 有 Object A,Object B,Object C,Object D四个数据对象，经过哈希计算后，在环空间上的位置如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl006m9dj60iy0joq3x02.jpg" alt="A1D101C3-6A2A-4CFE-BF40-CC1E4E055A93" width="450" height="450"/>
+
+
+<p>根据 一致性 Hash算法，数据A会被定为到Node A 上，B被定为到Node B上，C被定为到Node C上，D被定为到Node D上。 </p>
+<h4 id="一致性Hash算法-容错性和可扩展性"><a href="#一致性Hash算法-容错性和可扩展性" class="headerlink" title="一致性Hash算法 容错性和可扩展性:"></a>一致性Hash算法 容错性和可扩展性:</h4><p>​        现假设Node C 不幸宕机，可以看到此时对象A、B、D不会受到影响，只有C对象被重定位到Node D。在一致性Hash算法中，如果一台服务器不可用，则受影响的数据仅仅是此服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它不会受到影响，如果在系统中增加一台服务器Node X，如下图所示：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl0l7ymmj60it0jqwfl02.jpg" alt="506CDC9D-B69A-4C3B-BC31-2323D07AFEDA" width="450" height="450" />
+
+
+<p>​        此时对象Object A，B，D不受影响，只有对象C需要重定位到新的Node X ！一般的，在一致性Hash算法中，如果增加一台服务器，则受影响的数据仅仅是新服务器到其环空间中前一台服务器（即沿着逆时针方向行走遇到的第一台服务器）之间数据，其它数据也不会受到影响。一致性Hash算法对于节点的增减都只需重定位环空间中的一小部分数据，具有较好的容错性和可扩展性。</p>
+<h4 id="Hash环的数据倾斜问题："><a href="#Hash环的数据倾斜问题：" class="headerlink" title="Hash环的数据倾斜问题："></a>Hash环的数据倾斜问题：</h4><p>​        一致性Hash算法在服务节点太少时，容易因为节点分部不均匀而造成数据倾斜（被缓存的对象大部分集中缓存在某一台服务器上）问题，例如系统中只有两台服务器，其环分布如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl15qxuvj60c70cumxi02.jpg" alt="398CEE1E-B2F5-4272-B255-27F09C2248B2" width="450" height="450" />
+
+<p>​        此时必然造成大量数据集中到Node A上，而只有极少量会定位到Node B上。为了解决这种数据倾斜问题，一致性Hash算法引入了虚拟节点机制，即对每一个服务节点计算多个哈希，每个计算结果位置都放置一个此服务节点，称为虚拟节点。具体做法可以在服务器IP或主机名的后面增加编号来实现。</p>
+<p>​        例如:上面的情况，可以为每台服务器计算 三个虚拟节点，于是可以分别计算 “Node A#1”，“Node A#2”，“Node A#3”，“Node B#1”，“Node B#2”，“Node B#3”  哈希值，于是形成六个虚拟节点：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwl1quftzj60j80jvdgq02.jpg" alt="C98156D9-C596-492C-A992-01E1A3C3266E" width="450" height="450" />
+
+<p>​        通过虚拟节点做为中间变量，再从虚拟节点—&gt;实际节点，实现数据映射。同时数据定位算法不变，只是多了一步虚拟节点到实际节点的映射，例如定位到“Node A#1”，“Node A#2”，“Node A#3”  三个虚拟节点的数据均定位到Node A上。 这样就解决了服务节点少时数据倾斜的问题，在实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis性能优化</title>
+    <url>/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</url>
+    <content><![CDATA[<h2 id="A3-Redis-优化"><a href="#A3-Redis-优化" class="headerlink" title="A3-Redis 优化"></a>A3-Redis 优化</h2><h4 id="布隆过滤器：-应用场景：缓存穿透，海量数据去重"><a href="#布隆过滤器：-应用场景：缓存穿透，海量数据去重" class="headerlink" title="布隆过滤器： 应用场景：缓存穿透，海量数据去重"></a>布隆过滤器： 应用场景：缓存穿透，海量数据去重</h4><p>​        K 个哈希函数，每个 字符串跟 k 个 bit对应，降低冲突概率<br>当一个元素被加入集合时，通过  K个散列函数 将这个元素映射成一个 位数组中的K个点，把它们置为 1,  检索时只要看这些点 是不是为 1 就知道集合中有没有它了。如果 这些点有任何一个 0，则被检元素一定不在；  如果都是1，则被检元素很可能在<br><strong>Bloom Filter 和单哈希函数 Bit-Map不同：</strong>Bloom Filter使用了 k个哈希函数，每个 字符串跟 k个bit对应。降低冲突概率</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwks943stj60oy0d8dh802.jpg" alt="DB32F606-7EE5-46FC-9E99-3B5438DC21F1" width="650" height="300"/>
+
+<h4 id="存在的问题："><a href="#存在的问题：" class="headerlink" title="存在的问题："></a>存在的问题：</h4><p><strong>存在误判：</strong>hash之后得到的  k个位置上值都是1，但可能此值不存在；<br><strong>解决：</strong>可以通过建立一个 白名单来存储可能会误判的元素<br>删除困难： 一个放入容器的元素映射到 bit数组的k个位置上是1，删除的时候不能简单的直接置为0，可能会影响其他元素的判断；<br>解决： 可以采用Counting Bloom Filter</p>
+<h4 id="分布式锁：-常规锁只能适用于单机，对于-分布式架构无法保证"><a href="#分布式锁：-常规锁只能适用于单机，对于-分布式架构无法保证" class="headerlink" title="分布式锁： 常规锁只能适用于单机，对于 分布式架构无法保证"></a>分布式锁： 常规锁只能适用于单机，对于 分布式架构无法保证</h4><p>避免不同节点重复相同的工作： 比如用户执行某个操作有可能不同节点会发送多封邮件；<br>避免破坏数据的正确性：如果两个节点在同一条数据上同时进行操作，可能会造成数据错误或不一致的情况出现；</p>
+<h4 id="Redis-分布式锁的问题：-锁超时"><a href="#Redis-分布式锁的问题：-锁超时" class="headerlink" title="Redis 分布式锁的问题： 锁超时"></a>Redis 分布式锁的问题： 锁超时</h4><p>有两台平行的服务 A B，其中 A 服务在 获取锁之后 由于某种原因突然 挂了，那么 B 服务就永远无法获取到锁； 需要额外设置一个超时时间，来保证服务的可用性。如果 加锁，释放锁 之间的逻辑执行得太长，以至于 超出了锁的超时限制，也会出现问题。<br>因为这时第一个线程持有锁过期了，而临界区逻辑还没执行完，与此同时第二个线程就提前拥有了这把锁，导致临界区的代码不能得到严格的串行执行。为避免这个问题，Redis 分布式锁 不要用于较长时间的任务。</p>
+<p><strong>解决：标记版本号</strong>  将锁 value 值设置为一个随机数，释放锁时先匹配随机数是否一致，然后再删除 key， 确保当前线程占有的锁不会被其他线程释放，除非这个锁是因为过期而被服务器自动释放的，但匹配  value 和 删除 key 在 Redis 中并不是一个原子性的操作，需要使用像 Lua 脚本来处理，因为 Lua 脚本可以 保证多个指令的原子性执行</p>
+<h4 id="分布式锁：setnx-是-SET-if-Not-exists"><a href="#分布式锁：setnx-是-SET-if-Not-exists" class="headerlink" title="分布式锁：setnx 是 SET if Not exists"></a>分布式锁：setnx 是 SET if Not exists</h4><p>设置过期时间：  EXPIRE name  5       # 5s 后过期<br>EXPIRE 命令依赖于 SETNX 的执行结果，而事务中没有 if-else 的分支逻辑，如果 SETNX 没有抢到锁，EXPIRE 就不应该执行。<br>加入 SET 指令扩展参数，使 SETNX 和 EXPIRE 指令一起执行： SET key value [EX seconds | PX milliseconds] [NX | XX] [KEEPTTL]<br>设置一个过期时间，就算线程 1挂了，也会在失效时间到了，自动释放<br>计数： 使用 INCR 命令进行 原子性 的自增操作，多个 客户端对同一个 key 进行操作，也决不会导致竞争的情况</p>
+<p>Setnx 加锁， expire 过期时间； 不是原子性操作；<br>Redis:: set( “my:lock”,   $token,  “nx”, “ex”, 10);<br>直接使用 set进行锁，参数配置，让 加锁+过期时间 成原子操作；传统的 del 解锁方式，存在问题； 如果  expire time 释放锁后， 其他线程重新获取，直接 del 解锁，会删除别人建立的锁了。通过 lua脚本（保证一系列操作的原子性），先进行 get，再进行 del； 外加 token 字段，一个随机数，当 lock的时候，往redis的 my:lock中存的是这个token，unlock的时候，先 get一下lock中的token，如果 和要删除的 token是一致的，说明这个锁是之前我 set的，否则说明这个锁已经过期，是别人set的，就不应该对它进行任何操作。</p>
+<h4 id="场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？"><a href="#场景题：假如-Redis里面有1亿个-key，有10w-key-是以某个固定前缀开头，如何全部找出？" class="headerlink" title="场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？"></a>场景题：假如 Redis里面有1亿个 key，有10w key 是以某个固定前缀开头，如何全部找出？</h4><p>使用 keys 指令可以扫出 指定模式的 key列表；如果 redis正在给 线上的业务提供服务，那使用 keys指令会有什么问题？<br>Redis单线程的，keys指令会导致线程阻塞一段时间，线上服务会停顿，直到指令执行完毕，服务才能恢复。<br>可以使用 scan指令，无阻塞的提取出指定模式的key列表，但会有一定的重复概率，需要在客户端做一次去重，整体所花费的时间会比直接用keys指令长。</p>
+<p>分布式场景下，多个微服务间协同调用，调用链使用 UUID 唯一</p>
+<h4 id="redis常见性能问题和解决方案："><a href="#redis常见性能问题和解决方案：" class="headerlink" title="redis常见性能问题和解决方案："></a>redis常见性能问题和解决方案：</h4><p>1.Master写内存快照，save命令调度rdbSave函数，会阻塞主线程的工作，当快照比较大时对性能影响是非常大的，会间断性暂停服务，所以 Master最好不要写内存快照。<br>2.Master AOF持久化，如果不重写AOF文件，这个持久化方式对性能的影响是最小的，但是AOF文件会不断增大，AOF文件过大会影响 Master重启的恢复速度。Master最好不要做任何持久化工作，包括内存快照和AOF日志文件，特别是不要启用内存快照做持久化, 如果数据比较关键，某个 Slave开启AOF备份数据，策略为每秒同步一次。<br>3.Master 调用bgrewrite AOF 重写AOF文件，AOF在重写的时候会占大量的CPU和内存资源，导致服务load过高，出现短暂服务暂停现象。<br>4.Redis主从复制的性能问题，为主从复制速度和连接的稳定性，Slave和 Master最好在同一个局域网内。</p>
+<h4 id="Redis-事务特征："><a href="#Redis-事务特征：" class="headerlink" title="Redis 事务特征："></a>Redis 事务特征：</h4><p>1.在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis 不会再为其它客户端请求提供任何服务，从而保证s事务中的所有命令被原子的执行。<br>2.和关系型数据库中的事务相比，在 Redis事务中，如果 某一条命令执行失败，其后的命令仍然会被继续执行。<br>3.通过 multi 命令开启一个事务，在该语句之后执行的命令都将被视为事务之内的操作，最后通过执行 exec&#x2F;discard  命令来提交&#x2F; 回滚 该事务内的所有操作。 这两个Redis命令可被视为等同于关系型数据库中的 commit&#x2F;rollback 语句。<br>4.在事务开启之前，如果 客户端与服务器之间出现通讯故障并导致网络断开，其后所有待执行的语句都将不会被服务器执行。如果网络中断事件是发生在客户端执行exec 命令之后，那么该事务中的所有命令都会被服务器执行。<br>5.当使用 Append-Only模式时，Redis会通过调用系统函数write 将该事务内的所有写操作在本次调用中全部写入磁盘。如果在写入过程中出现系统崩溃，如电源故障导致宕机，此时也许只有部分数据被写入到磁盘，而另一部分数据却已经丢失。Redis服务器会在重启时执行一系列必要的一致性检测，一旦发现类似问题，会立即退出并给出相应的错误提示。 此时需要充分利用Redis 工具包中提供的 redis-check-aof工具来定位到数据不一致的错误，并将已经写入的部分数据进行回滚。修复后就可以再次重新启动 Redis服务器了。</p>
+<h4 id="Redis做异步队列："><a href="#Redis做异步队列：" class="headerlink" title="Redis做异步队列："></a>Redis做异步队列：</h4><p>使用 list结构作为队列，rpush生产消息， lpop消费消息<br>当lpop没有消息的时候，要适当sleep一会再重试。不使用 sleep: list还有个指令叫 blpop，在没有消息的时候，它会阻塞住直到消息到来。</p>
+<p>使用 pub&#x2F;sub主题订阅者模式，可以实现 1:N 的消息队列。<br>pub&#x2F;sub缺点： 在消费者下线的情况下，生产的消息会丢失，得使用专业的消息队列如RocketMQ等</p>
+<h4 id="使用Redis-实现可靠的消息队列-ack-机制？"><a href="#使用Redis-实现可靠的消息队列-ack-机制？" class="headerlink" title="使用Redis 实现可靠的消息队列 ack 机制？"></a>使用Redis 实现可靠的消息队列 ack 机制？</h4><p>消费者用 rpop 取出元素，若消费者在 取出元素之后崩溃了，此时消息 已被取出且没有正确处理，会造成该消息的丢失<br>队列的备份：消费者程序在 从主消息队列中取出消息后，再将其插入到备份队列中，直到消费者程序完成正常的处理逻辑后再将该消息从备份队列中删除。<br>当备份队列中消息过期时，重新将其 再放回到主消息队列中，以便其它的消费者程序继续处理。RPOPLPUSH命令执行过程示意图如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guwktpi57yj60yc0kyq4o02.jpg" alt="7D32B33D-052D-4C35-AB1A-9F995B4E0833" width="650" height="350" />
+
+<h4 id="Redis-如何实现延时队列？"><a href="#Redis-如何实现延时队列？" class="headerlink" title="Redis 如何实现延时队列？"></a>Redis 如何实现延时队列？</h4><p>使用 sortedset，拿时间戳作为 score，消息内容作为 key调用 zadd来生产消息，消费者用 zrangebyscore指令获取N秒之前的数据轮询进行处理。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>操作系统-基础</title>
+    <url>/TurboCome/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<h1 id="操作系统基本知识点"><a href="#操作系统基本知识点" class="headerlink" title="操作系统基本知识点"></a>操作系统基本知识点</h1><h3 id="进程的五大状态："><a href="#进程的五大状态：" class="headerlink" title="进程的五大状态："></a><strong>进程的五大状态：</strong></h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg" alt="C4503148-288A-4F82-8FC9-348D8A500B94" width="650" height="300" />
+
+
+
+<h3 id="Sleep-wait-区别："><a href="#Sleep-wait-区别：" class="headerlink" title="Sleep, wait 区别："></a><strong>Sleep, wait 区别：</strong></h3><p><strong>sleep() 休眠：</strong>让调用线程进入睡眠，让出执行机会给其他线程，等到休眠时间结束，线程进入就绪状态和其他线程一起竞争cpu执行时间。Thread的静态方法，不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，线程虽然进入休眠，但是对象的锁没有被释放，其他线程依然无法访问这个对象。<br><strong>wait() 挂起：</strong>是Object类的方法，当一个线程执行到wait方法时，它就进入到一个和该对象相关的等待池，同时释放对象的锁，使得其他线程能够访问，可以通过notify，notifyAll方法来唤醒等待的线程。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>1.sleep不释放对象锁，只是让出CPU； wait释放对象锁，也让出CPU<br>2.sleep 是Thread 的静态方法； wait 是Object 类的私有方法<br>3.sleep可以指定休眠时间，无法唤醒；wait 可指定时间，也可通过notify&#x2F;notifyAll唤醒，实现多线程间通信</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvcdozn9j60wq0n440c02.jpg" alt="D3CA871F-D18B-4198-B93E-785CB79A032A" width="450" height="300" />
+
+<h3 id="CPU-执行程序的过程"><a href="#CPU-执行程序的过程" class="headerlink" title="CPU 执行程序的过程:"></a>CPU 执行程序的过程:</h3><p>CPU 根据 程序计数器里的内存地址，从内存里面把需要执行的 指令序列读取到 指令寄存器 里面执行，然后根据 指令长度自增，开始顺序读取下一条指令。<br><strong>CPU 的指令周期：</strong> CPU 从程序计数器读取指令、到执行、再到下一条指令，这个过程会不断循环，直到程序执行结束。</p>
+<h3 id="操作系统中的死锁："><a href="#操作系统中的死锁：" class="headerlink" title="操作系统中的死锁："></a>操作系统中的死锁：</h3><p>一组进程中，每个进程都 无限等待被该组进程中另一进程所占有的资源，而永远无法得到资源，这种现象称为进程死锁，这一组 进程称为死锁进程。如果死锁发生，会浪费大量系统资源，甚至导致系统崩溃。</p>
+<p><strong>产生死锁必要的四个条件：</strong><br>(1)互斥使用 (资源独占)：   一个资源 每次只能给一个进程使用<br>(2)请求和保持(部分分配)：进程在 申请新的资源的同时 保持对原有资源的占有<br>(3)不可抢占 (不可剥夺)：资源申请者不能强行的从资源占有者手中夺取资源，资源只能由占有者自愿释放<br>(4)循环等待：存在一个进程等待队列 {P1 , P2 , … , Pn}，其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路。</p>
+<p><strong>解除死锁：</strong>   资源剥夺法、   进程撤销法、进程回退法、    系统重启法<br><strong>破坏环路等待：</strong>给资源统一编号，进程只能按编号顺序来请求资源。<br><strong>死锁避免：</strong>在程序运行时避免发生死锁</p>
+<h3 id="同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO："><a href="#同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO：" class="headerlink" title="同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO："></a>同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO：</h3><p><strong>等待过程：</strong> 数据从网络 到 网卡, 再到 内核空间<br><strong>读写(copy)过程：</strong> 内核空间，和 用户空间 相互拷贝<br>IO： 读入&#x2F;写出 数据的过程，和等待 读入&#x2F;写出数据的过程<br><strong>同步&#x2F;异步：</strong>  是否 等待数据到 内核空间（网络—&gt;网卡—&gt;内核）<br><strong>阻塞&#x2F;非阻塞：</strong>  是否 等待 copy数据 （ 内核—&gt; 用户）</p>
+<p><strong>阻塞IO：</strong>用户线程被阻塞在等待数据上和拷贝数据上。<br>应用程序都运行在 用户空间，能操作的 数据也都在用户空间；如果此时用户线程已经参与，那它一定 会被阻塞在IO上，这就是常说的阻塞IO，用户线程被阻塞在等待数据，拷贝数据。<br><strong>非阻塞IO：</strong>数据已经拷贝到用户空间后，才去通知用户线程，一上来就可以直接操作数据，用户线程没有因为IO的事情出现阻塞。</p>
+<h3 id="同步IO-x2F-同步阻塞IO："><a href="#同步IO-x2F-同步阻塞IO：" class="headerlink" title="同步IO&#x2F;同步阻塞IO："></a>同步IO&#x2F;同步阻塞IO：</h3><p><strong>同步IO:</strong> 发起 IO请求后，必须拿到 IO数据才继续执行，在 等待和拷贝数据过程中，线程都在阻塞，因为后续操作依赖IO数据<br><strong>非阻塞IO：</strong>发起IO请求后，可以继续往下执行，后续执行不依赖于IO数据，所以它肯定不是同步的。<br>同步IO 一定是 阻塞IO，也就是同步阻塞IO。</p>
+<p><strong>异步：</strong> 等待数据继续执行，  阻塞：copy 数据时阻塞<br><strong>异步IO：</strong>IO请求后，不用拿到IO的数据就可继续执行，用户线程继续执行，和操作系统准备IO数据的过程是同时进行。<br><strong>异步阻塞 IO：</strong> 在等待数据过程中，用户线程继续执行，在拷贝数据过程中，用户线程在阻塞；用户线程没有参与数据等待的过程，所以是异步的。但用户线程参与数据拷贝的过程，所以是阻塞的,合起来异步阻塞IO。<br><strong>异步非阻塞IO：</strong> 等待数据， copy 数据时 用户线程都在继续执行；在 等待数据的过程中，和拷贝数据的过程中，用户线程都在继续执行；用户线程 没有参与等待过程也没有参与拷贝过程，当接到通知时数据已经准备好了，没有因为IO数据而阻塞，是非阻塞的。</p>
+<h3 id="I-x2F-O多路复用"><a href="#I-x2F-O多路复用" class="headerlink" title="I&#x2F;O多路复用"></a>I&#x2F;O多路复用</h3><p>通过一种机制，一个进程可以监视多个描述符，一旦某个描述符就绪（读就绪或写就绪），能通知程序进行相应的读写操作<br>select，poll，epoll 本质上都是 同步I&#x2F;O，因为他们都需要在读写事件就绪后自己负责进行读写，也就是说这个读写过程是阻塞的，而异步I&#x2F;O 则无需自己负责进行读写，异步 I&#x2F;O的实现会负责把数据从  内核拷贝到用户空间。</p>
+<h4 id="Select-原理："><a href="#Select-原理：" class="headerlink" title="Select 原理："></a>Select 原理：</h4><p>1.从 用户空间 拷贝 fd_set 到 内核空间，fds 文件描述符（ 3类，分别是writefds，readfds，和exceptfds ）<br>2.注册回调函数 __pollwait ，然后将 current（当前进程）挂到 设备的等待队列中，不同的设备有不同的等待队列。（有数据 可读、可写、或超时timeout等待时间）<br>3.有描述符 就绪后，通过回调函数进行通知，select 会对 fd_set 进行遍历，来找到就绪的描述符。<br>遍历完 所有的 fd，还没有返回一个 可读写的 mask掩码，调用 schedule_timeout 是 调用select的进程（current）进入睡眠<br>缺点：<br>1）支持的文件描述符数量太小，默认是 1024<br>2）每次 调用 select，需要把 fds 集合从 用户态拷贝 到内核态，在 fds 很大时, 开销较大<br>3）每次调用 select 需要在 内核遍历传递进来的 所有 fds，找到处于 就绪的描述符，开销较大</p>
+<h4 id="poll-："><a href="#poll-：" class="headerlink" title="poll ："></a>poll ：</h4><p>实现和 select 相似，只是 描述 fd集合 不同，poll使用 poll fd结构而不是select的fd_set结构，链表存储的。<br>优：没有最大连接数的限制，原因：基于链表来存储的<br>缺：<br>1.poll, select  大量的 fds 的数组被整体 复制于 用户态和内核地址空间之间<br>2.select, poll 都要通过 遍历文件描述符来获取已经就绪的socket，如果同时连接大量客户端，但只有很少的处于就绪状态，这会导致随着监视的 描述符数量的增长，效率下降。</p>
+<h4 id="epoll"><a href="#epoll" class="headerlink" title="epoll:"></a>epoll:</h4><p>提供三个函数：epoll_create创建一个epoll句柄； epoll_ctl 注册要监听的事件类型； epoll_wait 是等待事件的产生 。</p>
+<p>1.解决反复 copy fds 问题：epoll更加灵活，没有描述符限制。epoll 使用一个 文件描述符管理多个描述符， 将 用户关系的文件描述符的事件 存放到 内核的一个事件表 中，这样在 用户空间和内核空间的 copy只需一次。<br>2.epoll 使用 “事件”就绪通知方式，通过 epoll_ctl时把 current 遍历一遍，并 为每个 fd 指定一个回调函数，当设备就绪，唤醒 等待队列上的等待者时，会调用这个回调函数，而这个 回调函数会把就绪的 fd 加入一个就绪链表；epoll_wait 工作实际上就是在这个 就绪链表中查看有没有就绪的fd 。</p>
+<p><strong>总结：</strong>select，poll 每次调用都要把fd集合从用户态往内核态拷贝一次，并且要把 current往设备等待队列中挂一次，而 epoll只要一次拷贝，而且把 current 往等待队列上挂也只挂一次。<br>只有活跃可用的 FD才会调用 callback函数；即 epoll最大的优点就在于它只管你“活跃”的连接，而跟连接总数无关，因此在实际的网络环境中，epoll的效率就会远远高于select和poll。</p>
+<p><strong>内存拷贝：</strong>利用 mmap()文件 映射内存加速 与 内核空间的消息传递；即 epoll使用mmap减少复制开销<br>参考：<a href="https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant">https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant</a>   </p>
+<h3 id="用户态-lt-—-gt-内核态："><a href="#用户态-lt-—-gt-内核态：" class="headerlink" title="用户态 &lt;—&gt; 内核态："></a>用户态 &lt;—&gt; 内核态：</h3><p>所有程序都在 用户空间运行（用户态），但很多操作 可能涉及内核运行，就需要进入内核态</p>
+<ol>
+<li>用户态把一些 数据放到寄存器，或创建对应的堆栈，表明需要操作系统提供的服务</li>
+<li>用户态 执行 系统调用（系统调用是操作系统的最小功能单位）</li>
+<li>CPU 切换到内核态，跳到对应的内存指定的位置执行指令</li>
+<li>系统调用 处理器 去读取先前放到 内存的数据参数，执行程序的请求 </li>
+<li>调用完成，操作系统重置 CPU为用户态返回结果，并执行下个指令</li>
+</ol>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvemj5ggj60ka0leq3w02.jpg" alt="0BCDE869-93F4-4F5A-9A33-090FFB41FDF0" width="350" height="350" />
+
+
+
+<p>内核 &lt;—&gt;用户</p>
+<p>1.系统调用：本身就是中断，但是软件中断，跟硬中断不同</p>
+<p>2.异常：如果当前进程运行在用户态，如果此时发生异常事件，就会触发切换， 例如：缺页异常</p>
+<p>3.外设中断：当外设完成用户的请求时，会向CPU发送中断信号<br>用户态进程通过 系统调用申请使用 操作系统提供的服务程序完成工作，比如 fork() 实际上就是执行了一个 创建新进程的系统调用；CPU 在执行 用户态下的程序时，发生不可知的异常，这时会触发当前运行进程切换到处理此异常的内核相关程序中，转到内核态，比如缺页异常。<br>用户态: 上层应用程序的活动空间，应用程序的执行必须依托于 内核提供的资源，包括CPU资源、存储资源、I&#x2F;O资源等。为了使上层应用能够访问到这些资源，内核 必须为上层应用提供访问的接口：即系统调用。</p>
+<p>系统调用：操作系统的最小功能单位<br>Shell (命令行)  是一个特殊的应用程序，下通系统调用，上通各种应用，让不同程序能够以一个清晰的接口协同工作，从而增强各个程序的功能。同时 Shell是可编程的，可以执行符合 Shell语法的文本(Shell脚本)。为方便用户和系统交互，一个Shell对应一个终端，可以通过终端窗口输入或输出文本，这个文本直接传递给shell 进行分析解释，然后执行。</p>
+<h3 id="进程、线程区别："><a href="#进程、线程区别：" class="headerlink" title="进程、线程区别："></a>进程、线程区别：</h3><p>进程： 操作系统 资源分配的基本单位<br>线程： 任务调度、执行的基本单位， cpu调度和分派的基本单位。</p>
+<h4 id="开销："><a href="#开销：" class="headerlink" title="开销："></a>开销：</h4><p>每个进程都有独立的 代码 和 数据 空间（程序上下文），程序之间的切换会有较大的开销；<br>线程就像轻量级的进程，同一类 线程 共享代码和数据空间，每个线程都有自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小</p>
+<h4 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h4><p>操作系统中能 同时运行多个进程（程序）；<br>在同一个进程（程序）中有多个线程同时执行（通过CPU调度，在每个时间片中只有一个线程执行）</p>
+<h4 id="内存分配："><a href="#内存分配：" class="headerlink" title="内存分配："></a>内存分配：</h4><p>系统在运行的时候会为 每个进程分配不同的内存空间<br>对线程而言，除了CPU外，系统不会为线程分配内存， 线程所使用的资源来自其所属进程的资源，线程组之间只能共享资源</p>
+<h3 id="进程间通信方式："><a href="#进程间通信方式：" class="headerlink" title="进程间通信方式："></a>进程间通信方式：</h3><h4 id="1-P、V信号量（Semaphore）："><a href="#1-P、V信号量（Semaphore）：" class="headerlink" title="1.P、V信号量（Semaphore）："></a>1.P、V信号量（Semaphore）：</h4><p>操作系统提供一种进程间的通信方式，主要用来协调并发程序对共享资源的访问，操作系统可以保证对信号量操作的原子性<br>信号量（semaphore）与已经介绍过的 IPC 结构不同，它是一个计数器。信号量用于实现进程间的互斥与同步，而不是用于存储进程间通信数据。<br>特点</p>
+<ol>
+<li>信号量用于进程间同步，若要在进程间传递数据需要结合共享内存。</li>
+<li>信号量基于操作系统的 PV 操作，程序对信号量的操作都是原子操作。</li>
+</ol>
+<h4 id="2-管程："><a href="#2-管程：" class="headerlink" title="2.管程："></a>2.管程：</h4><p>原理：所有进程对某一种临界资源的同步操作都集中起来，构成一个秘书进程。凡要访问该临界资源的进程，都需要先报告秘书进程，由秘书来实现进程对同一临界资源的互斥使用。</p>
+<p>管程可以理解为一个对象监视器，任何线程想要访问共享资源，需要排队进入监控范围，接受检查，不符合条件，则要等待直到被通知，然后再进入监视器.</p>
+<ol>
+<li>它是 半双工的（即数据只能在一个方向上流动），具有固定的读端和写端。</li>
+<li>它只能用于具有亲缘关系的进程之间的通信（也是父子进程或者兄弟进程之间）。<br>注意：信号量和管程两者是等价的，信号量可以实现管程，管程也可以实现信号量，两者的表现形式不同，管程对开发者更加友好。</li>
+</ol>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvgjnc0gj611w0j4mzh02.jpg" alt="1F787016-667F-4A87-BEFF-61790414A89F" width="650" height="320" />
+
+
+
+
+<p>管程为了解决信号量在临界区的 PV 操作上的配对的麻烦，把配对的 PV 操作集中在一起，并且加入了条件变量的概念，使得在多条件下线程间的同步实现变得更加简单。</p>
+<h4 id="3-消息队列："><a href="#3-消息队列：" class="headerlink" title="3.消息队列："></a>3.消息队列：</h4><p>容量受系统限制<br>消息队列，是消息的链接表，存放在内核中。一个消息队列由一个标识符（即队列ID）来标识。<br><strong>特点：</strong></p>
+<ol>
+<li>消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级。</li>
+<li>消息队列独立于发送与接收进程。进程终止时，消息队列及其内容并不会被删除。</li>
+</ol>
+<h4 id="4-共享内存："><a href="#4-共享内存：" class="headerlink" title="4.共享内存："></a>4.共享内存：</h4><p>速度快，各个进程间共享同一个内存区域，实现共享变量的访问<br>共享内存（Shared Memory），指两个或多个进程共享一个给定的存储区。<br>特点</p>
+<ol>
+<li>共享内存是 最快的一种 IPC，因为进程是直接对内存进行存取。</li>
+<li>因为 多个进程可以同时操作，所以需要进行同步。</li>
+<li>信号量+共享内存:  通常结合在一起使用，信号量用来同步对共享内存的访问。</li>
+</ol>
+<h4 id="5-套接字"><a href="#5-套接字" class="headerlink" title="5.套接字"></a>5.套接字</h4><p>用于不同设备间的进程通信</p>
+<h3 id="线程间通信方式："><a href="#线程间通信方式：" class="headerlink" title="线程间通信方式："></a>线程间通信方式：</h3><p>1.互斥锁：   以排他的方式防止数据结构并发修改<br>2.条件变量：阻塞进程，知道某个条件满足<br>3.读写锁：   多线程同时读，互斥写<br>4.信号量：   类似进程间信号量通信，主同步</p>
+<h3 id="进程调度算法；"><a href="#进程调度算法；" class="headerlink" title="进程调度算法；"></a>进程调度算法；</h3><p>1.先来先服务<br>2.最短作业优先<br>3.响应比最高者优先<br>4.优先级调度算法<br>5.时间片轮转调度算法</p>
+<p>参考：<strong>文件系统</strong>：<a href="https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ">https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ</a></p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>操作系统</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>段/页式存储</title>
+    <url>/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/</url>
+    <content><![CDATA[<h1 id="段-x2F-页式存储"><a href="#段-x2F-页式存储" class="headerlink" title="段&#x2F;页式存储"></a>段&#x2F;页式存储</h1><h3 id="背景："><a href="#背景：" class="headerlink" title="背景："></a>背景：</h3><p>​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。</p>
+<p>​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使用的内存暂时存放到硬盘 （换出），在需要时再装载回物理内存（换入）。</p>
+<p>​    有了虚拟地址空间，必然要把 虚拟地址「映射」到 物理地址，这个事情通常由操作系统来维护，对于虚拟地址与物理地址的映射关系，可以有 分段，分页，段页的方式。访问虚拟地址时，由操作系统转换成不同的 物理地址，这样不同进程运行的时候，写入不同的物理地址，就不会冲突。</p>
+<p>程序所使用的内存地址： <strong>虚拟内存地址</strong><br>实际存硬件里面的空间地址：<strong>物理内存地址</strong></p>
+<h3 id="内存分段（Segmentation）"><a href="#内存分段（Segmentation）" class="headerlink" title="内存分段（Segmentation）"></a>内存分段（Segmentation）</h3><p>​    程序由若干个逻辑分段组成： 代码分段、数据分段、栈段、堆段；不同段 有不同的属性，用分段形式把这些段分离出来。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0omkxpj612e0rwjt702.jpg" alt="F3F67004-8E73-43E9-9085-55FD89A5D40D" width="750" height="500"/>
+
+<h3 id="内存分段-寻址方式"><a href="#内存分段-寻址方式" class="headerlink" title="内存分段-寻址方式"></a>内存分段-寻址方式</h3><p><strong>段选择因子：</strong>保存在段寄存器里；</p>
+<p><strong>段号：</strong>段表的索引，段表里面保存 段的基地址、段的界限和 特权等级等；</p>
+<p><strong>段内偏移量：</strong>位于（0~段界限）；  </p>
+<p>物理内存地址 &#x3D; 段基地址 + 段内偏移量； 虚拟地址：通过 段表与 物理地址映射，分段机制把程序的虚拟地址分成 4 个段，每个段在 段表中有一个项，在这一项找到段的基地址，再加上偏移量，就能找到物理内存中的地址。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0m9lzqj60tb0i376302.jpg" alt="255BA9F7-C651-478C-AC47-73750F6D3619" width="600" height="350" />
+
+
+
+<h3 id="段式存储问题：-1-内存碎片；2-内存交换的效率低"><a href="#段式存储问题：-1-内存碎片；2-内存交换的效率低" class="headerlink" title="段式存储问题： 1.内存碎片；2.内存交换的效率低"></a><strong>段式存储问题：</strong> 1.内存碎片；2.内存交换的效率低</h3><h4 id="1-内存锁片："><a href="#1-内存锁片：" class="headerlink" title="1.内存锁片："></a>1.内存锁片：</h4><p><strong>外部内存碎片：</strong>在物理内存中产生多个 不连续的小物理内存，导致 新的程序无法被装载；<br><strong>内部内存碎片：</strong>程序所有的内存都被装载到物理内存，但程序 有部分的内存 可能并不是很常使用，这也会导致内存的浪费；</p>
+<p><strong>内存交换：</strong>解决–外部内存碎片问题<br>        把一个程序占用的 256MB 内存写到硬盘上，然后再从硬盘上读回来到内存里。不过再读回时，不装载回原来位置，而是紧紧跟在已经被占用的 512MB 内存后面。这样就 就使得空间利用连续，避免内存碎片产生。</p>
+<h4 id="2-内存交换的效率低："><a href="#2-内存交换的效率低：" class="headerlink" title="2.内存交换的效率低："></a>2.内存交换的效率低：</h4><p>​        内存交换空间在 Linux 系统里就是 Swap 空间，这块 空间是从硬盘划分出来，用于内存与硬盘的空间交换<br>对于多进程系统，内存碎片很容易产生，需要经常进行 内存交换操作，但Swap空间是硬盘，有性能瓶颈；硬盘访问速度比内存慢很多，每次内存交换都需要把 一大段连续的内存数据写到硬盘上。如果内存交换时，交换占内存空间很大的程序，整个机器都会卡顿。</p>
+<h3 id="内存分页："><a href="#内存分页：" class="headerlink" title="内存分页："></a><strong>内存分页：</strong></h3><p>解决 内存碎片，内存交换效率低；把整个 虚拟，物理内存空间切成一段段 固定尺寸的大小-页（Page）：一个连续并尺寸固定的内存空间，Linux 一页大小 4KB。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0jfow0j60tn0m575h02.jpg" alt="5724EB13-9A0A-4AA4-9C44-043EA8D0D3D0" width="600" height="450" />
+
+<p>虚拟地址分为： 页号，页内偏移<br><strong>页号：</strong> 页表的索引，页表包含 物理页每页所在 物理内存的基地址，物理内存地址 &#x3D;  基地址 与 页内偏移的组合<br>内存分页寻址过程：<br>1.把虚拟内存地址，切分成 页号，偏移量<br>2.根据页号，从 页表里查询对应的物理页号<br>3.直接拿 物理页号 + 偏移量，得到 物理内存地址</p>
+<p>**内存空间： **预先划分好，不像分段那样产生 间隙非常小的内存，这正是分段会产生内存碎片的原因。释放的内存都是以页为单位释放的，也不会产生无法给进程使用的小内存。<br>**页表： **存储在 CPU 内存管理单元 （MMU） 中；  CPU 可以直接 通过 MMU 找出实际要访问的 物理内存地址。<br>当 进程访问的虚拟地址在页表中查不到时，系统会产生：缺页异常<br><strong>解决：</strong> 进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0h4ljqj61320nt76302.jpg" alt="C547F405-C521-41CA-AA71-DD30DC86D94F" width="650" height="350" />
+
+<p>​    如果内存空间不够，操作系统会把 其他正在运行的进程中的「最近没被使用LRU」的 内存页面换出（Swap Out）， 暂时写在硬盘上；需要时再加载进来，称为换入（Swap In）。一次性写入磁盘只有少数一个页或几个页，不会花太多时间，内存交换效率相对比较高。<br>​    分页方式在加载程序时，不需要一次性把程序加载到物理内存中。在虚拟内存 和物理内存的页映射之后，并不真的把页加载到物理内存里，而 只有在 程序运行中，需要用到对应虚拟内存页里面的 指令和数据时，再加载到 物理内存里面去。</p>
+<h3 id="页式存储空间上的缺陷："><a href="#页式存储空间上的缺陷：" class="headerlink" title="页式存储空间上的缺陷："></a>页式存储空间上的缺陷：</h3><p>操作系统可以同时运行非常多的进程，意味着页表会非常的庞大。在 32 位的环境下，虚拟地址空间共有 4GB，一个页大小 4KB，就需要大约 100 万 （2^20） 个页，每个「页表项」需要 4 个字节大小来存储，整个 4GB 空间的映射就需要有 4MB 内存来存储页表。每个进程都是有自己的虚拟地址空间，如果有 100 个进程的话，就需要 400MB 内存来存储页表，这是非常大的内存，而 64 位环境则会更大。</p>
+<p><strong>多级页表  解决：</strong>多进程页表占用空间过大问题<br>使用 二级分页，一级页表 就可以覆盖整个 4GB 虚拟地址空间，但如果某个一级页表的页表项没有被用到，也就不需要创建这个页表项对应的二级页表，即可以在需要时才创建二级页表。例如：假设只有 20% 一级页表项被用到，那么页表占用内存空间就只有  4KB（一级页表）+  20% * 4 MB（二级页表）&#x3D; 0.804MB</p>
+<h3 id="局部性原理"><a href="#局部性原理" class="headerlink" title="局部性原理"></a>局部性原理</h3><p>​    每个进程有 4GB 虚拟地址空间，对于大多数程序来说，其使用的空间远未达到4GB，因为会有部分对应的页表项都是空的，没有分配，对于已分配的页表项，如果是最近一段时间未访问的页表，在物理内存紧张的情况下，操作系统会将页面换出到硬盘，不会占用物理内存。</p>
+<h4 id="程序的局部性"><a href="#程序的局部性" class="headerlink" title="程序的局部性"></a><strong>程序的局部性</strong></h4><p>​    把常访问的 几个页表项存储到访问速度更快的硬件，在 CPU 芯片中加入一个专门存放 程序最常访问的 页表项的 Cache，这个 Cache 就是 TLB（Translation Lookaside Buffer） ，通常称为：页表缓存、转址旁路缓存、快表等。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0ern33j60s00e53zb02.jpg" alt="F2665293-6C21-4F33-8C0D-16EA3F0A15E9" width="600" height="300" />
+
+<h4 id="地址转换："><a href="#地址转换：" class="headerlink" title="地址转换："></a>地址转换：</h4><p>在 CPU 芯片里封装了 内存管理单元（Memory Management Unit）芯片，它用来完成 地址转换和 TLB 的访问与交互。CPU 在寻址时，会先查 TLB，如果没找到，才继续查常规的页表。TLB 命中率其实是很高的，因为程序最常访问的页就那几个 。</p>
+<h4 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h4><p>内存分段和内存分页并不是对立的，它们可以组合起来在同一个系统中使用，组合后称为：段页式内存管理<br><strong>段页式内存管理：</strong><br>1.先将程序划分为 多个有逻辑意义的段<br>2.再把 每个段划分为 多个页，对分段划分出来的连续空间，再划分 固定大小的页<br>这样地址结构就由 段号、段内页号，页内位移 三部分组成。用于 段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址 是 页表的起始地址，而 页表中的地址是 某页的物理页号 </p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0blh3cj614c0jfac602.jpg" alt="431DF29B-F743-4129-B9C7-377E6C0D1DE8" width="600" height="300" />
+
+<h3 id="段页式地址–-gt-物理地址过程："><a href="#段页式地址–-gt-物理地址过程：" class="headerlink" title="段页式地址–&gt;物理地址过程："></a><strong>段页式地址–&gt;物理地址过程：</strong></h3><p>1.访问段表，得到页表起始地址<br>2.访问页表，得到物理页号<br>3.将物理页号 + 页内位移 组合，得到物理地址</p>
+<p>Linux 虚拟地址和物理地址映射方式：<br>Linux 系统中，每个段都是从 0 地址开始的整个 4GB 虚拟空间（32 位），所有段的起始地址都是一样的。Linux 系统中的代码，包括操作系统本身的代码和 应用程序代码，所面对的 地址空间都是线性地址空间（虚拟地址），相当于屏蔽处理器中的 逻辑地址概念，段只被用于 访问控制和内存保护。<br>Linux 本身采用的实际是段式和页式都有，但不叫段页式； linux的段和页式顺序的两个过程，只不过 段式相当于啥也不干，目的是为了保证兼容性，所以 Linux内存管理的方式实际上相当于 只有页式管理，但查询过程 经过一层段式查询。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p><strong>内存分段：</strong><br>根据程序逻辑角度，分成 栈段、堆段、数据段、代码段 等，分离出不同属性的段，同时是一块连续的空间。<br>每个段的 大小都不是统一的，这会导致 内存碎片，内存交换效率低 的问题。<br>于是出现：内存分页<br>把 虚拟空间和 物理空间分成 大小固定的页，在 Linux 系统中每一页大小为 4KB。<br>1.分页后就不会 产生细小的内存碎片。<br>2.在内存交换时，写入硬盘是 一个页或几个页，提高内存交换的效率。<br>多级页表：为解决 简单分页产生页表过大 问题，但会导致 CPU 在寻址过程中，需要 有很多层表参与，加大时间上的开销。<br>根据程序局部性原理，在 CPU 芯片中加入了 Cache 就是TLB（Translation Lookaside Buffer），负责 缓存最近常被访问的页表项，来提高 地址的转换速度。<br>Linux 系统主要采用 分页管理，但由于 Intel 处理器的发展史，Linux 系统无法避免 分段管理。于是 Linux 把所有 段的基地址设为 0，所有程序的地址空间都是 线性地址空间（虚拟地址），相当于屏蔽了 CPU 逻辑地址的概念，所以段只被用于访问控制和内存保护。<br>另外，Linxu 系统中 虚拟空间分布可分为用户态和内核态两部分，用户态：代码段、全局变量、BSS、函数栈、堆内存、映射区。</p>
+<p>参考：</p>
+<p>Linux 段页存储：  <a href="https://blog.csdn.net/jinking01/article/details/107098437">https://blog.csdn.net/jinking01/article/details/107098437</a></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2>]]></content>
+      <categories>
+        <category>后端</category>
+        <category>操作系统</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>多线程-基础</title>
     <url>/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h2 id="多线程编程-基础"><a href="#多线程编程-基础" class="headerlink" title="多线程编程-基础"></a>多线程编程-基础</h2><h4 id="Java-中创建线程方式主要有三种："><a href="#Java-中创建线程方式主要有三种：" class="headerlink" title="Java 中创建线程方式主要有三种："></a>Java 中创建线程方式主要有三种：</h4><p>1.继承 Thread 类，重写run() 方法，在run() 方法里实现内部逻辑<br>2.实现 Runnable 接口， 重写 Runnable 接口中的 run 方法，在 thread 类中传入 Runnable对象<br>3.实现 Callable 接口，重写 call() 方法，和 Future 来创建线程</p>
@@ -969,56 +1110,6 @@
 <p>Synchronized. 使用：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">state</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">RunnableA</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; )&#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">synchronized</span>(<span class="built_in">this</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>(state % <span class="number">2</span>==<span class="number">0</span>)&#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;Thread A: &quot;</span> + String.valueOf(i));</span><br><span class="line">                    state++;</span><br><span class="line">                    i++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">RunnableB</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; )&#123;</span><br><span class="line">            <span class="keyword">synchronized</span>(<span class="built_in">this</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>(state % <span class="number">2</span>==<span class="number">1</span>)&#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;Thread B: &quot;</span> + String.valueOf(i));</span><br><span class="line">                    state++;</span><br><span class="line">                    i++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="type">Thread</span> <span class="variable">t1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">RunnableA</span>());</span><br><span class="line">    <span class="type">Thread</span> <span class="variable">t2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">RunnableB</span>());</span><br><span class="line"></span><br><span class="line">    t1.start();</span><br><span class="line">    t2.start();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>多线程</category>
-      </categories>
-      <tags>
-        <tag>多线程</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>多线程-AQS详解</title>
-    <url>/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</url>
-    <content><![CDATA[<h2 id="AQS-详解"><a href="#AQS-详解" class="headerlink" title="AQS 详解"></a>AQS 详解</h2><p>参考：<a href="https://mp.weixin.qq.com/s/trsjgUFRrz40Simq2VKxTA">https://mp.weixin.qq.com/s/trsjgUFRrz40Simq2VKxTA</a> ； <a href="https://mp.weixin.qq.com/s/iNz6sTen2CSOdLE0j7qu9A">https://mp.weixin.qq.com/s/iNz6sTen2CSOdLE0j7qu9A</a></p>
-<h4 id="三个线程-线程1，2，3-同时来加锁-x2F-释放锁："><a href="#三个线程-线程1，2，3-同时来加锁-x2F-释放锁：" class="headerlink" title="三个线程(线程1，2，3)同时来加锁&#x2F;释放锁："></a>三个线程(线程1，2，3)同时来加锁&#x2F;释放锁：</h4><h4 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h4><p>1.线程一加锁成功时 AQS内部实现<br>2.线程二&#x2F;三加锁失败时 AQS中等待队列的数据模型<br>3.线程一释放锁，及线程二获取锁实现原理<br>4.通过线程场景来讲解Condition中await()和signal()实现原理</p>
-<h4 id="1-线程一加锁成功："><a href="#1-线程一加锁成功：" class="headerlink" title="1.线程一加锁成功："></a>1.线程一加锁成功：</h4><p>如果同时有三个线程并发抢占锁，此时线程一抢占锁成功，线程二和线程三抢占锁失败，具体执行流程如下：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursn4dvwij60xm0i8mz302.jpg" alt="1E28D15C-7C36-4A72-9F39-B8EA197A02FB" width="750" height="350" />
-
-<p>此时AQS内部数据为：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursnhf7xnj60zc09u0tq02.jpg" alt="933E683E-0920-41D0-A601-25C5C8898215" width="750" height="250" />
-
-
-
-<h4 id="2-线程二、线程三加锁失败："><a href="#2-线程二、线程三加锁失败：" class="headerlink" title="2.线程二、线程三加锁失败："></a>2.线程二、线程三加锁失败：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gursodunv4j615m0dqjtl02.jpg" alt="DA3FB080-3481-408D-B49B-E83AB742E490" width="750" height="300"/>
-
-<p>有图可以看出，等待队列中的节点Node是一个 双向链表<br>线程二抢占锁失败,按照真实场景来分析，线程一抢占锁成功后，state变为1，线程二通过 CAS修改state变量必然会失败，此时AQS中FIFO队列中数据如图:</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursosc28ej61460deq4q02.jpg" alt="05B538CD-F5AD-4E3C-B3A8-8000D55BC3E1" width="750" height="300" />
-
-<p>线程一将state修改为1，所以线程二通过 CAS修改state的值不会成功，加锁失败。线程二执行 tryAcquire()后会返回false，接着执行addWaiter(Node.EXCLUSIVE)逻辑，将自己加入到一个FIFO等待队列中。</p>
-<h4 id="3-线程一释放锁"><a href="#3-线程一释放锁" class="headerlink" title="3.线程一释放锁"></a>3.线程一释放锁</h4><p>线程一释放锁，释放锁后会 唤醒head节点的后置节点，就是线程二。线程二设置为head节点，然后空置之前的head节点数据，被空置的节点数据等着被垃圾回收。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursq4l5p7j60yo0jgdi902.jpg" alt="73FBFF18-A055-4AC6-AB79-2AE515C0B494" width="750" height="400" />
-
-
-
-<p>线程二 释放锁 &#x2F; 线程三加锁：当线程二释放锁时，会唤醒被挂起的线程三，流程和上面大致相同，被唤醒的线程三会再次尝试加锁</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursr1qi48j60zo0d40ug02.jpg" alt="9E6853B0-BEB4-4D12-B09D-CC43AD0DF73F" width="750" height="300"/>
-
-
-
-<h4 id="4-Contition实现原理："><a href="#4-Contition实现原理：" class="headerlink" title="4.Contition实现原理："></a>4.Contition实现原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gursr8lel9j618s0maadf02.jpg" alt="0A1A1211-CA16-4C20-B028-C49F8390B9E4" width="750" height="400" />
-
-<p>await()方法中首先调用 addConditionWaiter()将当前线程加入到Condition队列中，执行完可以看到 Condition队列中的数据：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursrociquj618s0c2dhh02.jpg" alt="7AEDFCE0-0186-4AC5-B6B6-4C1A38F85CAC" width="750" height="250"/>
-
-<p>​        这里会用当前线程创建一个 Node节点，waitStatus为CONDITION。 接着会释放该节点的锁，调用之前解析过的release()方法，释放锁之后，会唤醒被挂起的线程二，线程二会继续尝试获取锁。接着调用 isOnSyncQueue()方法判断当前节点是否为 Condition队列中的头部节点，如果是则调用LockSupport.park(this)挂起 Condition中当前线程。此时线程一被挂起，线程二获取锁成功。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurss3nurgj617u0m6jum02.jpg" alt="CCD0588F-1A68-4699-B803-35B5797B18A9" width="750" height="400" />
-
-<p>​        线程二执行 signal()方法：首先我们考虑下线程二已经获取到锁，此时AQS等待队列中已经没有数据。<br>这里先从transferForSignal()方法来看，Condition队列中只有线程一创建的一个Node节点，且waitStatue为CONDITION，先通过CAS修改当前节点waitStatus为0，然后执行enq()方法将当前线程加入到等待队列中，并返回当前线程的前置节点。加入等待队列的代码在上面也已经分析过，此时等待队列中数据如下图：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursshoev3j61880go76702.jpg" alt="75794B2C-981A-45AB-9F7A-AC4410FE3E79" width="750" height="300" />
-
-<p>接着开始通过CAS修改当前节点的前置节点waitStatus为SIGNAL，并且唤醒当前线程。等线程二释放锁后，线程一会继续重试获取锁，结束。</p>
 ]]></content>
       <categories>
         <category>后端</category>
@@ -1268,281 +1359,103 @@
       </tags>
   </entry>
   <entry>
-    <title>操作系统-基础</title>
-    <url>/TurboCome/2022/02/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E7%A1%80/</url>
-    <content><![CDATA[<h1 id="操作系统基本知识点"><a href="#操作系统基本知识点" class="headerlink" title="操作系统基本知识点"></a>操作系统基本知识点</h1><h3 id="进程的五大状态："><a href="#进程的五大状态：" class="headerlink" title="进程的五大状态："></a><strong>进程的五大状态：</strong></h3><img src="https://tva1.sinaimg.cn/large/008i3skNly1guqw5a87r6j612m0m2q5l02.jpg" alt="C4503148-288A-4F82-8FC9-348D8A500B94" width="650" height="300" />
+    <title>多线程-AQS详解</title>
+    <url>/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</url>
+    <content><![CDATA[<h2 id="AQS-详解"><a href="#AQS-详解" class="headerlink" title="AQS 详解"></a>AQS 详解</h2><p>参考：<a href="https://mp.weixin.qq.com/s/trsjgUFRrz40Simq2VKxTA">https://mp.weixin.qq.com/s/trsjgUFRrz40Simq2VKxTA</a> ； <a href="https://mp.weixin.qq.com/s/iNz6sTen2CSOdLE0j7qu9A">https://mp.weixin.qq.com/s/iNz6sTen2CSOdLE0j7qu9A</a></p>
+<h4 id="三个线程-线程1，2，3-同时来加锁-x2F-释放锁："><a href="#三个线程-线程1，2，3-同时来加锁-x2F-释放锁：" class="headerlink" title="三个线程(线程1，2，3)同时来加锁&#x2F;释放锁："></a>三个线程(线程1，2，3)同时来加锁&#x2F;释放锁：</h4><h4 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h4><p>1.线程一加锁成功时 AQS内部实现<br>2.线程二&#x2F;三加锁失败时 AQS中等待队列的数据模型<br>3.线程一释放锁，及线程二获取锁实现原理<br>4.通过线程场景来讲解Condition中await()和signal()实现原理</p>
+<h4 id="1-线程一加锁成功："><a href="#1-线程一加锁成功：" class="headerlink" title="1.线程一加锁成功："></a>1.线程一加锁成功：</h4><p>如果同时有三个线程并发抢占锁，此时线程一抢占锁成功，线程二和线程三抢占锁失败，具体执行流程如下：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursn4dvwij60xm0i8mz302.jpg" alt="1E28D15C-7C36-4A72-9F39-B8EA197A02FB" width="750" height="350" />
+
+<p>此时AQS内部数据为：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursnhf7xnj60zc09u0tq02.jpg" alt="933E683E-0920-41D0-A601-25C5C8898215" width="750" height="250" />
 
 
 
-<h3 id="Sleep-wait-区别："><a href="#Sleep-wait-区别：" class="headerlink" title="Sleep, wait 区别："></a><strong>Sleep, wait 区别：</strong></h3><p><strong>sleep() 休眠：</strong>让调用线程进入睡眠，让出执行机会给其他线程，等到休眠时间结束，线程进入就绪状态和其他线程一起竞争cpu执行时间。Thread的静态方法，不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，线程虽然进入休眠，但是对象的锁没有被释放，其他线程依然无法访问这个对象。<br><strong>wait() 挂起：</strong>是Object类的方法，当一个线程执行到wait方法时，它就进入到一个和该对象相关的等待池，同时释放对象的锁，使得其他线程能够访问，可以通过notify，notifyAll方法来唤醒等待的线程。</p>
-<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>1.sleep不释放对象锁，只是让出CPU； wait释放对象锁，也让出CPU<br>2.sleep 是Thread 的静态方法； wait 是Object 类的私有方法<br>3.sleep可以指定休眠时间，无法唤醒；wait 可指定时间，也可通过notify&#x2F;notifyAll唤醒，实现多线程间通信</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvcdozn9j60wq0n440c02.jpg" alt="D3CA871F-D18B-4198-B93E-785CB79A032A" width="450" height="300" />
+<h4 id="2-线程二、线程三加锁失败："><a href="#2-线程二、线程三加锁失败：" class="headerlink" title="2.线程二、线程三加锁失败："></a>2.线程二、线程三加锁失败：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gursodunv4j615m0dqjtl02.jpg" alt="DA3FB080-3481-408D-B49B-E83AB742E490" width="750" height="300"/>
 
-<h3 id="CPU-执行程序的过程"><a href="#CPU-执行程序的过程" class="headerlink" title="CPU 执行程序的过程:"></a>CPU 执行程序的过程:</h3><p>CPU 根据 程序计数器里的内存地址，从内存里面把需要执行的 指令序列读取到 指令寄存器 里面执行，然后根据 指令长度自增，开始顺序读取下一条指令。<br><strong>CPU 的指令周期：</strong> CPU 从程序计数器读取指令、到执行、再到下一条指令，这个过程会不断循环，直到程序执行结束。</p>
-<h3 id="操作系统中的死锁："><a href="#操作系统中的死锁：" class="headerlink" title="操作系统中的死锁："></a>操作系统中的死锁：</h3><p>一组进程中，每个进程都 无限等待被该组进程中另一进程所占有的资源，而永远无法得到资源，这种现象称为进程死锁，这一组 进程称为死锁进程。如果死锁发生，会浪费大量系统资源，甚至导致系统崩溃。</p>
-<p><strong>产生死锁必要的四个条件：</strong><br>(1)互斥使用 (资源独占)：   一个资源 每次只能给一个进程使用<br>(2)请求和保持(部分分配)：进程在 申请新的资源的同时 保持对原有资源的占有<br>(3)不可抢占 (不可剥夺)：资源申请者不能强行的从资源占有者手中夺取资源，资源只能由占有者自愿释放<br>(4)循环等待：存在一个进程等待队列 {P1 , P2 , … , Pn}，其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路。</p>
-<p><strong>解除死锁：</strong>   资源剥夺法、   进程撤销法、进程回退法、    系统重启法<br><strong>破坏环路等待：</strong>给资源统一编号，进程只能按编号顺序来请求资源。<br><strong>死锁避免：</strong>在程序运行时避免发生死锁</p>
-<h3 id="同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO："><a href="#同步-x2F-异步-x2F-阻塞-x2F-非阻塞IO：" class="headerlink" title="同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO："></a>同步&#x2F;异步&#x2F;阻塞&#x2F;非阻塞IO：</h3><p><strong>等待过程：</strong> 数据从网络 到 网卡, 再到 内核空间<br><strong>读写(copy)过程：</strong> 内核空间，和 用户空间 相互拷贝<br>IO： 读入&#x2F;写出 数据的过程，和等待 读入&#x2F;写出数据的过程<br><strong>同步&#x2F;异步：</strong>  是否 等待数据到 内核空间（网络—&gt;网卡—&gt;内核）<br><strong>阻塞&#x2F;非阻塞：</strong>  是否 等待 copy数据 （ 内核—&gt; 用户）</p>
-<p><strong>阻塞IO：</strong>用户线程被阻塞在等待数据上和拷贝数据上。<br>应用程序都运行在 用户空间，能操作的 数据也都在用户空间；如果此时用户线程已经参与，那它一定 会被阻塞在IO上，这就是常说的阻塞IO，用户线程被阻塞在等待数据，拷贝数据。<br><strong>非阻塞IO：</strong>数据已经拷贝到用户空间后，才去通知用户线程，一上来就可以直接操作数据，用户线程没有因为IO的事情出现阻塞。</p>
-<h3 id="同步IO-x2F-同步阻塞IO："><a href="#同步IO-x2F-同步阻塞IO：" class="headerlink" title="同步IO&#x2F;同步阻塞IO："></a>同步IO&#x2F;同步阻塞IO：</h3><p><strong>同步IO:</strong> 发起 IO请求后，必须拿到 IO数据才继续执行，在 等待和拷贝数据过程中，线程都在阻塞，因为后续操作依赖IO数据<br><strong>非阻塞IO：</strong>发起IO请求后，可以继续往下执行，后续执行不依赖于IO数据，所以它肯定不是同步的。<br>同步IO 一定是 阻塞IO，也就是同步阻塞IO。</p>
-<p><strong>异步：</strong> 等待数据继续执行，  阻塞：copy 数据时阻塞<br><strong>异步IO：</strong>IO请求后，不用拿到IO的数据就可继续执行，用户线程继续执行，和操作系统准备IO数据的过程是同时进行。<br><strong>异步阻塞 IO：</strong> 在等待数据过程中，用户线程继续执行，在拷贝数据过程中，用户线程在阻塞；用户线程没有参与数据等待的过程，所以是异步的。但用户线程参与数据拷贝的过程，所以是阻塞的,合起来异步阻塞IO。<br><strong>异步非阻塞IO：</strong> 等待数据， copy 数据时 用户线程都在继续执行；在 等待数据的过程中，和拷贝数据的过程中，用户线程都在继续执行；用户线程 没有参与等待过程也没有参与拷贝过程，当接到通知时数据已经准备好了，没有因为IO数据而阻塞，是非阻塞的。</p>
-<h3 id="I-x2F-O多路复用"><a href="#I-x2F-O多路复用" class="headerlink" title="I&#x2F;O多路复用"></a>I&#x2F;O多路复用</h3><p>通过一种机制，一个进程可以监视多个描述符，一旦某个描述符就绪（读就绪或写就绪），能通知程序进行相应的读写操作<br>select，poll，epoll 本质上都是 同步I&#x2F;O，因为他们都需要在读写事件就绪后自己负责进行读写，也就是说这个读写过程是阻塞的，而异步I&#x2F;O 则无需自己负责进行读写，异步 I&#x2F;O的实现会负责把数据从  内核拷贝到用户空间。</p>
-<h4 id="Select-原理："><a href="#Select-原理：" class="headerlink" title="Select 原理："></a>Select 原理：</h4><p>1.从 用户空间 拷贝 fd_set 到 内核空间，fds 文件描述符（ 3类，分别是writefds，readfds，和exceptfds ）<br>2.注册回调函数 __pollwait ，然后将 current（当前进程）挂到 设备的等待队列中，不同的设备有不同的等待队列。（有数据 可读、可写、或超时timeout等待时间）<br>3.有描述符 就绪后，通过回调函数进行通知，select 会对 fd_set 进行遍历，来找到就绪的描述符。<br>遍历完 所有的 fd，还没有返回一个 可读写的 mask掩码，调用 schedule_timeout 是 调用select的进程（current）进入睡眠<br>缺点：<br>1）支持的文件描述符数量太小，默认是 1024<br>2）每次 调用 select，需要把 fds 集合从 用户态拷贝 到内核态，在 fds 很大时, 开销较大<br>3）每次调用 select 需要在 内核遍历传递进来的 所有 fds，找到处于 就绪的描述符，开销较大</p>
-<h4 id="poll-："><a href="#poll-：" class="headerlink" title="poll ："></a>poll ：</h4><p>实现和 select 相似，只是 描述 fd集合 不同，poll使用 poll fd结构而不是select的fd_set结构，链表存储的。<br>优：没有最大连接数的限制，原因：基于链表来存储的<br>缺：<br>1.poll, select  大量的 fds 的数组被整体 复制于 用户态和内核地址空间之间<br>2.select, poll 都要通过 遍历文件描述符来获取已经就绪的socket，如果同时连接大量客户端，但只有很少的处于就绪状态，这会导致随着监视的 描述符数量的增长，效率下降。</p>
-<h4 id="epoll"><a href="#epoll" class="headerlink" title="epoll:"></a>epoll:</h4><p>提供三个函数：epoll_create创建一个epoll句柄； epoll_ctl 注册要监听的事件类型； epoll_wait 是等待事件的产生 。</p>
-<p>1.解决反复 copy fds 问题：epoll更加灵活，没有描述符限制。epoll 使用一个 文件描述符管理多个描述符， 将 用户关系的文件描述符的事件 存放到 内核的一个事件表 中，这样在 用户空间和内核空间的 copy只需一次。<br>2.epoll 使用 “事件”就绪通知方式，通过 epoll_ctl时把 current 遍历一遍，并 为每个 fd 指定一个回调函数，当设备就绪，唤醒 等待队列上的等待者时，会调用这个回调函数，而这个 回调函数会把就绪的 fd 加入一个就绪链表；epoll_wait 工作实际上就是在这个 就绪链表中查看有没有就绪的fd 。</p>
-<p><strong>总结：</strong>select，poll 每次调用都要把fd集合从用户态往内核态拷贝一次，并且要把 current往设备等待队列中挂一次，而 epoll只要一次拷贝，而且把 current 往等待队列上挂也只挂一次。<br>只有活跃可用的 FD才会调用 callback函数；即 epoll最大的优点就在于它只管你“活跃”的连接，而跟连接总数无关，因此在实际的网络环境中，epoll的效率就会远远高于select和poll。</p>
-<p><strong>内存拷贝：</strong>利用 mmap()文件 映射内存加速 与 内核空间的消息传递；即 epoll使用mmap减少复制开销<br>参考：<a href="https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-10.essearch_pc_relevant">https://blog.csdn.net/weixin_34067102/article/details/91532307?utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromMachineLearnPai2%7Edefault-10.essearch_pc_relevant</a>   </p>
-<h3 id="用户态-lt-—-gt-内核态："><a href="#用户态-lt-—-gt-内核态：" class="headerlink" title="用户态 &lt;—&gt; 内核态："></a>用户态 &lt;—&gt; 内核态：</h3><p>所有程序都在 用户空间运行（用户态），但很多操作 可能涉及内核运行，就需要进入内核态</p>
-<ol>
-<li>用户态把一些 数据放到寄存器，或创建对应的堆栈，表明需要操作系统提供的服务</li>
-<li>用户态 执行 系统调用（系统调用是操作系统的最小功能单位）</li>
-<li>CPU 切换到内核态，跳到对应的内存指定的位置执行指令</li>
-<li>系统调用 处理器 去读取先前放到 内存的数据参数，执行程序的请求 </li>
-<li>调用完成，操作系统重置 CPU为用户态返回结果，并执行下个指令</li>
-</ol>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvemj5ggj60ka0leq3w02.jpg" alt="0BCDE869-93F4-4F5A-9A33-090FFB41FDF0" width="350" height="350" />
+<p>有图可以看出，等待队列中的节点Node是一个 双向链表<br>线程二抢占锁失败,按照真实场景来分析，线程一抢占锁成功后，state变为1，线程二通过 CAS修改state变量必然会失败，此时AQS中FIFO队列中数据如图:</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursosc28ej61460deq4q02.jpg" alt="05B538CD-F5AD-4E3C-B3A8-8000D55BC3E1" width="750" height="300" />
+
+<p>线程一将state修改为1，所以线程二通过 CAS修改state的值不会成功，加锁失败。线程二执行 tryAcquire()后会返回false，接着执行addWaiter(Node.EXCLUSIVE)逻辑，将自己加入到一个FIFO等待队列中。</p>
+<h4 id="3-线程一释放锁"><a href="#3-线程一释放锁" class="headerlink" title="3.线程一释放锁"></a>3.线程一释放锁</h4><p>线程一释放锁，释放锁后会 唤醒head节点的后置节点，就是线程二。线程二设置为head节点，然后空置之前的head节点数据，被空置的节点数据等着被垃圾回收。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursq4l5p7j60yo0jgdi902.jpg" alt="73FBFF18-A055-4AC6-AB79-2AE515C0B494" width="750" height="400" />
 
 
 
-<p>内核 &lt;—&gt;用户</p>
-<p>1.系统调用：本身就是中断，但是软件中断，跟硬中断不同</p>
-<p>2.异常：如果当前进程运行在用户态，如果此时发生异常事件，就会触发切换， 例如：缺页异常</p>
-<p>3.外设中断：当外设完成用户的请求时，会向CPU发送中断信号<br>用户态进程通过 系统调用申请使用 操作系统提供的服务程序完成工作，比如 fork() 实际上就是执行了一个 创建新进程的系统调用；CPU 在执行 用户态下的程序时，发生不可知的异常，这时会触发当前运行进程切换到处理此异常的内核相关程序中，转到内核态，比如缺页异常。<br>用户态: 上层应用程序的活动空间，应用程序的执行必须依托于 内核提供的资源，包括CPU资源、存储资源、I&#x2F;O资源等。为了使上层应用能够访问到这些资源，内核 必须为上层应用提供访问的接口：即系统调用。</p>
-<p>系统调用：操作系统的最小功能单位<br>Shell (命令行)  是一个特殊的应用程序，下通系统调用，上通各种应用，让不同程序能够以一个清晰的接口协同工作，从而增强各个程序的功能。同时 Shell是可编程的，可以执行符合 Shell语法的文本(Shell脚本)。为方便用户和系统交互，一个Shell对应一个终端，可以通过终端窗口输入或输出文本，这个文本直接传递给shell 进行分析解释，然后执行。</p>
-<h3 id="进程、线程区别："><a href="#进程、线程区别：" class="headerlink" title="进程、线程区别："></a>进程、线程区别：</h3><p>进程： 操作系统 资源分配的基本单位<br>线程： 任务调度、执行的基本单位， cpu调度和分派的基本单位。</p>
-<h4 id="开销："><a href="#开销：" class="headerlink" title="开销："></a>开销：</h4><p>每个进程都有独立的 代码 和 数据 空间（程序上下文），程序之间的切换会有较大的开销；<br>线程就像轻量级的进程，同一类 线程 共享代码和数据空间，每个线程都有自己独立的 运行栈和程序计数器（PC），线程之间切换的开销小</p>
-<h4 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h4><p>操作系统中能 同时运行多个进程（程序）；<br>在同一个进程（程序）中有多个线程同时执行（通过CPU调度，在每个时间片中只有一个线程执行）</p>
-<h4 id="内存分配："><a href="#内存分配：" class="headerlink" title="内存分配："></a>内存分配：</h4><p>系统在运行的时候会为 每个进程分配不同的内存空间<br>对线程而言，除了CPU外，系统不会为线程分配内存， 线程所使用的资源来自其所属进程的资源，线程组之间只能共享资源</p>
-<h3 id="进程间通信方式："><a href="#进程间通信方式：" class="headerlink" title="进程间通信方式："></a>进程间通信方式：</h3><h4 id="1-P、V信号量（Semaphore）："><a href="#1-P、V信号量（Semaphore）：" class="headerlink" title="1.P、V信号量（Semaphore）："></a>1.P、V信号量（Semaphore）：</h4><p>操作系统提供一种进程间的通信方式，主要用来协调并发程序对共享资源的访问，操作系统可以保证对信号量操作的原子性<br>信号量（semaphore）与已经介绍过的 IPC 结构不同，它是一个计数器。信号量用于实现进程间的互斥与同步，而不是用于存储进程间通信数据。<br>特点</p>
-<ol>
-<li>信号量用于进程间同步，若要在进程间传递数据需要结合共享内存。</li>
-<li>信号量基于操作系统的 PV 操作，程序对信号量的操作都是原子操作。</li>
-</ol>
-<h4 id="2-管程："><a href="#2-管程：" class="headerlink" title="2.管程："></a>2.管程：</h4><p>原理：所有进程对某一种临界资源的同步操作都集中起来，构成一个秘书进程。凡要访问该临界资源的进程，都需要先报告秘书进程，由秘书来实现进程对同一临界资源的互斥使用。</p>
-<p>管程可以理解为一个对象监视器，任何线程想要访问共享资源，需要排队进入监控范围，接受检查，不符合条件，则要等待直到被通知，然后再进入监视器.</p>
-<ol>
-<li>它是 半双工的（即数据只能在一个方向上流动），具有固定的读端和写端。</li>
-<li>它只能用于具有亲缘关系的进程之间的通信（也是父子进程或者兄弟进程之间）。<br>注意：信号量和管程两者是等价的，信号量可以实现管程，管程也可以实现信号量，两者的表现形式不同，管程对开发者更加友好。</li>
-</ol>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guqvgjnc0gj611w0j4mzh02.jpg" alt="1F787016-667F-4A87-BEFF-61790414A89F" width="650" height="320" />
+<p>线程二 释放锁 &#x2F; 线程三加锁：当线程二释放锁时，会唤醒被挂起的线程三，流程和上面大致相同，被唤醒的线程三会再次尝试加锁</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursr1qi48j60zo0d40ug02.jpg" alt="9E6853B0-BEB4-4D12-B09D-CC43AD0DF73F" width="750" height="300"/>
 
 
 
+<h4 id="4-Contition实现原理："><a href="#4-Contition实现原理：" class="headerlink" title="4.Contition实现原理："></a>4.Contition实现原理：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gursr8lel9j618s0maadf02.jpg" alt="0A1A1211-CA16-4C20-B028-C49F8390B9E4" width="750" height="400" />
 
-<p>管程为了解决信号量在临界区的 PV 操作上的配对的麻烦，把配对的 PV 操作集中在一起，并且加入了条件变量的概念，使得在多条件下线程间的同步实现变得更加简单。</p>
-<h4 id="3-消息队列："><a href="#3-消息队列：" class="headerlink" title="3.消息队列："></a>3.消息队列：</h4><p>容量受系统限制<br>消息队列，是消息的链接表，存放在内核中。一个消息队列由一个标识符（即队列ID）来标识。<br><strong>特点：</strong></p>
-<ol>
-<li>消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级。</li>
-<li>消息队列独立于发送与接收进程。进程终止时，消息队列及其内容并不会被删除。</li>
-</ol>
-<h4 id="4-共享内存："><a href="#4-共享内存：" class="headerlink" title="4.共享内存："></a>4.共享内存：</h4><p>速度快，各个进程间共享同一个内存区域，实现共享变量的访问<br>共享内存（Shared Memory），指两个或多个进程共享一个给定的存储区。<br>特点</p>
-<ol>
-<li>共享内存是 最快的一种 IPC，因为进程是直接对内存进行存取。</li>
-<li>因为 多个进程可以同时操作，所以需要进行同步。</li>
-<li>信号量+共享内存:  通常结合在一起使用，信号量用来同步对共享内存的访问。</li>
-</ol>
-<h4 id="5-套接字"><a href="#5-套接字" class="headerlink" title="5.套接字"></a>5.套接字</h4><p>用于不同设备间的进程通信</p>
-<h3 id="线程间通信方式："><a href="#线程间通信方式：" class="headerlink" title="线程间通信方式："></a>线程间通信方式：</h3><p>1.互斥锁：   以排他的方式防止数据结构并发修改<br>2.条件变量：阻塞进程，知道某个条件满足<br>3.读写锁：   多线程同时读，互斥写<br>4.信号量：   类似进程间信号量通信，主同步</p>
-<h3 id="进程调度算法；"><a href="#进程调度算法；" class="headerlink" title="进程调度算法；"></a>进程调度算法；</h3><p>1.先来先服务<br>2.最短作业优先<br>3.响应比最高者优先<br>4.优先级调度算法<br>5.时间片轮转调度算法</p>
-<p>参考：<strong>文件系统</strong>：<a href="https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ">https://mp.weixin.qq.com/s/UT2JrfpkA5OUC9fJJ_MirQ</a></p>
+<p>await()方法中首先调用 addConditionWaiter()将当前线程加入到Condition队列中，执行完可以看到 Condition队列中的数据：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursrociquj618s0c2dhh02.jpg" alt="7AEDFCE0-0186-4AC5-B6B6-4C1A38F85CAC" width="750" height="250"/>
+
+<p>​        这里会用当前线程创建一个 Node节点，waitStatus为CONDITION。 接着会释放该节点的锁，调用之前解析过的release()方法，释放锁之后，会唤醒被挂起的线程二，线程二会继续尝试获取锁。接着调用 isOnSyncQueue()方法判断当前节点是否为 Condition队列中的头部节点，如果是则调用LockSupport.park(this)挂起 Condition中当前线程。此时线程一被挂起，线程二获取锁成功。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurss3nurgj617u0m6jum02.jpg" alt="CCD0588F-1A68-4699-B803-35B5797B18A9" width="750" height="400" />
+
+<p>​        线程二执行 signal()方法：首先我们考虑下线程二已经获取到锁，此时AQS等待队列中已经没有数据。<br>这里先从transferForSignal()方法来看，Condition队列中只有线程一创建的一个Node节点，且waitStatue为CONDITION，先通过CAS修改当前节点waitStatus为0，然后执行enq()方法将当前线程加入到等待队列中，并返回当前线程的前置节点。加入等待队列的代码在上面也已经分析过，此时等待队列中数据如下图：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gursshoev3j61880go76702.jpg" alt="75794B2C-981A-45AB-9F7A-AC4410FE3E79" width="750" height="300" />
+
+<p>接着开始通过CAS修改当前节点的前置节点waitStatus为SIGNAL，并且唤醒当前线程。等线程二释放锁后，线程一会继续重试获取锁，结束。</p>
 ]]></content>
       <categories>
         <category>后端</category>
-        <category>操作系统</category>
+        <category>多线程</category>
       </categories>
       <tags>
-        <tag>操作系统</tag>
+        <tag>多线程</tag>
       </tags>
   </entry>
   <entry>
-    <title>Kafka-基础</title>
-    <url>/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</url>
-    <content><![CDATA[<h2 id="2-Kafka-消息队列-基础"><a href="#2-Kafka-消息队列-基础" class="headerlink" title="2.Kafka 消息队列-基础"></a>2.Kafka 消息队列-基础</h2><p>参考：Kafka总结–<a href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg" alt="64632972-37CD-4F85-BB74-47C31F5ECF35" width="550" height="350"  />
+    <title>消息队列-基础</title>
+    <url>/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</url>
+    <content><![CDATA[<h2 id="1-消息队列（MQ）简介"><a href="#1-消息队列（MQ）简介" class="headerlink" title="1.消息队列（MQ）简介"></a>1.消息队列（MQ）简介</h2><p>生产者不断向消息队列中生产消息，消费者不断的从队列中获取消息；因为消息的生产，消费都是异步的，只关心消息的发送和接收，没有业务逻辑的侵入，这样就实现了生产者和消费者的解耦。</p>
+<h4 id="主要作用："><a href="#主要作用：" class="headerlink" title="主要作用："></a>主要作用：</h4><p><strong>作用：</strong> 异步，解耦，削峰<br><strong>缺点：</strong> 可用性降低，增加系统复杂性（重复消费，消息丢失，消息的顺序消费），数据一致性问题<br><strong>1.系统可用性降低：</strong>  加个 MQ 进来，万一 MQ 挂了，整套系统崩溃<br><strong>2.系统复杂度提高：</strong>  怎么保证消息没有重复消费？怎么 处理消息丢失的情况？怎么保证消息传递的顺序性？<br><strong>3.数据一致性问题：</strong>   A 系统处理完直接返回成功，别人以为你这个请求就成功了；但问题是，如果有ABC 三个系统，AB两个系统写库成功，结果 C 系统写库失败，会导致数据不一致。</p>
+<p><strong>异步：</strong></p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttu3mfp8j60z00j6tao02.jpg" alt="E783098A-79FE-49FA-9879-8F75A90C4012" width="650" height="300"  />
+
+<p><strong>解耦：</strong></p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttugn5p6j60z60dy0u602.jpg" alt="00C596FF-799E-4322-B17A-30EBA35A332F" width="650" height="250"  />
+
+<p><strong>削峰：</strong></p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutturqacvj610g07u0tp02.jpg" alt="10A377B4-930E-4EAC-8341-7BFF82631B17" width="650" height="200"  />
 
 
 
-<p>在Kafka 消息队列中，队列的名字叫 topic;  多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。  </p>
-<p>每个 topic下，可能有多个 partition分区:</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutubka7shj60y60c8tal02.jpg" alt="BCA7225F-6CD7-4997-B720-8C0E97C18FF6" width="650" height="300"  />
-
-<p>Topic 可以有多个分区，分区是最小的读取和存储结构， Consumer 是从Topic下的某个分区获得消息，Producer发送消息也是如此，<strong>数据发往哪个partition呢？</strong></p>
-<ol>
-<li>写入的时候可以指定 partition，如果有指定，则写入对应的 partition</li>
-<li>没有指定partition，但设置了数据key，则会根据key的值 hash出一个partition</li>
-<li>没有指定 partition ，也没有指定 key ， 会随机选择一个分区，并尽可能一直使用该分区，待该分区的 batch已满或过了间隔时间，再随机一个分区进行使用</li>
-</ol>
-<p>一台 Kafka服务器叫做 Broker，集群就是多台 Kafka服务器；一个 topic会分为多个partition，实际上 partition 会分布在不同的broker中，实现多机均匀负载。<br>例子：<br>往 topic里边存数据，这些数据会分到不同 partition上，这些 partition存在不同的broker上。<br>如果其中一台 broker挂了，会丢失其中 partition上的数据；但 kafka把这些 partition都做了备份。<br>如：现有三个partition，分别存在三台broker上，每个partition都会备份，这些备份散落在不同的broker上</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuc5g0cjj619c0oydjc02.jpg" alt="BE9B9937-1DC3-4DE6-ABFA-662EFD27312E" width="650" height="300"  />
-
-<p><strong>红色块的 partition代表的是主分区，紫色的 partition块代表的是备份分区</strong>。<br>生产者，消费者都是与主分区交互；<br>备份分区仅用作于备份不做读写，如果某个Broker挂了，就会选举出其他 Broker的 partition来作为主分区，实现高可用每一个 Partition 其实都是一个文件，收到消息后 Kafka会把数据插入到文件末尾（虚框部分）<br><strong>缺点：</strong>没办法删除数据，所以 Kafka 是不会删除数据的，它会把所有的数据都保留下来，每个消费者对每个 Topic都有一个 offset 用来表示读取到了第几条数据， offset 是由对应的消费者维护，会保存到 Zookeeper 里面。</p>
-<p>为避免磁盘被撑满，Kakfa 提供两种策略来删除数据：<br><strong>1.「基于时间」 （默认七天）；        2.「基于 Partition 文件大小」</strong></p>
-<p>​                                       <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutud52gfgj60iu09waac02.jpg" alt="4235AE89-DA4A-43E7-8143-536C5A97C641" width="450" height="300" /></p>
-<p>消息发往一个主题下的某个分区中，例如：某个主题下有 5 个队列，那么这个主题并发度就提高为 5 ，同时可以有 5 个消费者并行消费该主题的消息。<br>消费者都是属于某个消费组的，一条消息会发往多个订阅这个主题的消费组<br>如：两个消费组分别是Group 1 和 Group 2，它们都订阅 Topic-a，此时有一条消息发往 Topic-a，那么这两个消费组都能接收到这条消息。</p>
-<p>这条消息实际是 写入Topic中的某个分区，消费组中的某个消费者对应消费一个 Topic 的某个分区。每个消费组会有自己的 offset（消费点位）来标识消费到的位置， 在消费点位之前表明已经消费过。 这个offset是 分区级别的，每个消费组都会维护订阅的 Topic下的每个分区的offset。<br><strong>kafka并发的粒度是 partition</strong>， 每个 partition对应一个消费者，多个消费者同时进行消费，以此来提高并发量。</p>
-<p><strong>消息轮询：</strong> 消费者 通过轮询 API(poll) 向 服务器定时请求数据，一旦消费者订阅了主题，轮询就会处理群组协调、分区再均衡、发送心跳和获取数据，使得开发者只需要关注从分区返回的数据，然后进行业务处理。</p>
-<p>Kafka的 Consumer Group 是采用Pull 方式来消费消息，每个Consumer 该消费哪个 Partition 的消息需要一套严格的机制来保证。Partition 可以水平无限扩展，随着 Partition 的扩展 Consumer消费的 Partition也会重新分配，这里涉及到 kafka消息消费分配策略，在 Kafka内部存在两种默认的分区分配策略：Range 和RoundRobin，当以下事件发生时，<strong>Kafka将会进行一次分区分配：</strong><br>1.同一个 Consumer Group内新增消费者<br>2.订阅的主题新增Partition<br>3.消费者离开当前所属的 Group，包括Shuts Down或Crashes</p>
-<p>**副本（Replica）： **为更好的做 负载均衡，Kafka 尽量将所有的 Partition均匀分配到整个集群上。<br><strong>部署方式：</strong>一个 Topic 的Partition数量大于Broker的数量，为提高Kafka的容错能力，需要将同一个 Partition的 Replica尽量分散到不同的机器。实际上，如果所有的 Replica 都在同一个Broker上，那一旦该 Broker宕机，该 Partition的所有 Replica都无法工作，也就达不到 备份的效果。<br>同时，如果某个Broker宕机，需要保证它上面的负载可以被 均匀的分配到其它幸存的所有Broker上。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutudyfq29j60zi0pwgpd02.jpg" alt="8A414154-00B7-4EAB-8025-D0CFAEC15B43" width="650" height="350" />
+<p><strong>事务一致性，分布式事务：</strong>把下单，优惠券，积分 都放在 一个事务里面，要成功一起成功，要失败一起失败</p>
+<p><strong>可用性：</strong>重试机制，下游的业务发生异常，会抛出异常并且要求重新发一次</p>
+<p><strong>接口幂等：</strong><br>分场景去考虑，强校验、弱校验，如跟金钱相关场景就做强校验。<br><strong>强校验：</strong>多个操作放在一个事务里，成功一起成功，失败一起失败。 每次消息过来都根据订单号+业务场景 唯一标识去流水表查，确认有没有这条流水，有就直接return； 没有则执行后面逻辑 。<br><strong>弱校验：</strong>一些不重要的场景，把 <strong>id+场景唯一标识</strong> 作为Redis的key，放到缓存里面（失效时间看场景），一定时间内的这个消息就去 Redis判断。</p>
+<h4 id="消息不丢失："><a href="#消息不丢失：" class="headerlink" title="消息不丢失："></a>消息不丢失：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guttv4xvkaj60wa06m0tb02.jpg" alt="F82785B0-FC0E-4896-9ABD-8DACC736A73E" width="750" height="200"  />
 
 
 
-<h4 id="持久化："><a href="#持久化：" class="headerlink" title="持久化："></a>持久化：</h4><p>Kafka是将 partition数据写在 磁盘(记录消息日志)，是 <strong>追加写入，避免随机 I&#x2F;O 操作，寻址磁盘效率低</strong>。<br>持久化时，partition会先缓存一部分, 放在page cache中，等到 足够多数据量&#x2F;等待一定的时间 再批量写入(flush)。<br>消费者实际上也是从partition中取数据。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuedmg33j61a80nctcs02.jpg" alt="D6797C5D-56AF-4A43-8706-004AEBEE0D7F" width="750" height="400"  />
+<p><strong>生产消息：</strong>生产者发送消息至 Broker，需要处理 Broker的响应 ack，如果 Broker返回写入失败，需要重试发送，当多次发送失败，需要作报警，日志记录等。<br><strong>存储消息：</strong>存储消息阶段需要在 消息刷盘之后再给生产者响应，假设消息写入缓存中就返回响应，那么机器突然断电这消息就没了，而生产者以为已经发送成功了。如果Broker是集群部署，有多副本机制，即消息不仅要写入当前Broker,还需要 写入副本机中。那配置成至少写入两台机子后再给生产者响应。这样就能保证存储的可靠了。<br><strong>消费消息：</strong> 消费者执行完业务逻辑之后，再发送给 Broker消费成功ack </p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>1.生产者 需要处理好 Broker的响应，出错情况下利用 重试、报警等手段。<br>2.Broker 需要控制响应的时机，单机：消息刷盘后返回响应； 集群多副本：发送至两个副本及以上后再返回响应<br>3.消费者需要在 执行完真正的业务逻辑之后再返回响应给Broker。<br>但要注意 消息可靠性增强，性能就下降了，等待消息刷盘，多副本同步后返回都会影响性能。<br>例如日志的传输可能丢那么一两条关系不大，因此没必要等消息刷盘再响应。</p>
+<h4 id="处理重复消息："><a href="#处理重复消息：" class="headerlink" title="处理重复消息："></a>处理重复消息：</h4><p>收到消息后 Broker已经写入，当时响应由于网络原因，生产者没有收到，然后生产者又重发一次，此时消息就重复了<br>解决消息重复关键点就是 幂等：在业务上处理重复消息所带来的影响。</p>
+<h4 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a><strong>解决方法：</strong></h4><p>1.记录关键key，比如订单ID，假如有重复消息过来，先判断这个ID是否已经被处理过（也可以用全局唯一ID）<br>2.数据库的约束，唯一键</p>
+<h4 id="有序性："><a href="#有序性：" class="headerlink" title="有序性："></a>有序性：</h4><p>保证消息有序性：全局有序，部分有序； 消费方都不要开启并行消费</p>
+<h4 id="全局有序："><a href="#全局有序：" class="headerlink" title="全局有序："></a><strong>全局有序：</strong></h4><p>一个生产者，一个队列分区，一个消费者<br>保证消息的全局有序，只能由一个生产者往Topic发送消息，并且一个Topic内部只能有一个队列（分区），消费者也必须是单线程消费这个队列。这样才能全局有序！ 不过一般情况下不需要全局有序，参照局部有序的方式，生产者通过指定 partKey的方式将消息发送到某一个集群的某一个 partition，以实现消息的全局有序。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttwa4u5xj60wi06egmq02.jpg" alt="78CA15D1-1381-498F-B6F9-0344B8D48EFD" width="650" height="150"  />
 
 
 
-<p>生产者,消费者 都是可以有多个的，多个消费者可以组成一个消费者组，如果一个消费者消费三个分区，有消费者组就可以 每个消费者去消费一个分区，消费者组中各个消费者并发消费，以此来提高吞吐量。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuepadv8j618a0isdis02.jpg" alt="899EF880-3E09-42EF-9A2A-7599E1DB5DB9" width="750" height="350"  />
+<h4 id="部分有序："><a href="#部分有序：" class="headerlink" title="部分有序："></a>部分有序：</h4><p>将 Topic 内部划分成需要的队列数，把消息通过特定的策略 发往固定的队列中，然后 每个队列对应一个单线程处理的消费者。这样即完成部分有序的需求，又可以通过 队列数量的并发 来提高消息处理效率。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttwpnz18j60wq0didin02.jpg" alt="D791CD54-35B3-49DC-9395-7149BC0DC727" width="650" height="200"  />
 
-<p>​        如果消费者组中的某个消费者挂了，那么其中有一个消费者就要消费两个 partition；如果只有三个partition，而消费者组有4个消费者，那么一个消费者会空闲。消费者组之间从逻辑上是独立的，如果多加入一个消费者组，无论是新增的消费者组还是原本的消费者组，都能消费topic的全部数据；<br>​        生产者往 topic里丢数据是存在partition上，而 partition持久化到磁盘是 IO顺序访问，并且是先写缓存，隔一段时间或者数据量足够大的时候才批量写入磁盘的。正常的读磁盘数据是需要将 内核态数据拷贝到用户态的，Kafka通过零拷贝方式，直接从内核空间（DMA）到内核空间-Socket buffer，少做了一半拷贝操作。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg" alt="E20EAB06-EA82-4014-AA89-8ECFADAE9169" width="750" height="350"  />
-
-<p>​        offset 表示消费者的消费进度，每个消费者都有自己的 offset; 每次消费者消费的时候，都会提交这个offset<br>一个消费者组中的某个消费者挂了，但其所在分区可能有存活的消费者，存活的消费者继续去消费，但需要知道挂掉的消费者具体消费到了哪里，这里就需要offset</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg" alt="3489FA28-B499-43B6-B4E8-D3C1CD8216FB" width="750" height="400"  />
-
-<p><strong>Kafka 利用二分法来查找对应 offset 的消息位置：</strong></p>
-<ol>
-<li><p>按照二分法找到小于 offset的 segment 的.log 和.index</p>
-</li>
-<li><p>用目标 offset 减去文件名中的 offset得到消息在这个 segment 中的偏移量</p>
-</li>
-<li><p>再次用二分法在 index 文件中找到对应的索引</p>
-</li>
-<li><p>到 log 文件中，顺序查找，直到找到 offset 对应的消息</p>
-</li>
-</ol>
-<p><strong>Kafka是分布式：</strong>往一个 topic丢数据实际上就是 往多个 broker的 partition存储数据，将 partition以消息日志的方式存储起来，通过 顺序访问IO和缓存(等到一定的量或时间) 才真正把数据写到磁盘上，以此来做持久化。<br>单个 partition写入是有顺序的，要保证全局有序 只能写入一个partition； 要消费有序则消费者也只能有一个<br>分布式无法避免 网络抖动&#x2F;机器宕机 等问题的发生，很有可能 消费者A读取数据，还没来得及消费就挂了。<br>Zookeeper 发现消费者A挂了，让消费者B 去消费原本A的分区，等消费者A重连的时候，发现已经重复消费同一条数据了(或消费者超时等等都有可能…)<br>如果 业务上 不允许重复消费，最好 消费者那端做业务上的校验（如果已经消费过就不消费了）</p>
-<h4 id="Kafka-和-其他消息队列的区别？"><a href="#Kafka-和-其他消息队列的区别？" class="headerlink" title="Kafka 和 其他消息队列的区别？"></a>Kafka 和 其他消息队列的区别？</h4><p>  Kafka设计目标：高吞吐量</p>
-<p>1、Kafka操作 序列文件 I &#x2F; O（序列文件 按顺序写，按顺序读），为保证顺序，强制点对点的按顺序传递消息，一个 consumer在分区 中只有一个位置。<br>2、Kafka 不保存消息状态（消息是否被“消费”）一般消息系统需保存消息的状态，并且还需要以随机访问的形式更新消息的状态。<br>而Kafka 保存Consumer在 Topic分区中的位置 offset，offset之前的消息是已“消费”的， offset之后为“未消费”的，offset 可以任意移动，以此消除随机IO。<br>3、Kafka支持 点对点的 批量消息传递<br>4、Kafka 消息存储在 page cache（大小为一页4K ）用于缓存文件的逻辑内容，从而加快对磁盘上映像和数据的访问</p>
-<h4 id="如何保证不丢失消息？"><a href="#如何保证不丢失消息？" class="headerlink" title="如何保证不丢失消息？"></a>如何保证不丢失消息？</h4><p><strong>生产者 ACK机制：</strong><br>Kafka 采用至少一次保证消息不会丢，但可能会重复传输；acks 的默认值即为1，代表消息被 leader 接收之后才算成功发送，可以配置 acks &#x3D; all 代表所有副本都接收到该消息之后，才算真正成功发送。</p>
-<p><strong>设置分区：</strong><br>为保证 leader 可以根据follower 同步消息，一般会为 topic设置 replication.factor &gt;&#x3D; 3；这样就可以保证每个分区(partition) 至少有 3个副本，以确保消息队列的安全性；单机情况下，通过持久化到磁盘来保证消息不丢失 。</p>
-<p><strong>发送消息：</strong><br>Kafka 支持在生产者一侧进行 本地 buffer，累积一定条数才发送，如果这里设置不当会丢消息的。<br>生产者端设置：producer.type&#x3D;async, 默认是 sync；当设置为 async，会大幅提升性能，因为生产者会在本地缓冲消息，并适时批量发送； 如果对可靠性要求高，设置为 sync 同步发送  ；一般需要设置：min.insync.replicas&gt; 1 ，消息至少要被 写入到这么多 follower 才算成功，也是提升数据持久性的一个参数，与acks配合使用。但如果出现两者相等，还需要设置 replication.factor &#x3D; min.insync.replicas + 1 ，避免一个副本挂掉，整个分区无法工作的情况！</p>
-<p><strong>消费者端：</strong><br>消息处理完成前提交offset，可能造成数据的丢失， Consumer默认自动提交 offset(位移)，在后台提交位移前一定要保证消息被正常处理。 如果处理耗时很长，建议把逻辑放到另一个线程中去做，异步提交ack 会提高消费者的响应速度，但容易造成消息丢失。为避免消息丢失，设置 enable.auto.commit&#x3D;false，关闭自动提交位移，在消息被完整处理之后再手动提交位移。</p>
-]]></content>
+<p>使用Hash取模法，让同一个订单发送到同一个队列中，同一个订单多步操作同步进行；顺序消费由消费者业务保证!!!</p>
+<h4 id="处理消息堆积："><a href="#处理消息堆积：" class="headerlink" title="处理消息堆积："></a>处理消息堆积：</h4><p>1.生产者的生产速度与 消费者的消费速度不匹配<br>2.消息 消费失败反复重试<br>3.消费者 消费能力弱，时间长消息积压<br>本身消费能力较弱，优化消费逻辑，尝试批量消费，<br>逻辑已优化了但还是慢，考虑水平扩容，增加Topic的队列数和消费者数量， 队列数一定增加，不然新增加消费者是没东西消费的。<br>一个 Topic中一个队列只会分配给一个消费者。</p>
+<h4 id="实现MQ的有两种主流方式：JMS，AMQP"><a href="#实现MQ的有两种主流方式：JMS，AMQP" class="headerlink" title="实现MQ的有两种主流方式：JMS，AMQP"></a>实现MQ的有两种主流方式：JMS，AMQP</h4><p><strong>两者间的区别和联系：</strong><br>1.JMS 定义了统一的接口，来对消息操作进行统一； AMQP 通过规定协议来统一数据交互的格式<br>2.JMS限定了必须使用 Java语言； AMQP只是协议，不规定实现方式，因此是跨语言的。<br>3.JMS规定了两种消息模型；而 AMQP的消息模型更加丰富</p>
+<p>MQ： 消息队列<br>AMQP： 协议： 实现方式：任何语言<br>JMS： jdk标准 java 只支持两种数据模型，rocketMQ， activeMQ<br>常见MQ产品：</p>
+<p>ActiveMQ：基于JMS<br>RabbitMQ：基于AMQP协议，erlang语言开发，稳定性好<br>RocketMQ：基于JMS，阿里巴巴产品，目前交由Apache基金会<br>Kafka：分布式消息系统，高吞吐量</p>
+<h4 id="Kafka、ActiveMQ、RabbitMQ、RocketMQ-区别："><a href="#Kafka、ActiveMQ、RabbitMQ、RocketMQ-区别：" class="headerlink" title="Kafka、ActiveMQ、RabbitMQ、RocketMQ 区别："></a>Kafka、ActiveMQ、RabbitMQ、RocketMQ 区别：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gutty6zparj61eg0te44v02.jpg" alt="image-20210926104005380" width="850" height="540" />]]></content>
       <categories>
         <category>后端</category>
         <category>消息队列</category>
       </categories>
       <tags>
         <tag>消息队列</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>段/页式存储</title>
-    <url>/TurboCome/2022/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%AD%98%E5%82%A8/</url>
-    <content><![CDATA[<h1 id="段-x2F-页式存储"><a href="#段-x2F-页式存储" class="headerlink" title="段&#x2F;页式存储"></a>段&#x2F;页式存储</h1><h3 id="背景："><a href="#背景：" class="headerlink" title="背景："></a>背景：</h3><p>​    在多进程环境下，为使进程之间的内存地址不受影响，相互隔离，操作系统为 每个进程独立分配一套 虚拟地址空间，每个程序只关心自己的虚拟地址，多进程通过 虚拟地址 映射到不同的物理地址内存。</p>
-<p>​    作为程序，也不用关心物理地址的事情。每个进程都有自己的虚拟空间，而物理内存只有一个；当启用大量的进程，物理内存必然会很紧张，于是操作系统会通过 内存交换技术，把不常使用的内存暂时存放到硬盘 （换出），在需要时再装载回物理内存（换入）。</p>
-<p>​    有了虚拟地址空间，必然要把 虚拟地址「映射」到 物理地址，这个事情通常由操作系统来维护，对于虚拟地址与物理地址的映射关系，可以有 分段，分页，段页的方式。访问虚拟地址时，由操作系统转换成不同的 物理地址，这样不同进程运行的时候，写入不同的物理地址，就不会冲突。</p>
-<p>程序所使用的内存地址： <strong>虚拟内存地址</strong><br>实际存硬件里面的空间地址：<strong>物理内存地址</strong></p>
-<h3 id="内存分段（Segmentation）"><a href="#内存分段（Segmentation）" class="headerlink" title="内存分段（Segmentation）"></a>内存分段（Segmentation）</h3><p>​    程序由若干个逻辑分段组成： 代码分段、数据分段、栈段、堆段；不同段 有不同的属性，用分段形式把这些段分离出来。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0omkxpj612e0rwjt702.jpg" alt="F3F67004-8E73-43E9-9085-55FD89A5D40D" width="750" height="500"/>
-
-<h3 id="内存分段-寻址方式"><a href="#内存分段-寻址方式" class="headerlink" title="内存分段-寻址方式"></a>内存分段-寻址方式</h3><p><strong>段选择因子：</strong>保存在段寄存器里；</p>
-<p><strong>段号：</strong>段表的索引，段表里面保存 段的基地址、段的界限和 特权等级等；</p>
-<p><strong>段内偏移量：</strong>位于（0~段界限）；  </p>
-<p>物理内存地址 &#x3D; 段基地址 + 段内偏移量； 虚拟地址：通过 段表与 物理地址映射，分段机制把程序的虚拟地址分成 4 个段，每个段在 段表中有一个项，在这一项找到段的基地址，再加上偏移量，就能找到物理内存中的地址。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0m9lzqj60tb0i376302.jpg" alt="255BA9F7-C651-478C-AC47-73750F6D3619" width="600" height="350" />
-
-
-
-<h3 id="段式存储问题：-1-内存碎片；2-内存交换的效率低"><a href="#段式存储问题：-1-内存碎片；2-内存交换的效率低" class="headerlink" title="段式存储问题： 1.内存碎片；2.内存交换的效率低"></a><strong>段式存储问题：</strong> 1.内存碎片；2.内存交换的效率低</h3><h4 id="1-内存锁片："><a href="#1-内存锁片：" class="headerlink" title="1.内存锁片："></a>1.内存锁片：</h4><p><strong>外部内存碎片：</strong>在物理内存中产生多个 不连续的小物理内存，导致 新的程序无法被装载；<br><strong>内部内存碎片：</strong>程序所有的内存都被装载到物理内存，但程序 有部分的内存 可能并不是很常使用，这也会导致内存的浪费；</p>
-<p><strong>内存交换：</strong>解决–外部内存碎片问题<br>        把一个程序占用的 256MB 内存写到硬盘上，然后再从硬盘上读回来到内存里。不过再读回时，不装载回原来位置，而是紧紧跟在已经被占用的 512MB 内存后面。这样就 就使得空间利用连续，避免内存碎片产生。</p>
-<h4 id="2-内存交换的效率低："><a href="#2-内存交换的效率低：" class="headerlink" title="2.内存交换的效率低："></a>2.内存交换的效率低：</h4><p>​        内存交换空间在 Linux 系统里就是 Swap 空间，这块 空间是从硬盘划分出来，用于内存与硬盘的空间交换<br>对于多进程系统，内存碎片很容易产生，需要经常进行 内存交换操作，但Swap空间是硬盘，有性能瓶颈；硬盘访问速度比内存慢很多，每次内存交换都需要把 一大段连续的内存数据写到硬盘上。如果内存交换时，交换占内存空间很大的程序，整个机器都会卡顿。</p>
-<h3 id="内存分页："><a href="#内存分页：" class="headerlink" title="内存分页："></a><strong>内存分页：</strong></h3><p>解决 内存碎片，内存交换效率低；把整个 虚拟，物理内存空间切成一段段 固定尺寸的大小-页（Page）：一个连续并尺寸固定的内存空间，Linux 一页大小 4KB。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0jfow0j60tn0m575h02.jpg" alt="5724EB13-9A0A-4AA4-9C44-043EA8D0D3D0" width="600" height="450" />
-
-<p>虚拟地址分为： 页号，页内偏移<br><strong>页号：</strong> 页表的索引，页表包含 物理页每页所在 物理内存的基地址，物理内存地址 &#x3D;  基地址 与 页内偏移的组合<br>内存分页寻址过程：<br>1.把虚拟内存地址，切分成 页号，偏移量<br>2.根据页号，从 页表里查询对应的物理页号<br>3.直接拿 物理页号 + 偏移量，得到 物理内存地址</p>
-<p>**内存空间： **预先划分好，不像分段那样产生 间隙非常小的内存，这正是分段会产生内存碎片的原因。释放的内存都是以页为单位释放的，也不会产生无法给进程使用的小内存。<br>**页表： **存储在 CPU 内存管理单元 （MMU） 中；  CPU 可以直接 通过 MMU 找出实际要访问的 物理内存地址。<br>当 进程访问的虚拟地址在页表中查不到时，系统会产生：缺页异常<br><strong>解决：</strong> 进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0h4ljqj61320nt76302.jpg" alt="C547F405-C521-41CA-AA71-DD30DC86D94F" width="650" height="350" />
-
-<p>​    如果内存空间不够，操作系统会把 其他正在运行的进程中的「最近没被使用LRU」的 内存页面换出（Swap Out）， 暂时写在硬盘上；需要时再加载进来，称为换入（Swap In）。一次性写入磁盘只有少数一个页或几个页，不会花太多时间，内存交换效率相对比较高。<br>​    分页方式在加载程序时，不需要一次性把程序加载到物理内存中。在虚拟内存 和物理内存的页映射之后，并不真的把页加载到物理内存里，而 只有在 程序运行中，需要用到对应虚拟内存页里面的 指令和数据时，再加载到 物理内存里面去。</p>
-<h3 id="页式存储空间上的缺陷："><a href="#页式存储空间上的缺陷：" class="headerlink" title="页式存储空间上的缺陷："></a>页式存储空间上的缺陷：</h3><p>操作系统可以同时运行非常多的进程，意味着页表会非常的庞大。在 32 位的环境下，虚拟地址空间共有 4GB，一个页大小 4KB，就需要大约 100 万 （2^20） 个页，每个「页表项」需要 4 个字节大小来存储，整个 4GB 空间的映射就需要有 4MB 内存来存储页表。每个进程都是有自己的虚拟地址空间，如果有 100 个进程的话，就需要 400MB 内存来存储页表，这是非常大的内存，而 64 位环境则会更大。</p>
-<p><strong>多级页表  解决：</strong>多进程页表占用空间过大问题<br>使用 二级分页，一级页表 就可以覆盖整个 4GB 虚拟地址空间，但如果某个一级页表的页表项没有被用到，也就不需要创建这个页表项对应的二级页表，即可以在需要时才创建二级页表。例如：假设只有 20% 一级页表项被用到，那么页表占用内存空间就只有  4KB（一级页表）+  20% * 4 MB（二级页表）&#x3D; 0.804MB</p>
-<h3 id="局部性原理"><a href="#局部性原理" class="headerlink" title="局部性原理"></a>局部性原理</h3><p>​    每个进程有 4GB 虚拟地址空间，对于大多数程序来说，其使用的空间远未达到4GB，因为会有部分对应的页表项都是空的，没有分配，对于已分配的页表项，如果是最近一段时间未访问的页表，在物理内存紧张的情况下，操作系统会将页面换出到硬盘，不会占用物理内存。</p>
-<h4 id="程序的局部性"><a href="#程序的局部性" class="headerlink" title="程序的局部性"></a><strong>程序的局部性</strong></h4><p>​    把常访问的 几个页表项存储到访问速度更快的硬件，在 CPU 芯片中加入一个专门存放 程序最常访问的 页表项的 Cache，这个 Cache 就是 TLB（Translation Lookaside Buffer） ，通常称为：页表缓存、转址旁路缓存、快表等。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0ern33j60s00e53zb02.jpg" alt="F2665293-6C21-4F33-8C0D-16EA3F0A15E9" width="600" height="300" />
-
-<h4 id="地址转换："><a href="#地址转换：" class="headerlink" title="地址转换："></a>地址转换：</h4><p>在 CPU 芯片里封装了 内存管理单元（Memory Management Unit）芯片，它用来完成 地址转换和 TLB 的访问与交互。CPU 在寻址时，会先查 TLB，如果没找到，才继续查常规的页表。TLB 命中率其实是很高的，因为程序最常访问的页就那几个 。</p>
-<h4 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h4><p>内存分段和内存分页并不是对立的，它们可以组合起来在同一个系统中使用，组合后称为：段页式内存管理<br><strong>段页式内存管理：</strong><br>1.先将程序划分为 多个有逻辑意义的段<br>2.再把 每个段划分为 多个页，对分段划分出来的连续空间，再划分 固定大小的页<br>这样地址结构就由 段号、段内页号，页内位移 三部分组成。用于 段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址 是 页表的起始地址，而 页表中的地址是 某页的物理页号 </p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gurk0blh3cj614c0jfac602.jpg" alt="431DF29B-F743-4129-B9C7-377E6C0D1DE8" width="600" height="300" />
-
-<h3 id="段页式地址–-gt-物理地址过程："><a href="#段页式地址–-gt-物理地址过程：" class="headerlink" title="段页式地址–&gt;物理地址过程："></a><strong>段页式地址–&gt;物理地址过程：</strong></h3><p>1.访问段表，得到页表起始地址<br>2.访问页表，得到物理页号<br>3.将物理页号 + 页内位移 组合，得到物理地址</p>
-<p>Linux 虚拟地址和物理地址映射方式：<br>Linux 系统中，每个段都是从 0 地址开始的整个 4GB 虚拟空间（32 位），所有段的起始地址都是一样的。Linux 系统中的代码，包括操作系统本身的代码和 应用程序代码，所面对的 地址空间都是线性地址空间（虚拟地址），相当于屏蔽处理器中的 逻辑地址概念，段只被用于 访问控制和内存保护。<br>Linux 本身采用的实际是段式和页式都有，但不叫段页式； linux的段和页式顺序的两个过程，只不过 段式相当于啥也不干，目的是为了保证兼容性，所以 Linux内存管理的方式实际上相当于 只有页式管理，但查询过程 经过一层段式查询。</p>
-<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p><strong>内存分段：</strong><br>根据程序逻辑角度，分成 栈段、堆段、数据段、代码段 等，分离出不同属性的段，同时是一块连续的空间。<br>每个段的 大小都不是统一的，这会导致 内存碎片，内存交换效率低 的问题。<br>于是出现：内存分页<br>把 虚拟空间和 物理空间分成 大小固定的页，在 Linux 系统中每一页大小为 4KB。<br>1.分页后就不会 产生细小的内存碎片。<br>2.在内存交换时，写入硬盘是 一个页或几个页，提高内存交换的效率。<br>多级页表：为解决 简单分页产生页表过大 问题，但会导致 CPU 在寻址过程中，需要 有很多层表参与，加大时间上的开销。<br>根据程序局部性原理，在 CPU 芯片中加入了 Cache 就是TLB（Translation Lookaside Buffer），负责 缓存最近常被访问的页表项，来提高 地址的转换速度。<br>Linux 系统主要采用 分页管理，但由于 Intel 处理器的发展史，Linux 系统无法避免 分段管理。于是 Linux 把所有 段的基地址设为 0，所有程序的地址空间都是 线性地址空间（虚拟地址），相当于屏蔽了 CPU 逻辑地址的概念，所以段只被用于访问控制和内存保护。<br>另外，Linxu 系统中 虚拟空间分布可分为用户态和内核态两部分，用户态：代码段、全局变量、BSS、函数栈、堆内存、映射区。</p>
-<p>参考：</p>
-<p>Linux 段页存储：  <a href="https://blog.csdn.net/jinking01/article/details/107098437">https://blog.csdn.net/jinking01/article/details/107098437</a></p>
-<h2 id=""><a href="#" class="headerlink" title=""></a></h2>]]></content>
-      <categories>
-        <category>后端</category>
-        <category>操作系统</category>
-      </categories>
-      <tags>
-        <tag>操作系统</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>计算机网络概述</title>
-    <url>/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</url>
-    <content><![CDATA[<h2 id="计算机网络概述："><a href="#计算机网络概述：" class="headerlink" title="计算机网络概述："></a>计算机网络概述：</h2><p>网络是把主机连接起来，互连网（internet）是把多种不同的网络连接起来。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvo14kvhj60pe0gkjsy02.jpg" width="350" height="200"  />
-
-<h4 id="主机之间的通信方式"><a href="#主机之间的通信方式" class="headerlink" title="主机之间的通信方式"></a>主机之间的通信方式</h4><p>1.客户-服务器(C&#x2F;S)：客户是服务的请求方，服务器是服务的提供方</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvoxas2uj60ds0b0aa502.jpg" alt="103AEF76-2D90-48D2-8F3F-48F45A280D2D" width="250" height="150"  />
-
-<p>2.对等(P2P):  不区分客户和服务器</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvptl5y4j60d20b0dg002.jpg" alt="240FE4DC-14A2-49AB-8C9F-8F0105C7BF4B" width="250" height="150"  />
-
-<h4 id="分组交换"><a href="#分组交换" class="headerlink" title="分组交换"></a>分组交换</h4><p>每台计算机通信时把数据包进行分组打包，只要在 头部附上本机的信息和组号 就可以多台计算机共用一条通信线路，这样就提高了通信线路的利用率。分组交换过程中发送端计算机发送给路由器，路由器会缓存这部分数据然后再转发给目标计算机。路由器不一定按照队列先进先出然后再发出去，也有可能优先发出一些特殊的数据。<br>每个分组都有首部和尾部，包含源地址和目的地址等控制信息，在同一个传输线路上同时传输多个分组互不影响，因此在同一条传输线路上允许同时传输多个分组，也就是说分组交换不需要占用传输线路。</p>
-<p>网络传输时延：</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvqjh6ovj60l407gjro02.jpg" alt="9DDA2E4C-67B6-42EC-911E-35C0355914AC" width="650" height="200"  />
-
-<p>总时延  &#x3D;  排队时延 +  处理时延 +  传输时延 +  传播时延</p>
-<ol>
-<li>排队时延：分组在路由器的输入队列和输出队列中排队等待的时间，取决于网络当前的通信量。</li>
-<li>处理时延：主机或路由器收到分组时进行处理所需要的时间；例如分析首部、从分组中提取数据、进行差错检验或查找适当的路由等。</li>
-<li>传输时延：主机或路由器传输数据帧所需要的时间。</li>
-</ol>
-<p>4.传播时延：电磁波在信道中传播所需要花费的时间，电磁波传播的速度接近光速。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvqsrrjjj60gl06rdh002.jpg" alt="FFE6973C-138C-48DB-90FC-3C6794A1DB0D" width="650" height="300"  />
-
- 
-
-<h4 id="七层协议："><a href="#七层协议：" class="headerlink" title="七层协议："></a>七层协议：</h4><ul>
-<li>应用层 ：为特定 应用程序提供数据传输服务；例如 HTTP、DNS 等协议。数据单位：报文</li>
-<li>表示层 ：数据压缩、加密以及数据描述，使应用程序不必关心在各台主机中数据内部格式不同的问题。</li>
-<li>会话层 ：建立及管理会话。</li>
-<li>传输层 ：为进程提供通用数据传输服务。应用层协议很多，定义通用的传输层协议可以支持不断增多的应用层协议。<br>传输层包括：TCP，UDP</li>
-<li>网络层 ：为主机提供数据传输服务。传输层协议是为主机中的进程提供数据传输服务。网络层把传输层传递下来的报文段或用户数据报封装成分组。</li>
-<li>数据链路层 ：网络层针对的还是主机之间的数据传输服务，而主机之间可以有很多链路，链路层协议就是为同一链路的主机提供数据传输服务。数据链路层把网络层传下来的分组封装成帧。</li>
-<li>物理层 ：在传输媒体上传输数据比特流，而不是指具体的传输媒体。物理层的作用是尽可能屏蔽传输媒体和通信手段的差异，使数据链路层感觉不到这些差异。</li>
-</ul>
-<p><strong>协议的层次、模型：</strong></p>
-<p>OSI 七层模型：<br>应用层： 允许有访问OSI 环境的手段，HTTP，FTP,DNS, SMTP, Telnet<br>表示层： 对数据进行翻译，加密、压缩  JPEG，MPEG<br>会话层： 建立，管理和终止会话 SQL， RPC<br>传输层： 提供不同端系统的进程间通信 TCP，UDP<br>网络层： 提供主机间的通信， IP， ICMP， ARP，<br>数据链路层： 提供网络中点到点之间数据帧的传递PPP，MAC（网桥，交换机）<br>物理层： 提供在物理介质上每一比特的传输 CLOCK， IEEE802.3（中继器，集线器，网关）</p>
-<p>Internet 五层模型：<br>应用层：   将应用程序的 报文交给传输层<br>传输层：  将接收的报文分段，封装TCP&#x2F;UDP头部信息，将报文段传递给网络层<br>网络层：  将接收的报文段封装 IP头部信息，将数据报交给数据链路层<br>数据链路层： 将接收网络层的数据报，封装数据帧头部信息，将数据帧从一个节点通过链路传到另一个节点<br>物理层： 数据链路层负责将一个个数据帧从一点传递到另一点，物理层负责一个个比特从一点传递到另一点</p>
-<h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>HTTP、DNS 、FTP等协议</p>
-<h5 id="传输层：-两种协议"><a href="#传输层：-两种协议" class="headerlink" title="传输层： 两种协议"></a>传输层： 两种协议</h5><p>传输控制协议 TCP，提供面向连接、可靠的数据传输服务，数据单位为报文段；<br>用户数据报协议 UDP，提供无连接、尽最大努力的数据传输服务，数据单位为用户数据报。TCP 主要提供完整性服务，UDP 主要提供及时性服务。</p>
-<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>IP 协议：根据路由表实现IP数据报的路由转发</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvrggomrj60zs0k2dj302.jpg" alt="F9F897CF-D0C9-4F9A-A010-3985E6274581" width="680" height="350" />
-
-<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>信道分类： </p>
-<ol>
-<li>广播信道： 一对多通信，一个节点发送的数据能够被广播信道上所有的节点接收到。所有的节点都在同一个广播信道上发送数据，因此需要有专门的控制方法进行协调，避免发生冲突（冲突也叫碰撞）。主要有两种控制方法进行协调，一个是使用信道复用技术，一是使用 CSMA&#x2F;CD 协议。</li>
-<li>点对点信道： 一对一通信： 因为不会发生碰撞，因此也比较简单，使用 PPP 协议进行控制。</li>
-</ol>
-<p>信道复用技术： 频分复用；时分复用；统计时分复用；波分复用；码分复用</p>
-<p>MAC 地址：<br>链路层地址，长度为 6 字节（48 位），用于唯一标识网络适配器（网卡）。一台主机拥有多少个网络适配器就有多少个 MAC 地址。例如笔记本电脑普遍存在无线网络适配器和有线网络适配器，因此就有两个 MAC 地址。</p>
-<p>交换机：<br>有自学习能力，学习的是交换表的内容，交换表中存储着 MAC 地址到接口的映射。正是由于这种自学习能力，因此交换机是一种即插即用设备，不需要网络管理员手动配置交换表内容。</p>
-<p>地址解析协议 ARP<br>网络层实现主机之间的通信，而链路层实现具体每段链路之间的通信。因此在通信过程中，IP 数据报的源地址和目的地址始终不变，而 MAC 地址随着链路的改变而改变。<br>ARP 实现由 IP 地址得到 MAC 地址。</p>
-<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>根据信息在传输线上的传送方向，分为以下三种通信方式：<br>单工通信：单向传输；<br>半双工通信：双向交替传输；<br>全双工通信：双向同时传输</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-        <category>网络</category>
-      </categories>
-      <tags>
-        <tag>网络</tag>
       </tags>
   </entry>
   <entry>
@@ -1659,6 +1572,143 @@
       </tags>
   </entry>
   <entry>
+    <title>Kafka-基础</title>
+    <url>/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<h2 id="2-Kafka-消息队列-基础"><a href="#2-Kafka-消息队列-基础" class="headerlink" title="2.Kafka 消息队列-基础"></a>2.Kafka 消息队列-基础</h2><p>参考：Kafka总结–<a href="https://my.oschina.net/u/4377703/blog/4325442">https://my.oschina.net/u/4377703/blog/4325442</a></p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutub7mu9rj60us0nedha02.jpg" alt="64632972-37CD-4F85-BB74-47C31F5ECF35" width="550" height="350"  />
+
+
+
+<p>在Kafka 消息队列中，队列的名字叫 topic;  多个生产者往同一个队列 topic丢数据，多个消费者往同一个队列(topic)拿数据，为提高一个队列( topic)吞吐量，Kafka把topic进行分区 Partition，生产者往一个发布订阅的topic分区 Partition丢数据，消费者从分区(Partition)中取数据。  </p>
+<p>每个 topic下，可能有多个 partition分区:</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutubka7shj60y60c8tal02.jpg" alt="BCA7225F-6CD7-4997-B720-8C0E97C18FF6" width="650" height="300"  />
+
+<p>Topic 可以有多个分区，分区是最小的读取和存储结构， Consumer 是从Topic下的某个分区获得消息，Producer发送消息也是如此，<strong>数据发往哪个partition呢？</strong></p>
+<ol>
+<li>写入的时候可以指定 partition，如果有指定，则写入对应的 partition</li>
+<li>没有指定partition，但设置了数据key，则会根据key的值 hash出一个partition</li>
+<li>没有指定 partition ，也没有指定 key ， 会随机选择一个分区，并尽可能一直使用该分区，待该分区的 batch已满或过了间隔时间，再随机一个分区进行使用</li>
+</ol>
+<p>一台 Kafka服务器叫做 Broker，集群就是多台 Kafka服务器；一个 topic会分为多个partition，实际上 partition 会分布在不同的broker中，实现多机均匀负载。<br>例子：<br>往 topic里边存数据，这些数据会分到不同 partition上，这些 partition存在不同的broker上。<br>如果其中一台 broker挂了，会丢失其中 partition上的数据；但 kafka把这些 partition都做了备份。<br>如：现有三个partition，分别存在三台broker上，每个partition都会备份，这些备份散落在不同的broker上</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuc5g0cjj619c0oydjc02.jpg" alt="BE9B9937-1DC3-4DE6-ABFA-662EFD27312E" width="650" height="300"  />
+
+<p><strong>红色块的 partition代表的是主分区，紫色的 partition块代表的是备份分区</strong>。<br>生产者，消费者都是与主分区交互；<br>备份分区仅用作于备份不做读写，如果某个Broker挂了，就会选举出其他 Broker的 partition来作为主分区，实现高可用每一个 Partition 其实都是一个文件，收到消息后 Kafka会把数据插入到文件末尾（虚框部分）<br><strong>缺点：</strong>没办法删除数据，所以 Kafka 是不会删除数据的，它会把所有的数据都保留下来，每个消费者对每个 Topic都有一个 offset 用来表示读取到了第几条数据， offset 是由对应的消费者维护，会保存到 Zookeeper 里面。</p>
+<p>为避免磁盘被撑满，Kakfa 提供两种策略来删除数据：<br><strong>1.「基于时间」 （默认七天）；        2.「基于 Partition 文件大小」</strong></p>
+<p>​                                       <img src="https://tva1.sinaimg.cn/large/008i3skNly1gutud52gfgj60iu09waac02.jpg" alt="4235AE89-DA4A-43E7-8143-536C5A97C641" width="450" height="300" /></p>
+<p>消息发往一个主题下的某个分区中，例如：某个主题下有 5 个队列，那么这个主题并发度就提高为 5 ，同时可以有 5 个消费者并行消费该主题的消息。<br>消费者都是属于某个消费组的，一条消息会发往多个订阅这个主题的消费组<br>如：两个消费组分别是Group 1 和 Group 2，它们都订阅 Topic-a，此时有一条消息发往 Topic-a，那么这两个消费组都能接收到这条消息。</p>
+<p>这条消息实际是 写入Topic中的某个分区，消费组中的某个消费者对应消费一个 Topic 的某个分区。每个消费组会有自己的 offset（消费点位）来标识消费到的位置， 在消费点位之前表明已经消费过。 这个offset是 分区级别的，每个消费组都会维护订阅的 Topic下的每个分区的offset。<br><strong>kafka并发的粒度是 partition</strong>， 每个 partition对应一个消费者，多个消费者同时进行消费，以此来提高并发量。</p>
+<p><strong>消息轮询：</strong> 消费者 通过轮询 API(poll) 向 服务器定时请求数据，一旦消费者订阅了主题，轮询就会处理群组协调、分区再均衡、发送心跳和获取数据，使得开发者只需要关注从分区返回的数据，然后进行业务处理。</p>
+<p>Kafka的 Consumer Group 是采用Pull 方式来消费消息，每个Consumer 该消费哪个 Partition 的消息需要一套严格的机制来保证。Partition 可以水平无限扩展，随着 Partition 的扩展 Consumer消费的 Partition也会重新分配，这里涉及到 kafka消息消费分配策略，在 Kafka内部存在两种默认的分区分配策略：Range 和RoundRobin，当以下事件发生时，<strong>Kafka将会进行一次分区分配：</strong><br>1.同一个 Consumer Group内新增消费者<br>2.订阅的主题新增Partition<br>3.消费者离开当前所属的 Group，包括Shuts Down或Crashes</p>
+<p>**副本（Replica）： **为更好的做 负载均衡，Kafka 尽量将所有的 Partition均匀分配到整个集群上。<br><strong>部署方式：</strong>一个 Topic 的Partition数量大于Broker的数量，为提高Kafka的容错能力，需要将同一个 Partition的 Replica尽量分散到不同的机器。实际上，如果所有的 Replica 都在同一个Broker上，那一旦该 Broker宕机，该 Partition的所有 Replica都无法工作，也就达不到 备份的效果。<br>同时，如果某个Broker宕机，需要保证它上面的负载可以被 均匀的分配到其它幸存的所有Broker上。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutudyfq29j60zi0pwgpd02.jpg" alt="8A414154-00B7-4EAB-8025-D0CFAEC15B43" width="650" height="350" />
+
+
+
+<h4 id="持久化："><a href="#持久化：" class="headerlink" title="持久化："></a>持久化：</h4><p>Kafka是将 partition数据写在 磁盘(记录消息日志)，是 <strong>追加写入，避免随机 I&#x2F;O 操作，寻址磁盘效率低</strong>。<br>持久化时，partition会先缓存一部分, 放在page cache中，等到 足够多数据量&#x2F;等待一定的时间 再批量写入(flush)。<br>消费者实际上也是从partition中取数据。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuedmg33j61a80nctcs02.jpg" alt="D6797C5D-56AF-4A43-8706-004AEBEE0D7F" width="750" height="400"  />
+
+
+
+<p>生产者,消费者 都是可以有多个的，多个消费者可以组成一个消费者组，如果一个消费者消费三个分区，有消费者组就可以 每个消费者去消费一个分区，消费者组中各个消费者并发消费，以此来提高吞吐量。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuepadv8j618a0isdis02.jpg" alt="899EF880-3E09-42EF-9A2A-7599E1DB5DB9" width="750" height="350"  />
+
+<p>​        如果消费者组中的某个消费者挂了，那么其中有一个消费者就要消费两个 partition；如果只有三个partition，而消费者组有4个消费者，那么一个消费者会空闲。消费者组之间从逻辑上是独立的，如果多加入一个消费者组，无论是新增的消费者组还是原本的消费者组，都能消费topic的全部数据；<br>​        生产者往 topic里丢数据是存在partition上，而 partition持久化到磁盘是 IO顺序访问，并且是先写缓存，隔一段时间或者数据量足够大的时候才批量写入磁盘的。正常的读磁盘数据是需要将 内核态数据拷贝到用户态的，Kafka通过零拷贝方式，直接从内核空间（DMA）到内核空间-Socket buffer，少做了一半拷贝操作。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuez2y0mj61860kegn202.jpg" alt="E20EAB06-EA82-4014-AA89-8ECFADAE9169" width="750" height="350"  />
+
+<p>​        offset 表示消费者的消费进度，每个消费者都有自己的 offset; 每次消费者消费的时候，都会提交这个offset<br>一个消费者组中的某个消费者挂了，但其所在分区可能有存活的消费者，存活的消费者继续去消费，但需要知道挂掉的消费者具体消费到了哪里，这里就需要offset</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutuf9vkrnj618i0ny77c02.jpg" alt="3489FA28-B499-43B6-B4E8-D3C1CD8216FB" width="750" height="400"  />
+
+<p><strong>Kafka 利用二分法来查找对应 offset 的消息位置：</strong></p>
+<ol>
+<li><p>按照二分法找到小于 offset的 segment 的.log 和.index</p>
+</li>
+<li><p>用目标 offset 减去文件名中的 offset得到消息在这个 segment 中的偏移量</p>
+</li>
+<li><p>再次用二分法在 index 文件中找到对应的索引</p>
+</li>
+<li><p>到 log 文件中，顺序查找，直到找到 offset 对应的消息</p>
+</li>
+</ol>
+<p><strong>Kafka是分布式：</strong>往一个 topic丢数据实际上就是 往多个 broker的 partition存储数据，将 partition以消息日志的方式存储起来，通过 顺序访问IO和缓存(等到一定的量或时间) 才真正把数据写到磁盘上，以此来做持久化。<br>单个 partition写入是有顺序的，要保证全局有序 只能写入一个partition； 要消费有序则消费者也只能有一个<br>分布式无法避免 网络抖动&#x2F;机器宕机 等问题的发生，很有可能 消费者A读取数据，还没来得及消费就挂了。<br>Zookeeper 发现消费者A挂了，让消费者B 去消费原本A的分区，等消费者A重连的时候，发现已经重复消费同一条数据了(或消费者超时等等都有可能…)<br>如果 业务上 不允许重复消费，最好 消费者那端做业务上的校验（如果已经消费过就不消费了）</p>
+<h4 id="Kafka-和-其他消息队列的区别？"><a href="#Kafka-和-其他消息队列的区别？" class="headerlink" title="Kafka 和 其他消息队列的区别？"></a>Kafka 和 其他消息队列的区别？</h4><p>  Kafka设计目标：高吞吐量</p>
+<p>1、Kafka操作 序列文件 I &#x2F; O（序列文件 按顺序写，按顺序读），为保证顺序，强制点对点的按顺序传递消息，一个 consumer在分区 中只有一个位置。<br>2、Kafka 不保存消息状态（消息是否被“消费”）一般消息系统需保存消息的状态，并且还需要以随机访问的形式更新消息的状态。<br>而Kafka 保存Consumer在 Topic分区中的位置 offset，offset之前的消息是已“消费”的， offset之后为“未消费”的，offset 可以任意移动，以此消除随机IO。<br>3、Kafka支持 点对点的 批量消息传递<br>4、Kafka 消息存储在 page cache（大小为一页4K ）用于缓存文件的逻辑内容，从而加快对磁盘上映像和数据的访问</p>
+<h4 id="如何保证不丢失消息？"><a href="#如何保证不丢失消息？" class="headerlink" title="如何保证不丢失消息？"></a>如何保证不丢失消息？</h4><p><strong>生产者 ACK机制：</strong><br>Kafka 采用至少一次保证消息不会丢，但可能会重复传输；acks 的默认值即为1，代表消息被 leader 接收之后才算成功发送，可以配置 acks &#x3D; all 代表所有副本都接收到该消息之后，才算真正成功发送。</p>
+<p><strong>设置分区：</strong><br>为保证 leader 可以根据follower 同步消息，一般会为 topic设置 replication.factor &gt;&#x3D; 3；这样就可以保证每个分区(partition) 至少有 3个副本，以确保消息队列的安全性；单机情况下，通过持久化到磁盘来保证消息不丢失 。</p>
+<p><strong>发送消息：</strong><br>Kafka 支持在生产者一侧进行 本地 buffer，累积一定条数才发送，如果这里设置不当会丢消息的。<br>生产者端设置：producer.type&#x3D;async, 默认是 sync；当设置为 async，会大幅提升性能，因为生产者会在本地缓冲消息，并适时批量发送； 如果对可靠性要求高，设置为 sync 同步发送  ；一般需要设置：min.insync.replicas&gt; 1 ，消息至少要被 写入到这么多 follower 才算成功，也是提升数据持久性的一个参数，与acks配合使用。但如果出现两者相等，还需要设置 replication.factor &#x3D; min.insync.replicas + 1 ，避免一个副本挂掉，整个分区无法工作的情况！</p>
+<p><strong>消费者端：</strong><br>消息处理完成前提交offset，可能造成数据的丢失， Consumer默认自动提交 offset(位移)，在后台提交位移前一定要保证消息被正常处理。 如果处理耗时很长，建议把逻辑放到另一个线程中去做，异步提交ack 会提高消费者的响应速度，但容易造成消息丢失。为避免消息丢失，设置 enable.auto.commit&#x3D;false，关闭自动提交位移，在消息被完整处理之后再手动提交位移。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>消息队列</category>
+      </categories>
+      <tags>
+        <tag>消息队列</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>计算机网络概述</title>
+    <url>/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</url>
+    <content><![CDATA[<h2 id="计算机网络概述："><a href="#计算机网络概述：" class="headerlink" title="计算机网络概述："></a>计算机网络概述：</h2><p>网络是把主机连接起来，互连网（internet）是把多种不同的网络连接起来。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvo14kvhj60pe0gkjsy02.jpg" width="350" height="200"  />
+
+<h4 id="主机之间的通信方式"><a href="#主机之间的通信方式" class="headerlink" title="主机之间的通信方式"></a>主机之间的通信方式</h4><p>1.客户-服务器(C&#x2F;S)：客户是服务的请求方，服务器是服务的提供方</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvoxas2uj60ds0b0aa502.jpg" alt="103AEF76-2D90-48D2-8F3F-48F45A280D2D" width="250" height="150"  />
+
+<p>2.对等(P2P):  不区分客户和服务器</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvptl5y4j60d20b0dg002.jpg" alt="240FE4DC-14A2-49AB-8C9F-8F0105C7BF4B" width="250" height="150"  />
+
+<h4 id="分组交换"><a href="#分组交换" class="headerlink" title="分组交换"></a>分组交换</h4><p>每台计算机通信时把数据包进行分组打包，只要在 头部附上本机的信息和组号 就可以多台计算机共用一条通信线路，这样就提高了通信线路的利用率。分组交换过程中发送端计算机发送给路由器，路由器会缓存这部分数据然后再转发给目标计算机。路由器不一定按照队列先进先出然后再发出去，也有可能优先发出一些特殊的数据。<br>每个分组都有首部和尾部，包含源地址和目的地址等控制信息，在同一个传输线路上同时传输多个分组互不影响，因此在同一条传输线路上允许同时传输多个分组，也就是说分组交换不需要占用传输线路。</p>
+<p>网络传输时延：</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvqjh6ovj60l407gjro02.jpg" alt="9DDA2E4C-67B6-42EC-911E-35C0355914AC" width="650" height="200"  />
+
+<p>总时延  &#x3D;  排队时延 +  处理时延 +  传输时延 +  传播时延</p>
+<ol>
+<li>排队时延：分组在路由器的输入队列和输出队列中排队等待的时间，取决于网络当前的通信量。</li>
+<li>处理时延：主机或路由器收到分组时进行处理所需要的时间；例如分析首部、从分组中提取数据、进行差错检验或查找适当的路由等。</li>
+<li>传输时延：主机或路由器传输数据帧所需要的时间。</li>
+</ol>
+<p>4.传播时延：电磁波在信道中传播所需要花费的时间，电磁波传播的速度接近光速。</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvqsrrjjj60gl06rdh002.jpg" alt="FFE6973C-138C-48DB-90FC-3C6794A1DB0D" width="650" height="300"  />
+
+ 
+
+<h4 id="七层协议："><a href="#七层协议：" class="headerlink" title="七层协议："></a>七层协议：</h4><ul>
+<li>应用层 ：为特定 应用程序提供数据传输服务；例如 HTTP、DNS 等协议。数据单位：报文</li>
+<li>表示层 ：数据压缩、加密以及数据描述，使应用程序不必关心在各台主机中数据内部格式不同的问题。</li>
+<li>会话层 ：建立及管理会话。</li>
+<li>传输层 ：为进程提供通用数据传输服务。应用层协议很多，定义通用的传输层协议可以支持不断增多的应用层协议。<br>传输层包括：TCP，UDP</li>
+<li>网络层 ：为主机提供数据传输服务。传输层协议是为主机中的进程提供数据传输服务。网络层把传输层传递下来的报文段或用户数据报封装成分组。</li>
+<li>数据链路层 ：网络层针对的还是主机之间的数据传输服务，而主机之间可以有很多链路，链路层协议就是为同一链路的主机提供数据传输服务。数据链路层把网络层传下来的分组封装成帧。</li>
+<li>物理层 ：在传输媒体上传输数据比特流，而不是指具体的传输媒体。物理层的作用是尽可能屏蔽传输媒体和通信手段的差异，使数据链路层感觉不到这些差异。</li>
+</ul>
+<p><strong>协议的层次、模型：</strong></p>
+<p>OSI 七层模型：<br>应用层： 允许有访问OSI 环境的手段，HTTP，FTP,DNS, SMTP, Telnet<br>表示层： 对数据进行翻译，加密、压缩  JPEG，MPEG<br>会话层： 建立，管理和终止会话 SQL， RPC<br>传输层： 提供不同端系统的进程间通信 TCP，UDP<br>网络层： 提供主机间的通信， IP， ICMP， ARP，<br>数据链路层： 提供网络中点到点之间数据帧的传递PPP，MAC（网桥，交换机）<br>物理层： 提供在物理介质上每一比特的传输 CLOCK， IEEE802.3（中继器，集线器，网关）</p>
+<p>Internet 五层模型：<br>应用层：   将应用程序的 报文交给传输层<br>传输层：  将接收的报文分段，封装TCP&#x2F;UDP头部信息，将报文段传递给网络层<br>网络层：  将接收的报文段封装 IP头部信息，将数据报交给数据链路层<br>数据链路层： 将接收网络层的数据报，封装数据帧头部信息，将数据帧从一个节点通过链路传到另一个节点<br>物理层： 数据链路层负责将一个个数据帧从一点传递到另一点，物理层负责一个个比特从一点传递到另一点</p>
+<h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>HTTP、DNS 、FTP等协议</p>
+<h5 id="传输层：-两种协议"><a href="#传输层：-两种协议" class="headerlink" title="传输层： 两种协议"></a>传输层： 两种协议</h5><p>传输控制协议 TCP，提供面向连接、可靠的数据传输服务，数据单位为报文段；<br>用户数据报协议 UDP，提供无连接、尽最大努力的数据传输服务，数据单位为用户数据报。TCP 主要提供完整性服务，UDP 主要提供及时性服务。</p>
+<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>IP 协议：根据路由表实现IP数据报的路由转发</p>
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gujvrggomrj60zs0k2dj302.jpg" alt="F9F897CF-D0C9-4F9A-A010-3985E6274581" width="680" height="350" />
+
+<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>信道分类： </p>
+<ol>
+<li>广播信道： 一对多通信，一个节点发送的数据能够被广播信道上所有的节点接收到。所有的节点都在同一个广播信道上发送数据，因此需要有专门的控制方法进行协调，避免发生冲突（冲突也叫碰撞）。主要有两种控制方法进行协调，一个是使用信道复用技术，一是使用 CSMA&#x2F;CD 协议。</li>
+<li>点对点信道： 一对一通信： 因为不会发生碰撞，因此也比较简单，使用 PPP 协议进行控制。</li>
+</ol>
+<p>信道复用技术： 频分复用；时分复用；统计时分复用；波分复用；码分复用</p>
+<p>MAC 地址：<br>链路层地址，长度为 6 字节（48 位），用于唯一标识网络适配器（网卡）。一台主机拥有多少个网络适配器就有多少个 MAC 地址。例如笔记本电脑普遍存在无线网络适配器和有线网络适配器，因此就有两个 MAC 地址。</p>
+<p>交换机：<br>有自学习能力，学习的是交换表的内容，交换表中存储着 MAC 地址到接口的映射。正是由于这种自学习能力，因此交换机是一种即插即用设备，不需要网络管理员手动配置交换表内容。</p>
+<p>地址解析协议 ARP<br>网络层实现主机之间的通信，而链路层实现具体每段链路之间的通信。因此在通信过程中，IP 数据报的源地址和目的地址始终不变，而 MAC 地址随着链路的改变而改变。<br>ARP 实现由 IP 地址得到 MAC 地址。</p>
+<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>根据信息在传输线上的传送方向，分为以下三种通信方式：<br>单工通信：单向传输；<br>半双工通信：双向交替传输；<br>全双工通信：双向同时传输</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>请求代理服务器--加密</title>
     <url>/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</url>
     <content><![CDATA[<h2 id="请求代理服务器–加密"><a href="#请求代理服务器–加密" class="headerlink" title="请求代理服务器–加密"></a>请求代理服务器–加密</h2><p><strong>代理服务器：</strong> 提供代理服务的电脑系统或其它类型的网络终端,代替网络用户去取得网络信息。</p>
@@ -1731,56 +1781,6 @@
       </categories>
       <tags>
         <tag>网络</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>消息队列-基础</title>
-    <url>/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</url>
-    <content><![CDATA[<h2 id="1-消息队列（MQ）简介"><a href="#1-消息队列（MQ）简介" class="headerlink" title="1.消息队列（MQ）简介"></a>1.消息队列（MQ）简介</h2><p>生产者不断向消息队列中生产消息，消费者不断的从队列中获取消息；因为消息的生产，消费都是异步的，只关心消息的发送和接收，没有业务逻辑的侵入，这样就实现了生产者和消费者的解耦。</p>
-<h4 id="主要作用："><a href="#主要作用：" class="headerlink" title="主要作用："></a>主要作用：</h4><p><strong>作用：</strong> 异步，解耦，削峰<br><strong>缺点：</strong> 可用性降低，增加系统复杂性（重复消费，消息丢失，消息的顺序消费），数据一致性问题<br><strong>1.系统可用性降低：</strong>  加个 MQ 进来，万一 MQ 挂了，整套系统崩溃<br><strong>2.系统复杂度提高：</strong>  怎么保证消息没有重复消费？怎么 处理消息丢失的情况？怎么保证消息传递的顺序性？<br><strong>3.数据一致性问题：</strong>   A 系统处理完直接返回成功，别人以为你这个请求就成功了；但问题是，如果有ABC 三个系统，AB两个系统写库成功，结果 C 系统写库失败，会导致数据不一致。</p>
-<p><strong>异步：</strong></p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttu3mfp8j60z00j6tao02.jpg" alt="E783098A-79FE-49FA-9879-8F75A90C4012" width="650" height="300"  />
-
-<p><strong>解耦：</strong></p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttugn5p6j60z60dy0u602.jpg" alt="00C596FF-799E-4322-B17A-30EBA35A332F" width="650" height="250"  />
-
-<p><strong>削峰：</strong></p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gutturqacvj610g07u0tp02.jpg" alt="10A377B4-930E-4EAC-8341-7BFF82631B17" width="650" height="200"  />
-
-
-
-<p><strong>事务一致性，分布式事务：</strong>把下单，优惠券，积分 都放在 一个事务里面，要成功一起成功，要失败一起失败</p>
-<p><strong>可用性：</strong>重试机制，下游的业务发生异常，会抛出异常并且要求重新发一次</p>
-<p><strong>接口幂等：</strong><br>分场景去考虑，强校验、弱校验，如跟金钱相关场景就做强校验。<br><strong>强校验：</strong>多个操作放在一个事务里，成功一起成功，失败一起失败。 每次消息过来都根据订单号+业务场景 唯一标识去流水表查，确认有没有这条流水，有就直接return； 没有则执行后面逻辑 。<br><strong>弱校验：</strong>一些不重要的场景，把 <strong>id+场景唯一标识</strong> 作为Redis的key，放到缓存里面（失效时间看场景），一定时间内的这个消息就去 Redis判断。</p>
-<h4 id="消息不丢失："><a href="#消息不丢失：" class="headerlink" title="消息不丢失："></a>消息不丢失：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1guttv4xvkaj60wa06m0tb02.jpg" alt="F82785B0-FC0E-4896-9ABD-8DACC736A73E" width="750" height="200"  />
-
-
-
-<p><strong>生产消息：</strong>生产者发送消息至 Broker，需要处理 Broker的响应 ack，如果 Broker返回写入失败，需要重试发送，当多次发送失败，需要作报警，日志记录等。<br><strong>存储消息：</strong>存储消息阶段需要在 消息刷盘之后再给生产者响应，假设消息写入缓存中就返回响应，那么机器突然断电这消息就没了，而生产者以为已经发送成功了。如果Broker是集群部署，有多副本机制，即消息不仅要写入当前Broker,还需要 写入副本机中。那配置成至少写入两台机子后再给生产者响应。这样就能保证存储的可靠了。<br><strong>消费消息：</strong> 消费者执行完业务逻辑之后，再发送给 Broker消费成功ack </p>
-<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>1.生产者 需要处理好 Broker的响应，出错情况下利用 重试、报警等手段。<br>2.Broker 需要控制响应的时机，单机：消息刷盘后返回响应； 集群多副本：发送至两个副本及以上后再返回响应<br>3.消费者需要在 执行完真正的业务逻辑之后再返回响应给Broker。<br>但要注意 消息可靠性增强，性能就下降了，等待消息刷盘，多副本同步后返回都会影响性能。<br>例如日志的传输可能丢那么一两条关系不大，因此没必要等消息刷盘再响应。</p>
-<h4 id="处理重复消息："><a href="#处理重复消息：" class="headerlink" title="处理重复消息："></a>处理重复消息：</h4><p>收到消息后 Broker已经写入，当时响应由于网络原因，生产者没有收到，然后生产者又重发一次，此时消息就重复了<br>解决消息重复关键点就是 幂等：在业务上处理重复消息所带来的影响。</p>
-<h4 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a><strong>解决方法：</strong></h4><p>1.记录关键key，比如订单ID，假如有重复消息过来，先判断这个ID是否已经被处理过（也可以用全局唯一ID）<br>2.数据库的约束，唯一键</p>
-<h4 id="有序性："><a href="#有序性：" class="headerlink" title="有序性："></a>有序性：</h4><p>保证消息有序性：全局有序，部分有序； 消费方都不要开启并行消费</p>
-<h4 id="全局有序："><a href="#全局有序：" class="headerlink" title="全局有序："></a><strong>全局有序：</strong></h4><p>一个生产者，一个队列分区，一个消费者<br>保证消息的全局有序，只能由一个生产者往Topic发送消息，并且一个Topic内部只能有一个队列（分区），消费者也必须是单线程消费这个队列。这样才能全局有序！ 不过一般情况下不需要全局有序，参照局部有序的方式，生产者通过指定 partKey的方式将消息发送到某一个集群的某一个 partition，以实现消息的全局有序。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttwa4u5xj60wi06egmq02.jpg" alt="78CA15D1-1381-498F-B6F9-0344B8D48EFD" width="650" height="150"  />
-
-
-
-<h4 id="部分有序："><a href="#部分有序：" class="headerlink" title="部分有序："></a>部分有序：</h4><p>将 Topic 内部划分成需要的队列数，把消息通过特定的策略 发往固定的队列中，然后 每个队列对应一个单线程处理的消费者。这样即完成部分有序的需求，又可以通过 队列数量的并发 来提高消息处理效率。</p>
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1guttwpnz18j60wq0didin02.jpg" alt="D791CD54-35B3-49DC-9395-7149BC0DC727" width="650" height="200"  />
-
-<p>使用Hash取模法，让同一个订单发送到同一个队列中，同一个订单多步操作同步进行；顺序消费由消费者业务保证!!!</p>
-<h4 id="处理消息堆积："><a href="#处理消息堆积：" class="headerlink" title="处理消息堆积："></a>处理消息堆积：</h4><p>1.生产者的生产速度与 消费者的消费速度不匹配<br>2.消息 消费失败反复重试<br>3.消费者 消费能力弱，时间长消息积压<br>本身消费能力较弱，优化消费逻辑，尝试批量消费，<br>逻辑已优化了但还是慢，考虑水平扩容，增加Topic的队列数和消费者数量， 队列数一定增加，不然新增加消费者是没东西消费的。<br>一个 Topic中一个队列只会分配给一个消费者。</p>
-<h4 id="实现MQ的有两种主流方式：JMS，AMQP"><a href="#实现MQ的有两种主流方式：JMS，AMQP" class="headerlink" title="实现MQ的有两种主流方式：JMS，AMQP"></a>实现MQ的有两种主流方式：JMS，AMQP</h4><p><strong>两者间的区别和联系：</strong><br>1.JMS 定义了统一的接口，来对消息操作进行统一； AMQP 通过规定协议来统一数据交互的格式<br>2.JMS限定了必须使用 Java语言； AMQP只是协议，不规定实现方式，因此是跨语言的。<br>3.JMS规定了两种消息模型；而 AMQP的消息模型更加丰富</p>
-<p>MQ： 消息队列<br>AMQP： 协议： 实现方式：任何语言<br>JMS： jdk标准 java 只支持两种数据模型，rocketMQ， activeMQ<br>常见MQ产品：</p>
-<p>ActiveMQ：基于JMS<br>RabbitMQ：基于AMQP协议，erlang语言开发，稳定性好<br>RocketMQ：基于JMS，阿里巴巴产品，目前交由Apache基金会<br>Kafka：分布式消息系统，高吞吐量</p>
-<h4 id="Kafka、ActiveMQ、RabbitMQ、RocketMQ-区别："><a href="#Kafka、ActiveMQ、RabbitMQ、RocketMQ-区别：" class="headerlink" title="Kafka、ActiveMQ、RabbitMQ、RocketMQ 区别："></a>Kafka、ActiveMQ、RabbitMQ、RocketMQ 区别：</h4><img src="https://tva1.sinaimg.cn/large/008i3skNly1gutty6zparj61eg0te44v02.jpg" alt="image-20210926104005380" width="850" height="540" />]]></content>
-      <categories>
-        <category>后端</category>
-        <category>消息队列</category>
-      </categories>
-      <tags>
-        <tag>消息队列</tag>
       </tags>
   </entry>
   <entry>

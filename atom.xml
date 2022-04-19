@@ -3,11 +3,11 @@
   <title>TurboCome</title>
   
   
-  <link href="https://github.com/TurboCome/atom.xml" rel="self"/>
+  <link href="https://turbocome.github.io/TurboCome/atom.xml" rel="self"/>
   
-  <link href="https://github.com/TurboCome/"/>
+  <link href="https://turbocome.github.io/TurboCome/"/>
   <updated>2022-04-19T06:44:26.980Z</updated>
-  <id>https://github.com/TurboCome/</id>
+  <id>https://turbocome.github.io/TurboCome/</id>
   
   <author>
     <name>TurboCome</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>集群一致性hash算法</title>
-    <link href="https://github.com/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/"/>
-    <id>https://github.com/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/07/09/Redis/A4-Redis%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7Hash%E7%AE%97%E6%B3%95/</id>
     <published>2022-07-09T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:26.980Z</updated>
     
@@ -33,19 +33,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Redis" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
     
     
-    <category term="Redis" scheme="https://github.com/TurboCome/tags/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/tags/Redis/"/>
     
   </entry>
   
   <entry>
     <title>Redis性能优化</title>
-    <link href="https://github.com/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/"/>
-    <id>https://github.com/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/07/08/Redis/A3-Redis%20%E4%BC%98%E5%8C%96/</id>
     <published>2022-07-08T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:21.341Z</updated>
     
@@ -59,19 +59,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Redis" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
     
     
-    <category term="Redis" scheme="https://github.com/TurboCome/tags/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/tags/Redis/"/>
     
   </entry>
   
   <entry>
     <title>持久化-哨兵/集群</title>
-    <link href="https://github.com/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/"/>
-    <id>https://github.com/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/07/07/Redis/A2-Redis-%E6%8C%81%E4%B9%85%E5%8C%96-%E5%93%A8%E5%85%B5:%E9%9B%86%E7%BE%A4/</id>
     <published>2022-07-07T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:15.608Z</updated>
     
@@ -85,19 +85,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Redis" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
     
     
-    <category term="Redis" scheme="https://github.com/TurboCome/tags/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/tags/Redis/"/>
     
   </entry>
   
   <entry>
     <title>Redis数据结构</title>
-    <link href="https://github.com/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
-    <id>https://github.com/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/07/06/Redis/A1-Redis%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</id>
     <published>2022-07-06T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:05.870Z</updated>
     
@@ -111,19 +111,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Redis" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Redis/"/>
     
     
-    <category term="Redis" scheme="https://github.com/TurboCome/tags/Redis/"/>
+    <category term="Redis" scheme="https://turbocome.github.io/TurboCome/tags/Redis/"/>
     
   </entry>
   
   <entry>
     <title>多线程-AQS详解</title>
-    <link href="https://github.com/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/"/>
-    <id>https://github.com/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/06/09/%E5%A4%9A%E7%BA%BF%E7%A8%8B/5.AQS%E8%AF%A6%E8%A7%A3/</id>
     <published>2022-06-09T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:45.918Z</updated>
     
@@ -137,19 +137,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="多线程" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
     
-    <category term="多线程" scheme="https://github.com/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>多线程-详解知识点</title>
-    <link href="https://github.com/TurboCome/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/"/>
-    <id>https://github.com/TurboCome/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/06/08/%E5%A4%9A%E7%BA%BF%E7%A8%8B/4.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E8%AF%A6%E8%A7%A3%E7%9F%A5%E8%AF%86%E7%82%B9/</id>
     <published>2022-06-08T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:43.408Z</updated>
     
@@ -163,19 +163,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="多线程" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
     
-    <category term="多线程" scheme="https://github.com/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>多线程-编程实战</title>
-    <link href="https://github.com/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/"/>
-    <id>https://github.com/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/06/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B/3.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/</id>
     <published>2022-06-07T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:40.927Z</updated>
     
@@ -189,19 +189,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="多线程" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
     
-    <category term="多线程" scheme="https://github.com/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>多线程-高级</title>
-    <link href="https://github.com/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/"/>
-    <id>https://github.com/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/06/06/%E5%A4%9A%E7%BA%BF%E7%A8%8B/2.%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E9%AB%98%E7%BA%A7/</id>
     <published>2022-06-06T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:37.988Z</updated>
     
@@ -215,19 +215,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="多线程" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
     
-    <category term="多线程" scheme="https://github.com/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>多线程-基础</title>
-    <link href="https://github.com/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/"/>
-    <id>https://github.com/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/06/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/1.%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B-%E5%9F%BA%E7%A1%80/</id>
     <published>2022-06-05T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:35.110Z</updated>
     
@@ -241,19 +241,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="多线程" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
     
-    <category term="多线程" scheme="https://github.com/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
+    <category term="多线程" scheme="https://turbocome.github.io/TurboCome/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/"/>
     
   </entry>
   
   <entry>
     <title>Kafka-高级</title>
-    <link href="https://github.com/TurboCome/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/"/>
-    <id>https://github.com/TurboCome/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/05/09/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/3.Kafka%20%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E9%AB%98%E7%BA%A7/</id>
     <published>2022-05-09T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:11.956Z</updated>
     
@@ -267,19 +267,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="消息队列" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
+    <category term="消息队列" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
     
     
-    <category term="消息队列" scheme="https://github.com/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
+    <category term="消息队列" scheme="https://turbocome.github.io/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
     
   </entry>
   
   <entry>
     <title>Kafka-基础</title>
-    <link href="https://github.com/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/"/>
-    <id>https://github.com/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/05/08/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/2.Kafka%20%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-%E5%9F%BA%E7%A1%80/</id>
     <published>2022-05-08T13:55:19.000Z</published>
     <updated>2022-04-19T06:43:05.340Z</updated>
     
@@ -293,19 +293,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="消息队列" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
+    <category term="消息队列" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
     
     
-    <category term="消息队列" scheme="https://github.com/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
+    <category term="消息队列" scheme="https://turbocome.github.io/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
     
   </entry>
   
   <entry>
     <title>消息队列-基础</title>
-    <link href="https://github.com/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/"/>
-    <id>https://github.com/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/05/07/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/1.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%AE%80%E4%BB%8B/</id>
     <published>2022-05-07T13:55:19.000Z</published>
     <updated>2022-04-19T06:42:58.721Z</updated>
     
@@ -319,19 +319,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="消息队列" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
+    <category term="消息队列" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
     
     
-    <category term="消息队列" scheme="https://github.com/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
+    <category term="消息队列" scheme="https://turbocome.github.io/TurboCome/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"/>
     
   </entry>
   
   <entry>
     <title>MySQL优化实践</title>
-    <link href="https://github.com/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/"/>
-    <id>https://github.com/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/04/13/Mysql/A6-MySQL%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</id>
     <published>2022-04-13T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:51.792Z</updated>
     
@@ -345,19 +345,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
     
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/tags/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/tags/Mysql/"/>
     
   </entry>
   
   <entry>
     <title>TCP/UDP/Http</title>
-    <link href="https://github.com/TurboCome/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/"/>
-    <id>https://github.com/TurboCome/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/04/10/%E7%BD%91%E7%BB%9C/A3-TCP:UDP:Http%E7%9F%A5%E8%AF%86%E7%82%B9/</id>
     <published>2022-04-10T13:55:19.000Z</published>
     <updated>2022-04-19T06:42:49.583Z</updated>
     
@@ -371,19 +371,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="网络" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/"/>
+    <category term="网络" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/"/>
     
     
-    <category term="网络" scheme="https://github.com/TurboCome/tags/%E7%BD%91%E7%BB%9C/"/>
+    <category term="网络" scheme="https://turbocome.github.io/TurboCome/tags/%E7%BD%91%E7%BB%9C/"/>
     
   </entry>
   
   <entry>
     <title>请求代理服务器--加密</title>
-    <link href="https://github.com/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/"/>
-    <id>https://github.com/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/04/09/%E7%BD%91%E7%BB%9C/A2-%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-%E5%8A%A0%E5%AF%86/</id>
     <published>2022-04-09T13:55:19.000Z</published>
     <updated>2022-04-19T06:42:45.310Z</updated>
     
@@ -397,19 +397,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="网络" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/"/>
+    <category term="网络" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/"/>
     
     
-    <category term="网络" scheme="https://github.com/TurboCome/tags/%E7%BD%91%E7%BB%9C/"/>
+    <category term="网络" scheme="https://turbocome.github.io/TurboCome/tags/%E7%BD%91%E7%BB%9C/"/>
     
   </entry>
   
   <entry>
     <title>计算机网络概述</title>
-    <link href="https://github.com/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/"/>
-    <id>https://github.com/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/04/08/%E7%BD%91%E7%BB%9C/A1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0/</id>
     <published>2022-04-08T13:55:19.000Z</published>
     <updated>2022-04-19T06:42:39.889Z</updated>
     
@@ -424,19 +424,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="网络" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/"/>
+    <category term="网络" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/%E7%BD%91%E7%BB%9C/"/>
     
     
-    <category term="网络" scheme="https://github.com/TurboCome/tags/%E7%BD%91%E7%BB%9C/"/>
+    <category term="网络" scheme="https://turbocome.github.io/TurboCome/tags/%E7%BD%91%E7%BB%9C/"/>
     
   </entry>
   
   <entry>
     <title>SQL实践案例</title>
-    <link href="https://github.com/TurboCome/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/"/>
-    <id>https://github.com/TurboCome/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/03/15/Mysql/B2-SQL%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B/</id>
     <published>2022-03-15T13:55:19.000Z</published>
     <updated>2022-04-19T06:45:03.571Z</updated>
     
@@ -451,19 +451,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
     
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/tags/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/tags/Mysql/"/>
     
   </entry>
   
   <entry>
     <title>SQL语法</title>
-    <link href="https://github.com/TurboCome/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/"/>
-    <id>https://github.com/TurboCome/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/03/14/Mysql/B1-SQL%E8%AF%AD%E6%B3%95/</id>
     <published>2022-03-14T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:58.312Z</updated>
     
@@ -477,19 +477,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
     
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/tags/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/tags/Mysql/"/>
     
   </entry>
   
   <entry>
     <title>MySQL扩展</title>
-    <link href="https://github.com/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/"/>
-    <id>https://github.com/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/03/12/Mysql/A5-Mysql%E6%89%A9%E5%B1%95/</id>
     <published>2022-03-12T13:55:36.000Z</published>
     <updated>2022-04-19T06:44:47.975Z</updated>
     
@@ -503,19 +503,19 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
     
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/tags/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/tags/Mysql/"/>
     
   </entry>
   
   <entry>
     <title>数据库隔离级别</title>
-    <link href="https://github.com/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/"/>
-    <id>https://github.com/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</id>
+    <link href="https://turbocome.github.io/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/"/>
+    <id>https://turbocome.github.io/TurboCome/2022/03/11/Mysql/A4-%E6%95%B0%E6%8D%AE%E5%BA%93%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</id>
     <published>2022-03-11T13:55:19.000Z</published>
     <updated>2022-04-19T06:44:43.690Z</updated>
     
@@ -529,12 +529,12 @@
     
     
     
-    <category term="后端" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
+    <category term="后端" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/"/>
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/categories/%E5%90%8E%E7%AB%AF/Mysql/"/>
     
     
-    <category term="Mysql" scheme="https://github.com/TurboCome/tags/Mysql/"/>
+    <category term="Mysql" scheme="https://turbocome.github.io/TurboCome/tags/Mysql/"/>
     
   </entry>
   
