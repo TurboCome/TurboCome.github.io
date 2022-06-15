@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2022-06-15T13:36:00.048Z</updated>
+  <updated>2022-06-15T14:37:53.447Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,30 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>git命令</title>
+    <link href="http://example.com/2022/06/25/F-Linux%E7%B3%BB%E7%BB%9F/git%E5%91%BD%E4%BB%A4/"/>
+    <id>http://example.com/2022/06/25/F-Linux%E7%B3%BB%E7%BB%9F/git%E5%91%BD%E4%BB%A4/</id>
+    <published>2022-06-25T14:31:19.000Z</published>
+    <updated>2022-06-15T14:37:53.447Z</updated>
+    
+    <content type="html"><![CDATA[<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h39avg5vmxj20rw0bmq3r.jpg" alt="470C2702-5AAA-401A-98F4-41C407B441AC" style="zoom:80%;" /><p><strong>1.创建仓库：</strong> git init </p><p><strong>2.克隆一个仓库：</strong></p><p>  检出本地仓库： git clone  &#x2F;path&#x2F;to&#x2F;repository</p><p>  远端服务器：   git clone username@host: &#x2F;path&#x2F;to&#x2F;repository</p><p>3.每次修改代码前一定要 <strong>git pull</strong> 一遍，保证此时本地工作区代码是最新版本，与远端仓库保存同步。</p><p>4.每写一个新需求最好创建一个新分支，不要一直在一个分支上修改；</p><p>master默认为主分支，在其他的分支上开发，完成后将它提交到主分支。</p><p><strong>创建分支：</strong>git branch branch_name;    表示在本地创建了分支branch_name</p><p><strong>切换分支：</strong> git checkout branch_name;  表示切换至分支branch_name</p><p>创建feature_x 分支并切换过去： git checkout -b feature_x</p><p>拉取远程分支branch_name并创建为同名的本地分支 branch_name：git fetch origin branch_name(remote): branch_name(local)</p><p><strong>5.查看修改：</strong> git  status </p><p>提交修改： 分三步：</p><p>添加： git add <filename> ;  </p><p>git add .  将工作区间修改的文件提交至暂存区；</p><p>实际提交改动：git commit -m “代码提交信息” ；此处是提交到 head 上（本地）；</p><p>git commit -m “commit_message” 将暂存区域生成快照并提交。</p><p>在工作目录中， 获取、合并远端改动，合并其他分支到当前分支：git merge <branch></p><p><strong>合并分支：</strong> git merge branch_name.   ex: git merge member-E   表示当前分支与分支member-E进行合并</p><p>合并改动前，可以使用如下命令看差异： git diff <source_branch>  <target_branch></p><p><strong>6.提交改动到远端仓库：</strong>  push的代码一定要是对的，不然容易被人打</p><p>git push origin master;    强制推到 master 上： git push origin HEAD:refs&#x2F;for&#x2F;master</p><h5 id="7-每次需求写完代码提交完毕后，最好删除本地和远程的分支"><a href="#7-每次需求写完代码提交完毕后，最好删除本地和远程的分支" class="headerlink" title="7.每次需求写完代码提交完毕后，最好删除本地和远程的分支"></a>7.每次需求写完代码提交完毕后，最好删除本地和远程的分支</h5><p>删除本地分支： git branch -d branch_name</p><p>删除远程分支： git push origin -delete branch_name</p><p>删掉新建分支： git branch -d feature_x</p><h5 id="8-项目版本回退"><a href="#8-项目版本回退" class="headerlink" title="8.项目版本回退"></a>8.项目版本回退</h5><p>命令行：git reset –hard head^；   回退至上一版本</p><p>命令行：git reset –hard head^^；  回退至前两个版本，当回退的版本较多时可以写为： git reset –hard head-10； 10表示前十个版本</p><p>命令行：git reset –hard revision_number 表示直接回退至当前版本号对应的版本，版本号怎么获取自行百度</p><p>git reflog  查看所有 git 操作记录</p><p>git reset –hard HEAD@{17}：  恢复到某一个版本</p><h5 id="9-文件版本回退（撤销修改）"><a href="#9-文件版本回退（撤销修改）" class="headerlink" title="9.文件版本回退（撤销修改）"></a>9.文件版本回退（撤销修改）</h5><p>git checkout – modefied_file  此时文件写的是路径，想确定修改文件的具体路径可以使用git status查看</p><p><strong>10.修改远程仓库地址：</strong>git remote set-url origin new_url</p><h5 id="11-创建标签："><a href="#11-创建标签：" class="headerlink" title="11.创建标签："></a>11.创建标签：</h5><p>git  tag. 1.0.0.  1b2e1d63ff (id 前10位);  </p><p>git  log 获取提交到id</p><p><strong>12.替换本地改动：</strong>  git checlename&gt; St</p><p>*在项目根目录下执行以下git命令： git config –global credential.helper store</p><p>*执行上述命令后，在 idea中第一次pull或push需要输入用户名和密码，之后就不用再输入了。</p><h4 id="如何将本地一个项目推的github中："><a href="#如何将本地一个项目推的github中：" class="headerlink" title="如何将本地一个项目推的github中："></a>如何将本地一个项目推的github中：</h4><ul><li>首先在github中创建一个仓库，并copy仓库的链接，比如 <a href="mailto:git@github.com">git@github.com</a>:TurboCome&#x2F;lstm_improve.git</li><li>然后再本地项目中，初始化git 仓库：git init</li><li>将项目中需要添加到远端仓库的文件进行添加：git add whq.txt  （git add . 全部添加）</li><li>将暂存区域生成快照并提交: git commit -m “first commit”</li><li>添加远程仓库连接，并为其命名为”origin”(也可自定义名字)：git remote add origin <a href="mailto:git@github.com">git@github.com</a>:TurboCome&#x2F;lstm_improve.git</li><li>将本地项目推送到远端仓库中：git push -u origin master</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;img src=&quot;https://tva1.sinaimg.cn/large/e6c9d24ely1h39avg5vmxj20rw0bmq3r.jpg&quot; alt=&quot;470C2702-5AAA-401A-98F4-41C407B441AC&quot; style=&quot;zoom:80%;&quot; /</summary>
+      
+    
+    
+    
+    <category term="Linux系统" scheme="http://example.com/categories/Linux%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+    <category term="Linux系统" scheme="http://example.com/tags/Linux%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>研究生科研总结</title>
@@ -514,32 +538,6 @@
       
       
     <summary type="html">&lt;p&gt;链接：&lt;a href=&quot;https://leetcode-cn.com/problems/shu-zu-zhong-shu-zi-chu-xian-de-ci-shu-lcof&quot;&gt;https://leetcode-cn.com/problems/shu-zu-zhong-s</summary>
-      
-    
-    
-    
-    <category term="LeetCode" scheme="http://example.com/categories/LeetCode/"/>
-    
-    <category term="数论" scheme="http://example.com/categories/LeetCode/%E6%95%B0%E8%AE%BA/"/>
-    
-    
-    <category term="数论" scheme="http://example.com/tags/%E6%95%B0%E8%AE%BA/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>N进制转换</title>
-    <link href="http://example.com/2022/05/03/Y-LeetCode/H-%E6%95%B0%E8%AE%BA/2.%E8%BF%9B%E5%88%B6%E8%BD%AC%E6%8D%A2_112/"/>
-    <id>http://example.com/2022/05/03/Y-LeetCode/H-%E6%95%B0%E8%AE%BA/2.%E8%BF%9B%E5%88%B6%E8%BD%AC%E6%8D%A2_112/</id>
-    <published>2022-05-03T13:55:19.000Z</published>
-    <updated>2022-04-20T10:22:14.212Z</updated>
-    
-    <content type="html"><![CDATA[<p>给定一个十进制数 M ，以及需要转换的进制数 N 。将十进制数 M 转化为 N 进制数。<br>当 N 大于 10 以后， 应在结果中使用大写字母表示大于 10 的一位，如 ‘A’ 表示此位为 10 ， ‘B’ 表示此位为 11 。<br>若 M 为负数，应在结果中保留负号。<br>M是32位整数，2&lt;&#x3D;N&lt;&#x3D;16.</p><p>输入：  7,2<br>返回值：”111”</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">solve</span> <span class="params">(<span class="type">int</span> M, <span class="type">int</span> N)</span> &#123;</span><br><span class="line">    <span class="type">int</span> sign=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(M&lt;<span class="number">0</span>)&#123;</span><br><span class="line">        sign = -<span class="number">1</span>;</span><br><span class="line">        M = -M;</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="type">StringBuilder</span> <span class="variable">res</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">    <span class="keyword">while</span>(M&gt;<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> M%N;</span><br><span class="line">        <span class="keyword">if</span>(v&gt;=<span class="number">10</span>) res.append( (<span class="type">char</span>)(<span class="string">&#x27;A&#x27;</span>+v-<span class="number">10</span>));</span><br><span class="line">        <span class="keyword">else</span> res.append(v);</span><br><span class="line">        M = M/N;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">String</span> <span class="variable">ans</span> <span class="operator">=</span> res.reverse().toString();</span><br><span class="line">    <span class="keyword">return</span> sign==<span class="number">1</span>? ans: <span class="string">&#x27;-&#x27;</span>+ ans;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>]]></content>
-    
-    
-      
-      
-    <summary type="html">&lt;p&gt;给定一个十进制数 M ，以及需要转换的进制数 N 。将十进制数 M 转化为 N 进制数。&lt;br&gt;当 N 大于 10 以后， 应在结果中使用大写字母表示大于 10 的一位，如 ‘A’ 表示此位为 10 ， ‘B’ 表示此位为 11 。&lt;br&gt;若 M 为负数，应在结果中保留负号</summary>
       
     
     
